@@ -1,0 +1,1897 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Stream Chat — The Message That Survives</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <script type="importmap">
+      {
+        "imports": {
+          "motion": "https://cdn.jsdelivr.net/npm/motion@12/+esm"
+        }
+      }
+    </script>
+    <style>
+      :root {
+        color-scheme: dark;
+
+        /* monochrome palette — all colors live here, nowhere else */
+        --bg: #0a0a0a;
+        --bg-glow-a: rgba(255, 255, 255, 0.07);
+        --bg-glow-b: rgba(255, 255, 255, 0.035);
+        --bg-grid: rgba(255, 255, 255, 0.04);
+
+        --text: #fafafa;
+        --muted: #a3a3a3;
+        --faint: #6b6b6b;
+        --lede: #b5b5b5;
+        --info: #a8a8a8;
+        --note: #7d7d7d;
+        --color-failure: #ff4d4d;
+        --color-success: #4caf50;
+        --color-warning: #ffd60a;
+
+        --line: #262626;
+        --line-strong: #404040;
+        --nav-bg: rgba(10, 10, 10, 0.82);
+        --nav-border: rgba(255, 255, 255, 0.09);
+
+        --button-bg: #161616;
+        --button-border: #333333;
+        --button-hover: #262626;
+        --button-text: #fafafa;
+
+        --accent-bg: #fafafa;
+        --accent-text: #0a0a0a;
+        --accent-border: #fafafa;
+        --focus-ring: #fafafa;
+
+        --progress-from: #fafafa;
+        --progress-to: #525252;
+
+        --eyebrow: #d4d4d4;
+        --emphasis: #fafafa;
+
+        --diagram-border: #2b2b2b;
+        --diagram-from: rgba(24, 24, 24, 0.92);
+        --diagram-to: rgba(10, 10, 10, 0.94);
+        --shadow: rgba(0, 0, 0, 0.55);
+        --shadow-soft: rgba(0, 0, 0, 0.6);
+
+        --node-border: #333333;
+        --node-bg: #141414;
+        --node-small: #a3a3a3;
+        --node-tag: #e5e5e5;
+
+        --connector-from: #e5e5e5;
+        --connector-to: #525252;
+        --connector-arrow: #a3a3a3;
+
+        --phone-border: #3a3a3a;
+        --phone-bg: #101010;
+        --phone-notch: #000000;
+        --phone-head-border: #262626;
+
+        --avatar-from: #e5e5e5;
+        --avatar-to: #525252;
+
+        --signal-on: #fafafa;
+        --signal-off: #6b6b6b;
+
+        --incoming-bg: #1e1e1e;
+        --incoming-text: #e7e7e7;
+
+        --bubble-from: #fafafa;
+        --bubble-to: #c9c9c9;
+        --bubble-text: #0a0a0a;
+        --bubble-shadow: rgba(255, 255, 255, 0.08);
+
+        --status: #a3a3a3;
+        --shimmer-dim: #737373;
+        --shimmer-bright: #ffffff;
+
+        --composer-border: #262626;
+        --composer-text: #8a8a8a;
+        --composer-accent: #fafafa;
+        --input-bg: #0a0a0a;
+        --input-border: #333333;
+        --input-text: #fafafa;
+        --input-placeholder: #6b6b6b;
+        --send-btn-bg: #fafafa;
+        --send-btn-text: #0a0a0a;
+
+        --sim-label: #d4d4d4;
+        --sim-label-dim: #737373;
+        --sim-caption: #a3a3a3;
+
+        --flow-border: #3a3a3a;
+        --flow-bg: #151515;
+        --flow-arrow: #737373;
+        --flow-good-border: #fafafa;
+        --flow-good-bg: #1c1c1c;
+
+        --storage-border: #2e2e2e;
+        --storage-bg: #121212;
+        --storage-line: #525252;
+        --storage-arrow: #a3a3a3;
+
+        --cues-border: #333333;
+        --cues-bg: rgba(16, 16, 16, 0.96);
+        --cues-title: #e5e5e5;
+        --cues-text: #d4d4d4;
+        --cues-time: #8a8a8a;
+
+        --scrollcue: #636363;
+
+        --font-sans:
+          "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+        --font-mono:
+          "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-snap-type: y proximity;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        overflow-x: hidden;
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+      }
+      body:before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background:
+          radial-gradient(
+            ellipse 55% 55% at 75% 25%,
+            var(--bg-glow-a),
+            transparent 75%
+          ),
+          radial-gradient(
+            ellipse 40% 50% at 15% 80%,
+            var(--bg-glow-b),
+            transparent 75%
+          );
+      }
+      body:after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        opacity: 0.5;
+        background-image:
+          linear-gradient(var(--bg-grid) 1px, transparent 1px),
+          linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+        background-size: 72px 72px;
+        mask-image: radial-gradient(
+          ellipse 80% 70% at 50% 30%,
+          black 20%,
+          transparent 75%
+        );
+      }
+      nav {
+        position: fixed;
+        z-index: 20;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px clamp(20px, 4vw, 70px);
+        background: var(--nav-bg);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--nav-border);
+      }
+      .brand {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+      }
+      .brand b {
+        color: var(--faint);
+        font-weight: 400;
+      }
+      .navright {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .count {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      button {
+        font: inherit;
+        font-family: var(--font-mono);
+        cursor: pointer;
+        border: 1px solid var(--button-border);
+        background: var(--button-bg);
+        color: var(--button-text);
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        transition:
+          transform 0.2s ease,
+          background 0.2s ease,
+          border-color 0.2s ease,
+          color 0.2s ease;
+      }
+      button:hover {
+        background: var(--button-hover);
+        transform: translateY(-1px);
+      }
+      button:active {
+        transform: translateY(0) scale(0.98);
+      }
+      button:focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 3px;
+      }
+      .accent {
+        background: var(--accent-bg);
+        border-color: var(--accent-border);
+        color: var(--accent-text);
+      }
+      .accent:hover {
+        background: var(--accent-bg);
+        filter: brightness(0.88);
+      }
+      .progress {
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--progress-from),
+          var(--progress-to)
+        );
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 20%;
+        transform-origin: left center;
+        transition: width 0.4s;
+      }
+      .scene {
+        min-height: 100svh;
+        scroll-snap-align: start;
+        padding: 105px clamp(20px, 6vw, 110px) 72px;
+        display: flex;
+        align-items: center;
+        position: relative;
+      }
+      .scene-inner {
+        max-width: 1350px;
+        width: 100%;
+        margin: auto;
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        color: var(--eyebrow);
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        font-size: 11px;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .eyebrow:before {
+        content: "";
+        width: 24px;
+        height: 1px;
+        background: var(--line-strong);
+        display: inline-block;
+      }
+      h1 {
+        font-size: clamp(55px, 7vw, 95px);
+        line-height: 0.98;
+        letter-spacing: -0.075em;
+        margin: 18px 0 25px;
+        max-width: 1050px;
+        font-weight: 650;
+      }
+      h2 {
+        font-size: clamp(42px, 5vw, 78px);
+        line-height: 1.02;
+        letter-spacing: -0.065em;
+        margin: 15px 0 18px;
+        font-weight: 650;
+      }
+      h1 em,
+      h2 em,
+      .finish em {
+        font-style: normal;
+        color: var(--emphasis);
+        position: relative;
+        white-space: nowrap;
+      }
+      h1 em:after,
+      h2 em:after,
+      .finish em:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0.06em;
+        height: 2px;
+        background: var(--line-strong);
+      }
+      .lede {
+        font-size: clamp(16px, 1.6vw, 23px);
+        line-height: 1.5;
+        color: var(--lede);
+        max-width: 780px;
+        letter-spacing: -0.01em;
+      }
+      .lede-wide {
+        margin-top: 32px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        gap: clamp(25px, 5vw, 90px);
+      }
+      .diagram {
+        border: 1px solid var(--diagram-border);
+        background: linear-gradient(
+          145deg,
+          var(--diagram-from),
+          var(--diagram-to)
+        );
+        border-radius: 28px;
+        padding: clamp(20px, 3vw, 38px);
+        box-shadow: 0 28px 95px var(--shadow);
+        position: relative;
+        overflow: hidden;
+      }
+      .diagram:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg, var(--bg-glow-a), transparent 30%);
+        opacity: 0.6;
+      }
+      .arch {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+      .node {
+        width: 100%;
+        max-width: 460px;
+        padding: 20px;
+        border: 1px solid var(--node-border);
+        background: var(--node-bg);
+        border-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        transition:
+          border-color 0.25s ease,
+          transform 0.25s ease;
+      }
+      .node:hover {
+        border-color: var(--line-strong);
+        transform: translateX(4px);
+      }
+      .node strong {
+        font-size: 18px;
+        letter-spacing: -0.02em;
+      }
+      .node small {
+        color: var(--node-small);
+        font-size: 12px;
+        font-family: var(--font-mono);
+      }
+      .node b {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: var(--node-tag);
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        padding: 6px 10px;
+        white-space: nowrap;
+      }
+      .connector {
+        height: 34px;
+        width: 2px;
+        background: linear-gradient(var(--connector-from), var(--connector-to));
+        position: relative;
+        transform-origin: top center;
+      }
+      .connector:after {
+        content: "↓";
+        position: absolute;
+        bottom: -8px;
+        left: -5px;
+        color: var(--connector-arrow);
+        font-size: 15px;
+      }
+      .phone {
+        max-width: 380px;
+        width: 100%;
+        height: 475px;
+        margin: auto;
+        border: 1px solid var(--phone-border);
+        border-radius: 33px;
+        background: var(--phone-bg);
+        box-shadow: 0 30px 90px var(--shadow-soft);
+        position: relative;
+        overflow: hidden;
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
+      .phone:before {
+        content: "";
+        position: absolute;
+        top: 9px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 75px;
+        height: 16px;
+        background: var(--phone-notch);
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        z-index: 2;
+      }
+      .phone-head {
+        height: 76px;
+        border-bottom: 1px solid var(--phone-head-border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 20px 20px 8px;
+        font-weight: 650;
+        letter-spacing: -0.01em;
+      }
+      .avatar {
+        width: 31px;
+        height: 31px;
+        border-radius: 50%;
+        background: linear-gradient(
+          120deg,
+          var(--avatar-from),
+          var(--avatar-to)
+        );
+        border: 1px solid var(--line-strong);
+      }
+      .signal {
+        margin-left: auto;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--signal-on);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .signal:before {
+        content: "";
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        display: inline-block;
+      }
+      .signal.off {
+        color: var(--signal-off);
+      }
+      .chat-body {
+        padding: 26px 18px;
+      }
+      .incoming {
+        display: inline-block;
+        background: var(--incoming-bg);
+        color: var(--incoming-text);
+        border: 1px solid var(--line);
+        border-radius: 16px 16px 16px 5px;
+        padding: 14px;
+        font-size: 14px;
+      }
+      .outgoing {
+        position: absolute;
+        right: 18px;
+        top: 170px;
+        text-align: right;
+        transition:
+          opacity 0.45s,
+          transform 0.45s;
+      }
+      .bubble {
+        background: linear-gradient(
+          120deg,
+          var(--bubble-from),
+          var(--bubble-to)
+        );
+        color: var(--bubble-text);
+        padding: 15px 19px;
+        border-radius: 17px 17px 5px 17px;
+        font-size: 14px;
+        font-weight: 550;
+        box-shadow: 0 12px 25px var(--bubble-shadow);
+        max-width: fit-content;
+        margin-left: auto;
+      }
+      .status {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        margin-top: 9px;
+        color: var(--status);
+        height: 20px;
+      }
+      .shimmer {
+        background: linear-gradient(
+          100deg,
+          var(--shimmer-dim) 15%,
+          var(--shimmer-bright) 45%,
+          var(--shimmer-dim) 70%
+        );
+        background-size: 250% 100%;
+        background-clip: text;
+        color: transparent;
+        animation: shine 1.6s linear infinite;
+      }
+      @keyframes shine {
+        to {
+          background-position-x: -250%;
+        }
+      }
+      .composer {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        padding: 12px;
+        border-top: 1px solid var(--composer-border);
+        color: var(--composer-text);
+        font-size: 13px;
+        font-family: var(--font-mono);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .composer-input {
+        flex: 1;
+        min-width: 0;
+        font: inherit;
+        font-family: var(--font-mono);
+        color: var(--input-text);
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 999px;
+        padding: 10px 14px;
+        outline: none;
+      }
+      .composer-input::placeholder {
+        color: var(--input-placeholder);
+      }
+      .composer-input:focus {
+        border-color: var(--focus-ring);
+      }
+      .composer-send {
+        flex: none;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--send-btn-bg);
+        border-color: var(--send-btn-bg);
+        color: var(--send-btn-text);
+        font-size: 15px;
+      }
+      .composer-send:hover {
+        filter: brightness(0.85);
+        background: var(--send-btn-bg);
+        transform: translateY(-1px);
+      }
+      .composer-send:disabled {
+        opacity: 0.4;
+        cursor: default;
+        transform: none;
+      }
+      .load-body {
+        padding: 26px 18px 70px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 16px;
+        min-height: 300px;
+      }
+      .pulse-stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 0 10px;
+      }
+      .pulse-ring {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        border: 5px solid var(--line-strong);
+        border-top-color: var(--color-failure);
+        animation: pulseSpin 1s ease-in-out infinite;
+      }
+      @keyframes pulseSpin {
+        0%,
+        100% {
+          transform: rotate(0deg) scale(1);
+          border-color: var(--line-strong);
+          border-top-color: var(--color-failure);
+          box-shadow: none;
+        }
+        50% {
+          transform: rotate(180deg) scale(1.3);
+          border-color: var(--color-failure);
+          border-top-color: var(--color-failure);
+          box-shadow: 0 0 34px var(--color-failure);
+        }
+      }
+      .load-status-flash {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        animation: flashRed 1s ease-in-out infinite;
+      }
+      @keyframes flashRed {
+        0%,
+        100% {
+          color: var(--status);
+          opacity: 0.65;
+        }
+        50% {
+          color: var(--color-failure);
+          opacity: 1;
+        }
+      }
+      .load-elapsed-big {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+      }
+      .load-done {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .load-done[hidden] {
+        display: none;
+      }
+      #loadPulse[hidden] {
+        display: none;
+      }
+      .composer-locked {
+        opacity: 0.55;
+        user-select: none;
+      }
+      .composer-locked .composer-input {
+        pointer-events: none;
+      }
+      .sim-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        color: var(--sim-label);
+      }
+      .sim-label span:last-child {
+        color: var(--sim-label-dim);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 5px 9px;
+      }
+      .sim-label.alert span:first-child {
+        color: var(--text);
+      }
+      .sim-controls {
+        display: flex;
+        gap: 9px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      .sim-caption {
+        text-align: center;
+        font-family: var(--font-mono);
+        color: var(--sim-caption);
+        min-height: 42px;
+        font-size: 13px;
+        margin-top: 16px;
+      }
+      #beforePhone .outgoing {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      #beforePhone.show .outgoing {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #beforePhone.lost .outgoing {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      #ghostPhone .outgoing {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      #ghostPhone.show .outgoing {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #ghostPhone.stuck .bubble {
+        opacity: 1;
+      }
+      #ghostPhone.stuck .status {
+        color: var(--status);
+      }
+      .ghost-whisper {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        margin-top: 4px;
+        margin-left: auto;
+        max-width: 220px;
+        text-align: right;
+        color: var(--color-warning);
+        opacity: 0;
+        transition: opacity 0.45s;
+      }
+      #ghostPhone.stuck .ghost-whisper {
+        opacity: 1;
+      }
+      #afterPhone .outgoing {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      #afterPhone.show .outgoing {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      #afterPhone.pending .bubble {
+        opacity: 0.6;
+      }
+      #afterPhone.delivered .bubble {
+        opacity: 1;
+      }
+      .compare {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+      }
+      .compare .phone {
+        height: 405px;
+        max-width: 320px;
+      }
+      .compare .phone-head {
+        height: 67px;
+      }
+      .compare .outgoing {
+        top: 160px;
+      }
+      .compare .sim-label {
+        margin: 0 0 16px;
+      }
+      .flow {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 32px 0;
+        flex-wrap: wrap;
+      }
+      .flowbox {
+        font-family: var(--font-mono);
+        border: 1px solid var(--flow-border);
+        background: var(--flow-bg);
+        border-radius: 999px;
+        padding: 12px 18px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+      .flowarr {
+        color: var(--flow-arrow);
+        font-size: 18px;
+        font-family: var(--font-mono);
+      }
+      .flowbox.good {
+        border-color: var(--flow-good-border);
+        background: var(--flow-good-bg);
+        color: var(--text);
+      }
+      .info {
+        margin-top: 24px;
+        color: var(--info);
+        font-size: 14px;
+        line-height: 1.65;
+      }
+      .note {
+        font-family: var(--font-mono);
+        color: var(--note);
+        font-size: 12px;
+        line-height: 1.6;
+      }
+      .storage {
+        display: grid;
+        gap: 18px;
+      }
+      .storage-row {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 20px 22px;
+        border: 1px solid var(--storage-border);
+        border-radius: 18px;
+        background: var(--storage-bg);
+      }
+      .storage-icon {
+        font-size: 20px;
+        font-family: var(--font-mono);
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        border: 1px solid var(--line-strong);
+        border-radius: 12px;
+        background: var(--button-bg);
+        color: var(--text);
+      }
+      .storage-row strong {
+        display: block;
+        font-size: 18px;
+        letter-spacing: -0.02em;
+      }
+      .storage-row small {
+        display: block;
+        font-family: var(--font-mono);
+        color: var(--node-small);
+        margin-top: 5px;
+        font-size: 13px;
+      }
+      .storage-line {
+        height: 26px;
+        width: 2px;
+        background: var(--storage-line);
+        margin-left: 42px;
+        position: relative;
+      }
+      .storage-line:after {
+        content: "↓";
+        position: absolute;
+        bottom: -11px;
+        left: -5px;
+        color: var(--storage-arrow);
+      }
+      .finish {
+        font-size: clamp(52px, 7vw, 110px);
+        letter-spacing: -0.075em;
+        line-height: 1.02;
+        font-weight: 700;
+        max-width: 1100px;
+      }
+      .cues {
+        position: fixed;
+        z-index: 30;
+        right: 18px;
+        bottom: 18px;
+        width: min(390px, calc(100vw - 36px));
+        padding: 20px;
+        border: 1px solid var(--cues-border);
+        border-radius: 18px;
+        background: var(--cues-bg);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 15px 55px var(--shadow-soft);
+        display: none;
+      }
+      .cues.on {
+        display: block;
+      }
+      .cues strong {
+        display: block;
+        margin-bottom: 8px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--cues-title);
+      }
+      .cues p {
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--cues-text);
+        margin: 0;
+      }
+      .cue-time {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--cues-time);
+        margin-bottom: 8px;
+      }
+      .scrollcue {
+        position: absolute;
+        bottom: 25px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        color: var(--scrollcue);
+        animation: bob 2.2s ease-in-out infinite;
+      }
+      @keyframes bob {
+        0%,
+        100% {
+          transform: translate(-50%, 0);
+          opacity: 0.7;
+        }
+        50% {
+          transform: translate(-50%, 6px);
+          opacity: 1;
+        }
+      }
+      /* motion.js initial states — only applied when JS+Motion is active */
+      .motion-on [data-reveal] {
+        opacity: 0;
+      }
+      .motion-on [data-reveal="phone"] {
+        opacity: 0;
+      }
+      @media (max-width: 900px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .scene {
+          padding-top: 100px;
+        }
+        .compare {
+          grid-template-columns: 1fr 1fr;
+        }
+        .compare .phone {
+          height: 330px;
+        }
+        .compare .outgoing {
+          top: 130px;
+        }
+        .phone-head {
+          font-size: 12px;
+        }
+        .scene {
+          min-height: unset;
+          padding-bottom: 100px;
+        }
+        h1 {
+          font-size: clamp(55px, 11vw, 100px);
+        }
+      }
+      @media (max-width: 600px) {
+        .compare {
+          grid-template-columns: 1fr;
+        }
+        .compare .phone {
+          height: 360px;
+        }
+        .scene {
+          min-height: 100svh;
+        }
+        .navright {
+          gap: 5px;
+        }
+        button {
+          padding: 9px 12px;
+        }
+        .brand {
+          font-size: 10px;
+        }
+        .phone {
+          height: 420px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *:before,
+        *:after {
+          animation: none !important;
+          transition: none !important;
+        }
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="brand">JOY-2476 <b>/</b> STREAM CHAT</div>
+      <div class="navright">
+        <span class="count" id="counter">01 / 07</span
+        ><button id="cuesToggle" title="Show speaker cues">Speaker cues</button
+        ><button id="prev">↑</button
+        ><button class="accent" id="next">Next ↓</button>
+      </div>
+      <div class="progress" id="progress"></div>
+    </nav>
+    <section class="scene" id="architecture">
+      <div class="scene-inner layout">
+        <div data-reveal>
+          <div class="eyebrow">01 / 07</div>
+          <h1 data-hero>One conversation.<br /><em>Multiple layers.</em></h1>
+          <p class="lede">
+            Client connects -&gt; Channel owns conversation state. Messages are
+            what users actually see.
+          </p>
+        </div>
+        <div class="diagram arch" data-reveal="phone">
+          <div class="node" data-stagger>
+            <div>
+              <strong>Our app</strong><br />
+              <small>Renders the conversation</small>
+            </div>
+            <b>UI</b>
+          </div>
+          <div class="connector" data-connector></div>
+          <div class="node" data-stagger>
+            <div>
+              <strong>Stream client</strong><br /><small
+                >Auth · WebSocket · connection</small
+              >
+            </div>
+            <b>CLIENT</b>
+          </div>
+          <div class="connector" data-connector></div>
+          <div class="node" data-stagger>
+            <div>
+              <strong>Channel</strong><br /><small
+                >Conversation · participants · state</small
+              >
+            </div>
+            <b>CHANNEL</b>
+          </div>
+          <div class="connector" data-connector></div>
+          <div class="node" data-stagger>
+            <div>
+              <strong>Messages</strong><br /><small
+                >Individual sends and statuses</small
+              >
+            </div>
+            <b>MESSAGE</b>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="scene" id="loading">
+      <div class="scene-inner layout">
+        <div data-reveal>
+          <div class="eyebrow">02 / 07</div>
+          <h2>Slow.<br /><em>Empty. Every time.</em></h2>
+          <p class="lede">
+            Before local caching, every open was a cold start: blank screen while
+            the app watched the channel over the network.
+          </p>
+          <p class="info">No cache. No instant paint. Just a spinner and waiting.</p>
+        </div>
+        <div class="diagram" data-reveal="phone">
+          <div class="sim-label alert">
+            <span>BEFORE · COLD START, NO CACHE</span><span>BLOCKED UI</span>
+          </div>
+          <div class="phone" id="loadPhone" data-tilt>
+            <div class="phone-head">
+              <span class="avatar"></span>Care chat
+              <span class="signal off" id="loadSignal">● LOADING</span>
+            </div>
+            <div class="load-body">
+              <div class="pulse-stage" id="loadPulse">
+                <div class="pulse-ring"></div>
+              </div>
+              <div class="load-status-flash" id="loadStatus">LOADING…</div>
+              <span class="load-elapsed-big" id="loadElapsed">0.0s</span>
+              <div class="load-done" id="loadDone" hidden>
+                <div class="incoming">How can I help today?</div>
+                <div class="incoming">Are you still there?</div>
+              </div>
+            </div>
+            <div class="composer composer-locked">
+              <span class="composer-input">Message…</span><span>➤</span>
+            </div>
+          </div>
+          <div class="sim-caption" id="loadCaption">Watch the old cold start.</div>
+          <div class="sim-controls">
+            <button id="loadReplay" class="accent">▶ Replay slow load</button>
+          </div>
+        </div>
+      </div>
+      <div class="scrollcue">SCROLL TO SENT THEN GONE ↓</div>
+    </section>
+    <section class="scene" id="before">
+      <div class="scene-inner layout">
+        <div data-reveal>
+          <div class="eyebrow">03 / 07</div>
+          <h2>Sent.<em style="margin-left: 24px; color: var(--color-failure)">Then gone.</em></h2>
+          <p class="lede">
+            Messages can disappear while the channel is loading or realtime
+            delivery is unreliable.
+          </p>
+          <p class="info">
+            Did it send? Did the other person get it? Should I send it again?
+          </p>
+        </div>
+        <div class="diagram" data-reveal="phone">
+          <div class="sim-label alert">
+            <span>BEFORE · DIRECT CHANNEL SEND</span><span>UNRELIABLE UI</span>
+          </div>
+          <div class="phone" id="beforePhone" data-tilt>
+            <div class="phone-head">
+              <span class="avatar"></span>Care chat
+              <span class="signal" id="beforeSignal">● ONLINE</span>
+            </div>
+            <div class="chat-body">
+              <div class="incoming">How can I help today?</div>
+              <div class="outgoing">
+                <div class="bubble" id="beforeBubble"></div>
+                <div class="status"></div>
+              </div>
+            </div>
+            <form class="composer" id="beforeForm">
+              <input
+                class="composer-input"
+                id="beforeInput"
+                type="text"
+                placeholder="Message…"
+                autocomplete="off"
+                maxlength="140"
+                aria-label="Type a message to test the before behavior"
+              />
+              <button
+                type="submit"
+                class="composer-send"
+                aria-label="Send message"
+              >
+                ➤
+              </button>
+            </form>
+          </div>
+          <div class="sim-caption" id="beforeCaption">
+            Type a message + hit send.
+          </div>
+        </div>
+      </div>
+      <div class="scrollcue">SCROLL TO THE SECOND FAILURE ↓</div>
+    </section>
+    <section class="scene" id="stuck">
+      <div class="scene-inner layout">
+        <div data-reveal>
+          <div class="eyebrow">04 / 07</div>
+          <h2>
+            <span style="color: var(--color-failure)">Failed.</span>
+            <em style="margin-left: 12px">Looks sent.</em>
+          </h2>
+          <p class="lede">
+            Messages can stick around when the send failed.
+          </p>
+        </div>
+        <div class="diagram" data-reveal="phone">
+          <div class="sim-label alert">
+            <span>BEFORE · GHOST MESSAGE</span><span>FALSE CONFIRMED</span>
+          </div>
+          <div class="phone" id="ghostPhone" data-tilt>
+            <div class="phone-head">
+              <span class="avatar"></span>Care chat
+              <span class="signal" id="ghostSignal">● ONLINE</span>
+            </div>
+            <div class="chat-body">
+              <div class="incoming">How can I help today?</div>
+              <div class="outgoing">
+                <div class="bubble" id="ghostBubble"></div>
+                <div class="status" id="ghostStatus"></div>
+                <div class="ghost-whisper">hahaha, this never went through</div>
+              </div>
+            </div>
+            <form class="composer" id="ghostForm">
+              <input
+                class="composer-input"
+                id="ghostInput"
+                type="text"
+                placeholder="Message…"
+                autocomplete="off"
+                maxlength="140"
+                aria-label="Type a message to test the ghost message behavior"
+              />
+              <button
+                type="submit"
+                class="composer-send"
+                aria-label="Send message"
+              >
+                ➤
+              </button>
+            </form>
+          </div>
+          <div class="sim-caption" id="ghostCaption">
+            Type a message + hit send.
+          </div>
+        </div>
+      </div>
+      <div class="scrollcue">SCROLL TO THE FIX ↓</div>
+    </section>
+    <section class="scene" id="after">
+      <div class="scene-inner layout">
+        <div data-reveal>
+          <div class="eyebrow">05 / 07</div>
+          <h2>
+            <span style="color: var(--color-success)">Visible.</span>
+            <em style="margin-left: 12px">from send.</em>
+        </h2>
+          <div class="flow">
+            <div class="flowbox" data-stagger>SEND</div>
+            <span class="flowarr">→</span>
+            <div class="flowbox" data-stagger>SENDING…</div>
+            <span class="flowarr">→</span>
+            <div class="flowbox good" data-stagger>CONFIRMED</div>
+          </div>
+          <p class="info">
+            Pending messages have opacity and an animated status, flipping to timestamp on success.
+          </p>
+        </div>
+        <div class="diagram" data-reveal="phone">
+          <div class="sim-label">
+            <span>AFTER · STREAM-MANAGED LIFECYCLE</span>
+            <span>VISIBLE STATE</span>
+          </div>
+          <div class="phone" id="afterPhone" data-tilt>
+            <div class="phone-head">
+              <span class="avatar"></span>Care chat
+              <span class="signal" id="afterSignal">● ONLINE</span>
+            </div>
+            <div class="chat-body">
+              <div class="incoming">How can I help today?</div>
+              <div class="outgoing">
+                <div class="bubble" id="afterBubble"></div>
+                <div class="status" id="afterStatus"></div>
+              </div>
+            </div>
+            <form class="composer" id="afterForm">
+              <input
+                class="composer-input"
+                id="afterInput"
+                type="text"
+                placeholder="Message…"
+                autocomplete="off"
+                maxlength="140"
+                aria-label="Type a message to test the optimistic send"
+              />
+              <button
+                type="submit"
+                class="composer-send"
+                aria-label="Send message"
+              >
+                ➤
+              </button>
+            </form>
+          </div>
+          <div class="sim-caption" id="afterCaption">
+            Type a message + hit send.
+          </div>
+          <div class="sim-controls">
+            <button id="afterAdvance">Next state →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="scene" id="offline">
+      <div class="scene-inner layout">
+        <div data-reveal>
+          <div class="eyebrow">06 / 07</div>
+          <h2>Local first.<br /><em>Sync later.</em></h2>
+          <p class="lede">
+            Stream uses SQLite to persist cached chat data, then reconciles with
+            the server when connectivity returns.
+          </p>
+          <p class="info">
+            The provider can expose the client and cached conversation state
+            earlier, without waiting for the full channel watch to complete.
+          </p>
+          <p class="note">
+            Offline queueing does not guarantee delivery; pending, failed, and
+            confirmed states are distinct.
+          </p>
+        </div>
+        <div class="diagram storage" data-reveal="phone">
+          <div class="storage-row" data-stagger>
+            <div class="storage-icon">▣</div>
+            <div>
+              <strong>Our chat UI</strong
+              ><small>Reads Stream-managed channel state</small>
+            </div>
+          </div>
+          <div class="storage-line" data-connector></div>
+          <div class="storage-row" data-stagger>
+            <div class="storage-icon">◫</div>
+            <div>
+              <strong>Stream + local SQLite</strong
+              ><small>Cached messages · eligible pending tasks</small>
+            </div>
+          </div>
+          <div class="storage-line" data-connector></div>
+          <div class="storage-row" data-stagger>
+            <div class="storage-icon">⇄</div>
+            <div>
+              <strong>Stream backend</strong
+              ><small>Sync and retry when connectivity returns</small>
+            </div>
+          </div>
+          <p class="note">
+            One owner for message state: Stream. No parallel application message
+            store.
+          </p>
+        </div>
+      </div>
+      <div class="scrollcue">SCROLL TO THE TAKEAWAY ↓</div>
+    </section>
+    <section class="scene" id="finish">
+      <div class="scene-inner" data-reveal>
+        <div class="eyebrow">07 / 07</div>
+        <div class="finish" data-hero>
+          Chat that behaves predictably, even when connections aren't.
+        </div>
+        <ul class="lede lede-wide">
+          <li>Immediate feedback</li>
+          <li>Visible sending state</li>
+          <li>Cached conversations</li>
+          <li>Explicit failure handling</li>
+          <li>Regression tests</li>
+        </ul>
+        <div class="flow">
+          <div class="flowbox" data-stagger>VISIBLE</div>
+          <span class="flowarr">→</span>
+          <div class="flowbox" data-stagger>RESILIENT</div>
+          <span class="flowarr">→</span>
+          <div class="flowbox good" data-stagger>PREDICTABLE</div>
+        </div>
+      </div>
+    </section>
+    <div class="cues" id="cuePanel">
+      <div class="cue-time" id="cueTime"></div>
+      <strong id="cueTitle"></strong>
+      <p id="cueText"></p>
+    </div>
+    <script>
+      const scenes = [...document.querySelectorAll(".scene")],
+        cueData = [
+          [
+            "0:00–0:35",
+            "Architecture",
+            "“We use Stream for chat. The client handles our connection, the channel represents the conversation, and messages are the individual things users see. Our UI renders Stream’s state—and that matters when something goes wrong.”",
+          ],
+          [
+            "0:35–1:00",
+            "Before · Slow load",
+            "“Before caching, opening chat was a cold start every time: a red pulsing spinner, nothing to read until the channel arrived over the network.” [REPLAY the slow load, watch it pulse for 5 seconds]",
+          ],
+          [
+            "1:00–1:25",
+            "Before · Gone",
+            "“Previously, you could send a message and it might disappear. That didn’t necessarily mean the server hadn’t received it. With channel loading or unreliable realtime updates, the UI could lose the message. Do you send again? Do you wait?” [TYPE a message + SEND, pause when bubble disappears]",
+          ],
+          [
+            "1:25–1:55",
+            "Before · Stuck",
+            "“The opposite failure: the message stays and looks sent — full bubble, timestamp, no error — but it never actually succeeded. Nothing tells you it failed, so nobody retries. That false confirmed state is worse than disappearing.” [TYPE a message + SEND, pause when it sits there with a timestamp but OFFLINE]",
+          ],
+          [
+            "1:55–2:30",
+            "After",
+            "“Now our custom composer uses Stream’s message-input handler. The optimistic bubble appears immediately. While it’s sending, it fades and says ‘Sending…’. When confirmed, the timestamp replaces it.” [TYPE a message + SEND, pause on Sending…, then advance]",
+          ],
+          [
+            "2:30–3:00",
+            "Offline",
+            "“SQLite lets Stream cache chat data locally. We expose the client and channel state earlier so cached messages can hydrate without waiting for the whole connection. Stream remains the one owner of message state.”",
+          ],
+          [
+            "3:00–3:20",
+            "Close",
+            "“We also handle failed sends, timeouts and realtime recovery, with regression tests. This isn’t just chat without internet. It’s chat that behaves predictably when the internet isn’t reliable.”",
+          ],
+        ];
+      let active = 0;
+      const total = scenes.length;
+      function goto(n) {
+        scenes[Math.max(0, Math.min(total - 1, n))].scrollIntoView({
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "instant"
+            : "smooth",
+        });
+      }
+      function update(n) {
+        active = n;
+        document.getElementById("counter").textContent =
+          String(n + 1).padStart(2, "0") +
+          " / " +
+          String(total).padStart(2, "0");
+        document.getElementById("progress").style.width =
+          ((n + 1) / total) * 100 + "%";
+        const c = cueData[n];
+        document.getElementById("cueTime").textContent = c[0];
+        document.getElementById("cueTitle").textContent = c[1];
+        document.getElementById("cueText").textContent = c[2];
+      }
+      const observer = new IntersectionObserver(
+        (entries) => {
+          let best = entries
+            .filter((e) => e.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (best) update(scenes.indexOf(best.target));
+        },
+        { threshold: [0.3, 0.5, 0.7] },
+      );
+      scenes.forEach((s) => observer.observe(s));
+      document.getElementById("prev").onclick = () => goto(active - 1);
+      document.getElementById("next").onclick = () => goto(active + 1);
+      document.getElementById("cuesToggle").onclick = () => {
+        let el = document.getElementById("cuePanel");
+        el.classList.toggle("on");
+        document.getElementById("cuesToggle").textContent =
+          el.classList.contains("on") ? "Hide cues" : "Speaker cues";
+      };
+      let bt = [],
+        gt = [],
+        at = [];
+      function clearTimers(a) {
+        a.forEach(clearTimeout);
+        a.length = 0;
+      }
+      function takeText(id, text) {
+        const el = document.getElementById(id);
+        const typed = (text ?? "").trim();
+        if (typed) {
+          el.textContent = typed;
+          return typed;
+        }
+        return el.textContent.trim() || null;
+      }
+      function before(text) {
+        clearTimers(bt);
+        const p = document.getElementById("beforePhone"),
+          s = document.getElementById("beforeSignal"),
+          c = document.getElementById("beforeCaption");
+        const msg = takeText("beforeBubble", text);
+        if (!msg) {
+          p.classList.remove("show", "lost");
+          s.className = "signal";
+          s.textContent = "● ONLINE";
+          c.textContent = "Type a message below, then hit send — live.";
+          return;
+        }
+        p.classList.remove("show", "lost");
+        // force reflow so show/lost transitions re-trigger on repeat sends
+        void p.offsetWidth;
+        s.className = "signal";
+        s.textContent = "● ONLINE";
+        c.textContent = "User presses Send…";
+        bt.push(
+          setTimeout(() => {
+            p.classList.add("show");
+            c.textContent = "The message may initially appear…";
+          }, 350),
+        );
+        bt.push(
+          setTimeout(() => {
+            s.classList.add("off");
+            s.textContent = "● UNSTABLE";
+            c.textContent = "Channel loading or realtime connection trouble.";
+          }, 1600),
+        );
+        bt.push(
+          setTimeout(() => {
+            p.classList.add("lost");
+            c.textContent =
+              "The message disappears. Was it delivered? Try typing another.";
+          }, 2900),
+        );
+      }
+      function ghost(text) {
+        clearTimers(gt);
+        const p = document.getElementById("ghostPhone"),
+          s = document.getElementById("ghostSignal"),
+          st = document.getElementById("ghostStatus"),
+          c = document.getElementById("ghostCaption");
+        const msg = takeText("ghostBubble", text);
+        if (!msg) {
+          p.classList.remove("show", "stuck");
+          s.className = "signal";
+          s.textContent = "● ONLINE";
+          st.textContent = "";
+          c.textContent = "Type a message below, then hit send — live.";
+          return;
+        }
+        p.classList.remove("show", "stuck");
+        void p.offsetWidth;
+        s.className = "signal";
+        s.textContent = "● ONLINE";
+        st.textContent = "";
+        c.textContent = "User presses Send…";
+        gt.push(
+          setTimeout(() => {
+            p.classList.add("show");
+            st.textContent = "10:42";
+            c.textContent =
+              "The message appears with a timestamp. Looks delivered.";
+          }, 350),
+        );
+        gt.push(
+          setTimeout(() => {
+            s.classList.add("off");
+            s.textContent = "● OFFLINE";
+            c.textContent =
+              "Connection drops — but the UI never updates the message.";
+          }, 1600),
+        );
+        gt.push(
+          setTimeout(() => {
+            p.classList.add("stuck");
+          }, 2900),
+        );
+      }
+      let aphase = 0;
+      function afterPhase(n, text) {
+        aphase = n;
+        const p = document.getElementById("afterPhone"),
+          s = document.getElementById("afterSignal"),
+          st = document.getElementById("afterStatus"),
+          c = document.getElementById("afterCaption");
+        const msg = takeText("afterBubble", text);
+        if (!msg) {
+          p.classList.remove("show", "pending", "delivered");
+          s.className = "signal";
+          s.textContent = "● ONLINE";
+          st.textContent = "";
+          c.textContent = "Type a message below, then hit send — live.";
+          return;
+        }
+        p.classList.remove("show", "pending", "delivered");
+        // re-apply motion tilt transform base (motion sets inline transform; keep class only)
+        s.className = "signal";
+        s.textContent = "● ONLINE";
+        if (n === 0) {
+          st.textContent = "";
+          c.textContent = "Type a message + hit send.";
+          return;
+        }
+        p.classList.add("show");
+        if (n === 1) {
+          p.classList.add("pending");
+          st.innerHTML = '<span class="shimmer">Sending…</span>';
+          c.textContent = "Optimistic bubble appears immediately.";
+        }
+        if (n === 2) {
+          p.classList.add("pending");
+          s.classList.add("off");
+          s.textContent = "● OFFLINE";
+          st.innerHTML = '<span class="shimmer">Sending…</span>';
+          c.textContent =
+            "The message remains pending; delivery is not yet confirmed.";
+        }
+        if (n === 3) {
+          p.classList.add("delivered");
+          st.textContent = "10:42";
+          c.textContent =
+            "After successful send confirmation, the timestamp appears.";
+        }
+      }
+      function after(text) {
+        clearTimers(at);
+        afterPhase(0, text);
+        at.push(setTimeout(() => afterPhase(1), 400));
+        at.push(setTimeout(() => afterPhase(2), 2200));
+        at.push(setTimeout(() => afterPhase(3), 4800));
+      }
+      document.getElementById("beforeForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = document.getElementById("beforeInput");
+        if (!input.value.trim()) {
+          document.getElementById("beforeCaption").textContent =
+            "Type a message first, then hit send.";
+          input.focus();
+          return;
+        }
+        before(input.value);
+        input.value = "";
+        input.focus();
+      });
+      document.getElementById("ghostForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = document.getElementById("ghostInput");
+        if (!input.value.trim()) {
+          document.getElementById("ghostCaption").textContent =
+            "Type a message first, then hit send.";
+          input.focus();
+          return;
+        }
+        ghost(input.value);
+        input.value = "";
+        input.focus();
+      });
+      document.getElementById("afterForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = document.getElementById("afterInput");
+        if (!input.value.trim()) {
+          document.getElementById("afterCaption").textContent =
+            "Type a message first, then hit send.";
+          input.focus();
+          return;
+        }
+        const value = input.value;
+        input.value = "";
+        input.focus();
+        after(value);
+      });
+      document.getElementById("afterAdvance").onclick = () => {
+        clearTimers(at);
+        afterPhase((aphase + 1) % 4);
+      };
+      let lt = [],
+        loadTick = null;
+      function slowLoad() {
+        clearTimers(lt);
+        if (loadTick) {
+          clearInterval(loadTick);
+          loadTick = null;
+        }
+        const pulse = document.getElementById("loadPulse"),
+          done = document.getElementById("loadDone"),
+          status = document.getElementById("loadStatus"),
+          elapsed = document.getElementById("loadElapsed"),
+          signal = document.getElementById("loadSignal"),
+          caption = document.getElementById("loadCaption");
+        pulse.hidden = false;
+        status.hidden = false;
+        elapsed.hidden = false;
+        done.hidden = true;
+        signal.className = "signal off";
+        signal.textContent = "● LOADING";
+        const t0 = performance.now();
+        elapsed.textContent = "0.0s";
+        loadTick = setInterval(() => {
+          elapsed.textContent = ((performance.now() - t0) / 1000).toFixed(1) + "s";
+        }, 100);
+        status.textContent = "LOADING…";
+        caption.textContent = "Cold start — no cache. Pulsing until the channel arrives…";
+        lt.push(
+          setTimeout(() => {
+            caption.textContent = "Still pulsing. Nothing to read yet.";
+          }, 1800),
+        );
+        lt.push(
+          setTimeout(() => {
+            caption.textContent = "Every open paid this cost before SQLite caching.";
+          }, 3400),
+        );
+        lt.push(
+          setTimeout(() => {
+            pulse.hidden = true;
+            status.hidden = true;
+            elapsed.hidden = true;
+            done.hidden = false;
+            signal.className = "signal";
+            signal.textContent = "● ONLINE";
+            clearInterval(loadTick);
+            loadTick = null;
+            caption.textContent =
+              "Finally readable after 5.0s of red pulsing. Replay it, then feel the cached version later.";
+          }, 5000),
+        );
+      }
+      document.getElementById("loadReplay").onclick = slowLoad;
+      document.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName))
+          return;
+        if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+          e.preventDefault();
+          goto(active + 1);
+        }
+        if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+          e.preventDefault();
+          goto(active - 1);
+        }
+        if (e.key.toLowerCase() === "r") {
+          if (active === 1) slowLoad();
+          if (active === 2) before();
+          if (active === 3) ghost();
+          if (active === 4) after();
+        }
+        if (e.key.toLowerCase() === "c")
+          document.getElementById("cuesToggle").click();
+      });
+      update(0);
+      // Live presentation mode: send-phones start empty, no autoplay.
+      // Each send demo runs only when you type + send (or press R with text present).
+      before("");
+      ghost("");
+      afterPhase(0, "");
+      slowLoad();
+    </script>
+    <script type="module">
+      // Motion (motion.dev) enhancements — progressive, monochrome-safe, reduced-motion aware.
+      const reduceMotion = matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      if (!reduceMotion) {
+        try {
+          const { animate, inView, scroll, spring } = await import("motion");
+          document.documentElement.classList.add("motion-on");
+          document.body.classList.add("motion-on");
+
+          // Scroll-linked progress bar (transform, not width, for smoothness)
+          const bar = document.getElementById("progress");
+          if (bar && scroll) {
+            scroll(animate(bar, { scaleX: [0.2, 1] }, { ease: "linear" }));
+          }
+
+          // Generic reveal: fade + rise + de-blur
+          document
+            .querySelectorAll('[data-reveal]:not([data-reveal="phone"])')
+            .forEach((el) => {
+              animate(
+                el,
+                {
+                  opacity: [0, 1],
+                  y: [28, 0],
+                  filter: ["blur(8px)", "blur(0px)"],
+                },
+                { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+              );
+              // Re-run subtly on re-entry
+              inView(el, () => {
+                animate(
+                  el,
+                  {
+                    opacity: [0.35, 1],
+                    y: [18, 0],
+                    filter: ["blur(6px)", "blur(0px)"],
+                  },
+                  { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+                );
+              });
+            });
+
+          // Phones / diagrams: scale + rise with spring
+          document.querySelectorAll('[data-reveal="phone"]').forEach((el) => {
+            inView(
+              el,
+              () => {
+                animate(
+                  el,
+                  { opacity: [0, 1], y: [44, 0], scale: [0.96, 1] },
+                  { type: "spring", stiffness: 90, damping: 18 },
+                );
+              },
+              { amount: 0.35 },
+            );
+          });
+
+          // Hero lines: quick blur-in on load
+          document.querySelectorAll("[data-hero]").forEach((el, i) => {
+            animate(
+              el,
+              {
+                opacity: [0, 1],
+                y: [36, 0],
+                filter: ["blur(10px)", "blur(0px)"],
+              },
+              { duration: 0.9, delay: 0.08 * i, ease: [0.22, 1, 0.36, 1] },
+            );
+          });
+
+          // Stagger groups (nodes / rows / flow pills) per scene
+          document.querySelectorAll(".scene").forEach((scene) => {
+            const items = scene.querySelectorAll("[data-stagger]");
+            if (!items.length) return;
+            inView(
+              scene,
+              () => {
+                animate(
+                  items,
+                  { opacity: [0, 1], x: [-14, 0] },
+                  { duration: 0.5, delay: (i) => i * 0.09, ease: "easeOut" },
+                );
+              },
+              { amount: 0.4 },
+            );
+          });
+
+          // Connectors draw downward
+          document.querySelectorAll("[data-connector]").forEach((el) => {
+            inView(
+              el,
+              () =>
+                animate(
+                  el,
+                  { scaleY: [0, 1], opacity: [0, 1] },
+                  { duration: 0.5, ease: "easeOut" },
+                ),
+              { amount: 0.8 },
+            );
+          });
+
+          // Subtle 3D tilt on phones (desktop pointers only)
+          if (matchMedia("(pointer: fine)").matches) {
+            document.querySelectorAll("[data-tilt]").forEach((card) => {
+              let raf = 0;
+              card.addEventListener("mousemove", (e) => {
+                cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(() => {
+                  const r = card.getBoundingClientRect();
+                  const px = (e.clientX - r.left) / r.width - 0.5;
+                  const py = (e.clientY - r.top) / r.height - 0.5;
+                  animate(
+                    card,
+                    {
+                      rotateX: -py * 7,
+                      rotateY: px * 9,
+                      transformPerspective: 900,
+                    },
+                    { duration: 0.25, ease: "easeOut" },
+                  );
+                });
+              });
+              card.addEventListener("mouseleave", () => {
+                animate(
+                  card,
+                  { rotateX: 0, rotateY: 0 },
+                  spring({ stiffness: 180, damping: 20 }),
+                );
+              });
+            });
+          }
+
+          // Button press micro-spring
+          document.querySelectorAll("button").forEach((btn) => {
+            btn.addEventListener("pointerdown", () =>
+              animate(btn, { scale: [1, 0.95] }, { duration: 0.12 }),
+            );
+            btn.addEventListener("pointerup", () =>
+              animate(
+                btn,
+                { scale: [0.95, 1] },
+                spring({ stiffness: 500, damping: 22 }),
+              ),
+            );
+          });
+        } catch (err) {
+          // Offline / CDN blocked: core deck still works, motion just skips.
+          console.warn("Motion unavailable, using CSS fallback.", err);
+        }
+      }
+    </script>
+  </body>
+</html>
