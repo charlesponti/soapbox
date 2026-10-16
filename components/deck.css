@@ -1,0 +1,20 @@
+/* YouTube Slide System — component styles (SYSTEM.md §9).
+   Components are LIGHT DOM on purpose: they inherit the deck's tokens
+   (--bg/--ink/--line/--panel) and the Geist stacks, so a component can
+   never drift off-system. Never restyle a component inside a deck. */
+
+/* ---------- <deck-chat> : the ONLY way a conversation may appear ---------- */
+.deck-chat{border:1px solid var(--line);background:var(--panel);padding:22px;display:flex;flex-direction:column;gap:12px}
+.deck-chat .chat-head{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--g1);display:flex;justify-content:space-between;margin-bottom:2px}
+.deck-chat chat-msg{display:block;max-width:86%;padding:13px 17px;font-size:17px;line-height:1.45;border:1px solid #3a3a3a;color:#eee}
+.deck-chat chat-msg .who{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;margin-bottom:6px;color:var(--g1)}
+.deck-chat chat-msg[from="user"]{align-self:flex-end;background:#fff;color:#000;border-color:#fff}
+.deck-chat chat-msg[from="user"] .who{color:#555}
+.deck-chat chat-msg[from="ai"]{align-self:flex-start}
+.deck-chat .pending{display:none!important}
+.deck-chat .think{align-self:flex-start;border:1px solid #3a3a3a;padding:13px 17px;display:flex;gap:6px;align-items:center}
+.deck-chat .think i{width:7px;height:7px;border-radius:50%;background:var(--g1);display:block;animation:deckpulse 1s infinite}
+.deck-chat .think i:nth-child(2){animation-delay:.15s}
+.deck-chat .think i:nth-child(3){animation-delay:.3s}
+@keyframes deckpulse{0%,100%{opacity:.25}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.deck-chat .think i{animation:none}}
