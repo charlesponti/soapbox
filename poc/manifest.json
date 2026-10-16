@@ -1,0 +1,30 @@
+[
+ {
+  "chunk": "c1.mp3",
+  "start": 0.0,
+  "duration": 9.24
+ },
+ {
+  "chunk": "c2.mp3",
+  "start": 9.24,
+  "duration": 8.592
+ },
+ {
+  "chunk": "c3.mp3",
+  "start": 17.832,
+  "duration": 10.44
+ },
+ {
+  "chunk": "c4.mp3",
+  "start": 28.272,
+  "duration": 6.768
+ },
+ {
+  "chunk": "c5.mp3",
+  "start": 35.04,
+  "duration": 10.008
+ },
+ {
+  "total": 45.048
+ }
+]
