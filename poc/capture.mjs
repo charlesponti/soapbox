@@ -8,7 +8,7 @@
 // not in a standard location. On a GPU machine you can also drive a headed
 // browser the same way — the CDP calls are identical.
 import { spawn } from 'node:child_process';
-import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { writeFileSync, readFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -17,6 +17,18 @@ const ROOT = dirname(POC);
 const URL = 'file://' + join(ROOT, 'stage-poc.html');
 const OUT = join(POC, 'frames');
 const PORT = 9333;
+// Inter-frame pause. The loop is round-trip-bound (each captureScreenshot is a
+// synchronous CDP call, ~40ms here); this sleep adds on top of that. Measured
+// on a GPU Mac (16 Oct 2026): 30ms -> ~14fps, 0ms -> ~24fps. Override with
+// POC_SLEEP_MS to trade throughput for lower CPU.
+const SLEEP_MS = Number(process.env.POC_SLEEP_MS ?? 30);
+// Single-source the cue offset from the durable timing artifact instead of
+// hardcoding it: the slice fires on the start of chunk c3 (poc/manifest.json).
+const manifest = JSON.parse(readFileSync(join(POC, 'manifest.json'), 'utf8'));
+const pocOpts = {
+  sliceAtMs: Math.round(manifest.find(m => m.chunk === 'c3.mp3').start * 1000),
+  doneAtMs: Math.round(manifest.find(m => m.total != null).total * 1000) + 1500,
+};
 const CANDIDATES = [
   process.env.CHROME_BIN,
   '/opt/meta-chromium/chrome',
@@ -31,7 +43,12 @@ rmSync(OUT, { recursive: true, force: true }); mkdirSync(OUT, { recursive: true 
 const chrome = spawn(CHROME, ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage',
   `--remote-debugging-port=${PORT}`, '--user-data-dir=/tmp/soapbox-poc-chrome',
   '--window-size=1600,900', '--hide-scrollbars', '--force-device-scale-factor=1',
-  '--mute-audio', 'about:blank'], { stdio: 'ignore' });
+  '--mute-audio',
+  // Keep the renderer unthrottled so the deck's animations run at full rate
+  // between captures (Chrome otherwise background-throttles the page).
+  '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding',
+  '--disable-background-timer-throttling', '--disable-features=CalculateNativeWinOcclusion',
+  'about:blank'], { stdio: 'ignore' });
 let ws;
 try {
   let target = null;
@@ -65,7 +82,7 @@ try {
   console.log('Motion loaded:', motion, '| fonts:', await evaluate('document.fonts.status'));
 
   const shots = []; const tStart = Date.now();
-  console.log('start ->', await evaluate('window.__pocStart()'));
+  console.log('start ->', await evaluate(`window.__pocStart(${JSON.stringify(pocOpts)})`));
   let done = 0, n = 0, lastPoll = 0;
   while (true) {
     const r = await send('Page.captureScreenshot', { format: 'jpeg', quality: 70 });
@@ -77,7 +94,7 @@ try {
     if (now - lastPoll > 1500) { lastPoll = now;
       done = await evaluate('window.__marks.done||0'); if (done) break; }
     if (now - tStart > 70000) break;
-    await sleep(30);
+    await sleep(SLEEP_MS);
   }
   writeFileSync(join(OUT, 'frames.json'), JSON.stringify(shots));
   console.log('marks:', JSON.stringify(await evaluate('window.__marks')));

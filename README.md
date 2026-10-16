@@ -14,4 +14,4 @@ HTML scenes the presenter talks over. Black & white, Geist, Motion library.
   `deck-chat.js`). Conversation-style examples must use `<deck-chat>`;
   see SYSTEM.md §9.
 
-Hosted preview of the deck: https://muse.ai/s/the-next-token-slides-xbl6vrgoxpxrxhxz
+Published deck: https://charlesponti.github.io/soapbox/next-token

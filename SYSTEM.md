@@ -86,7 +86,10 @@ nodes in turn, badges lighting up in sequence, word tiles landing, machine
 parts installing — uses the SAME step interval everywhere, declared once
 in the deck as `const BEAT = 900` (milliseconds). No scene may hardcode
 its own step value; if the pacing ever changes, it changes in that one
-constant and changes everywhere. The 80ms entrance stagger and the
+constant and changes everywhere. The deck publishes that one value as
+`window.DECK_BEAT`; components read it rather than declaring their own step, so
+a sequence that crosses the deck/component boundary stays on the same beat. The
+80ms entrance stagger and the
 scoreboard counter's total duration are not progressive sequences and are
 exempt.
 
@@ -150,7 +153,7 @@ is not a sequence of illustrations; it is ONE accumulating diagram. Rules:
 ## 9. Components — the library, and the conversation rule (added 16 Oct 2026)
 
 Reusable scene pieces live as real web components in
-`~/workspace/youtube-slide-system/components/` (`deck.css` + one JS file per
+`components/` (`deck.css` + one JS file per
 component). This exists so agents never hand-roll a styled element: **if a
 component exists for it, use the component as-is; if a needed piece doesn't
 exist, add it to the library first, then use it.** Components are light DOM

@@ -14,7 +14,18 @@
    prefers-reduced-motion: everything renders final-state immediately. */
 (function(){
   if (customElements.get('deck-chat')) return;
-  const beat = () => window.DECK_BEAT || 900;
+  // SYSTEM.md §4: the deck declares the ONE progressive beat and publishes it as
+  // window.DECK_BEAT; components consume it rather than declaring their own
+  // step. DEFAULT_BEAT is the non-authoritative fallback for standalone
+  // embedding of the component outside a deck, and must equal the deck's BEAT.
+  const DEFAULT_BEAT = 900;
+  let warnedBeat = false;
+  const beat = () => {
+    if (window.DECK_BEAT) return window.DECK_BEAT;
+    if (!warnedBeat) { warnedBeat = true;
+      console.warn('<deck-chat>: window.DECK_BEAT is not set by the deck; falling back to ' + DEFAULT_BEAT + 'ms (SYSTEM.md §4).'); }
+    return DEFAULT_BEAT;
+  };
   const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   class DeckChat extends HTMLElement {

@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Sync PoC media is workspace-only (poc/README.md): regenerate, never commit.
+# The durable artifact is poc/manifest.json; the audio, frames, stills and
+# rendered MP4 are not.
+poc/audio/
+poc/frames/
+poc/*.mp3
+poc/*.mp4
+poc/still-*.jpg

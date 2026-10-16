@@ -2,7 +2,7 @@
 <!-- NEXT TOKEN — YouTube deck v2 (NARRATIVE BUILD, 16 Oct 2026).
      Structure: BUILD ORDER — one machine assembles across the deck, one part
      per step; the deck's scenes are the script's steps (plan v2).
-     System: ~/workspace/youtube-slide-system/SYSTEM.md v1 (+ §8 narrative decks).
+     System: SYSTEM.md v1 (+ §8 narrative decks) — see the repo root.
      Semantic accent for this deck: NONE. Colour appears only as Monotone Red
      on the character's mark (cover + close), per Accent Law sanction 1. -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -311,20 +311,27 @@ update(0);
 <style>nav,#cuePanel,.scrollcue{display:none!important}html{scroll-behavior:auto!important}</style>
 <script>
 window.__marks={};
-window.__pocStart=function(){
+// Stage driver. The cue offset is single-sourced from poc/manifest.json and
+// injected by the capture scripts (capture.mjs / capture60.mjs); the fallbacks
+// only cover a manual, un-injected run. Driver timing lands within ~4ms.
+window.__pocStart=function(opts){
+  opts=opts||{};
+  var sliceAt=(opts.sliceAtMs!=null)?opts.sliceAtMs:17832;
+  var doneAt=(opts.doneAtMs!=null)?opts.doneAtMs:46500;
   var t0=performance.now(); window.__marks.t0=t0;
   scenes[1].scrollIntoView({behavior:'instant'});
   window.__marks.jump=performance.now();
-  setTimeout(function(){ window.__marks.sliceCalled=performance.now(); playSlices(); }, 17832);
-  setTimeout(function(){ window.__marks.done=performance.now(); }, 46500);
+  setTimeout(function(){ window.__marks.sliceCalled=performance.now(); playSlices(); }, sliceAt);
+  setTimeout(function(){ window.__marks.done=performance.now(); }, doneAt);
   return 'started';
 };
 </script>
 </body></html>
-<!-- ACCENT AUDIT (SYSTEM.md §2): colour appears in exactly 2 components, both
+<!-- ACCENT AUDIT (SYSTEM.md §2): colour appears in exactly 3 components, all
      Monotone Red #E4181B under sanction 1 (the character's mark):
      1. nav brand mark (red square, every scene's chrome)
      2. close scene inline mark after the final line
+     3. inline favicon (red square glyph, in <head>)
      Semantic accent for this deck: NONE. Everything else is #000/#fff/greys.
      The machine's "installed" highlight is white-on-black inversion (the same
      device as the loop nodes in v1), not a colour. -->
