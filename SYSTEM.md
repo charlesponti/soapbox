@@ -95,7 +95,8 @@ exempt.
 
 ## 5. Presenter machinery (inherited from the supplied deck, kept)
 
-- Fixed top bar: brand (series / video), scene counter `01 / 09`, Speaker
+- Fixed top bar: brand (series / video), scene counter `01 / 10`
+  (zero-padded `NN / NN`, total = the deck's scene count), Speaker
   cues toggle, Prev / Next.
 - Speaker cues panel: per scene — time range, segment title, and the talk
   track (condensed from the video script; the full script lives in the video
