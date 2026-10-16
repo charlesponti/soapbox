@@ -40,8 +40,12 @@ node poc/capture.mjs          # writes poc/frames/ (frames.json + JPEGs)
 # the obvious next step when this graduates from PoC to pipeline.
 ```
 
-Narration chunks for the reference run live in `audio/` (`c1`–`c5.mp3`,
-concatenated into `step1-audio.mp3`).
+Narration chunks for the reference run (`c1`–`c5.mp3`, concatenated into
+`step1-audio.mp3`) and the proof MP4 are media, so they are NOT in git —
+they live in Wyatt's workspace (`youtube-slide-system/poc/`) and regenerate
+from the episode script in `../..`-adjacent goal files. The manifest above
+is the durable artifact: re-render the five lines, measure, and the offsets
+must match it.
 
 ## Findings (measured, not vibes)
 
