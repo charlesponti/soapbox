@@ -1,0 +1,147 @@
+---
+import Deck from '../layouts/Deck.astro';
+const planCode = `<span class="kw">const</span> plan = {
+  requiresLookup: <span class="kw">true</span>,
+  steps: [
+    { tool: <span class="kw">'trip_history'</span>,
+      purpose: <span class="kw">'Find the Tokyo trip dates'</span>,
+      dependsOn: [], arguments: {} },
+    { tool: <span class="kw">'finance_recent_transactions'</span>,
+      purpose: <span class="kw">'Find spending during those dates'</span>,
+      dependsOn: [<span class="kw">'trip_history'</span>],
+      arguments: {} },
+  ],
+};`;
+const recheckCode = `<span class="kw">const</span> step = plannedSteps.find(
+  (c) => c.tool === toolName,
+);
+<span class="kw">if</span> (!step)
+  <span class="kw">return</span> <span class="cm">'Tool is outside the plan'</span>;
+
+<span class="kw">const</span> missing = step.dependsOn.filter(
+  (d) => !completedPlannedTools.has(d),
+);
+<span class="kw">if</span> (missing.length)
+  <span class="kw">return</span> <span class="cm">'Waiting for prerequisite tool(s)'</span>;`;
+const guardCode = `<span class="kw">if</span> (!definition.readOnly &amp;&amp; !definition.standaloneWrite) {
+  <span class="kw">const</span> hasCompletedRead = plannedSteps.some(
+    (candidate) =&gt;
+      completedPlannedTools.has(candidate.tool) &amp;&amp;
+      (runtime.getToolDefinition(candidate.tool)
+        ?.readOnly ?? <span class="kw">false</span>),
+  );
+  <span class="kw">if</span> (!hasCompletedRead)
+    <span class="kw">return</span> <span class="kw">'Requires a preceding read'</span>;
+}`;
+---
+<Deck title="The Tool Call Is Not the Plan" brand="THE TOOL CALL" series="EPISODE 02 — THE CONTRACT">
+<deck-cue time="COVER" title="The title">Open on the title. Name the claim: the tool call is an event; the plan is the contract around it.</deck-cue>
+<deck-cue time="STEP 1 · THE GAP" title="Routing is not planning">Open on the mistake: we ask which capability a request belongs to and call that a plan. Routing tells you the domain; it does not tell you what to do. The agent still has to pick the narrowest tool, keep the dates, order the calls, and stop before a write.</deck-cue>
+<deck-cue time="STEP 2 · FOUR DECISIONS" title="Four decisions">Name them: capability selection, exact tool selection, argument construction, authorization. A broad router answers only the first. Almost everything that goes wrong in production tool use lives in the other three.</deck-cue>
+<deck-cue time="STEP 3 · THE PLAN" title="The plan object">Represent the plan separately from the capability filter. Each step carries a tool, a purpose, its dependencies and arguments — and the arguments are deliberately empty. The finance call waits for the dates trip_history returns; it never invents them.</deck-cue>
+<deck-cue time="STEP 4 · DEPENDENCIES" title="Why order matters">An array of names cannot explain order. A dependency carries a reason and what it provides: the trip range, the start date, the end date. Keep independent reads independent — a forced global sequence teaches the model to fail the test.</deck-cue>
+<deck-cue time="STEP 5 · VALIDATE" title="Validate first">Before anything runs, the schema rejects the six ways a plan lies: unknown tools, duplicates, forward dependencies, cycles, invalid arguments, and a write with no read behind it. Cheap, total, and blind to meaning.</deck-cue>
+<deck-cue time="STEP 6 · THE RE-CHECK" title="Necessary, not sufficient">A syntactically valid plan can still be semantically wrong. So every model-requested call is checked again at runtime against the plan. The model proposes. The runtime decides — and a refusal is a first-class outcome, not an error.</deck-cue>
+<deck-cue time="STEP 7 · AUTHORIZATION" title="Not permission">A valid plan does not authorize deletion. Ownership, idempotency, cancellation, confirmation policy, prerequisites — the runtime still checks all of it. This is the write guard: no preceding read, no write.</deck-cue>
+<deck-cue time="STEP 8 · THE EXEMPTION" title="Standalone writes">One opt-in exemption: a write that depends on no existing record — creating a task, saving a note, remembering a fact. Declared per tool. Every other write still needs a preceding read.</deck-cue>
+<deck-cue time="STEP 9 · THE RECORD" title="The trace">Record the proposed plan and the actual trace. That is what lets you classify a failure: wrong capability, wrong tool, a lost identifier, broken ordering, or a safety violation. Without it, every failure looks the same.</deck-cue>
+<deck-cue time="STEP 10 · CLOSE" title="The contract">The tool call is an event. The plan is the contract around the event. Next: what happens when the contract says stop — and wait for a human.</deck-cue>
+
+<deck-scene id="s0" title="EPISODE 02 — THE CONTRACT" layout="full" cover>
+<h1 class="rise">The Tool Call Is Not the Plan</h1>
+<p class="lede rise">A reliable agent separates capability routing, exact tool planning, and guarded execution.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="THE GAP" layout="full">
+<h2 class="rise">Routing is not <em class="serif">planning.</em></h2>
+<p class="lede rise">“This is about travel and finance” is a routing decision, not an execution plan. The agent still has to pick the narrowest tool, keep the dates, order the calls, and stop before a write.</p></deck-scene>
+
+<deck-scene id="s2" title="FOUR DECISIONS" layout="split"><div>
+<h2 class="rise">Four decisions hide inside <em class="serif">“use a tool.”</em></h2>
+<p class="lede rise">A broad router answers exactly one of them. The plan has to surface the other three.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>INSIDE ONE TOOL CALL</span><span>IN ORDER</span></div>
+<deck-grid id="decisionBlocks" style="grid-template-columns:1fr 1fr">
+<deck-cell><b>01 · Capability</b><span>Which domain matters — does this need a tool at all?</span></deck-cell>
+<deck-cell><b>02 · Tool</b><span>The narrowest exact tool for the job.</span></deck-cell>
+<deck-cell><b>03 · Arguments</b><span>Identifiers and dates — never invented.</span></deck-cell>
+<deck-cell><b>04 · Authorization</b><span>May it run at all?</span></deck-cell></deck-grid>
+<p class="note">Reorder these and the call still goes out — which is why the router is not enough.</p></div></deck-scene>
+
+<deck-scene id="s3" title="THE PLAN" layout="split"><div>
+<h2 class="rise">Represent the plan <em class="serif">separately.</em></h2>
+<p class="lede rise">The filter says travel and finance. The plan says <span style="color:#fff">trip_history</span>, then <span style="color:#fff">finance_recent_transactions</span>.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>THE PLAN OBJECT</span><span>SEPARATE FROM THE FILTER</span></div>
+<deck-code id="planCode" set:html={planCode}></deck-code>
+<p class="note">The empty argument object is intentional. The finance call must receive normalized dates <em>returned</em> by trip_history — not dates invented by the model.</p></div></deck-scene>
+
+<deck-scene id="s4" title="DEPENDENCIES" layout="split"><div>
+<h2 class="rise">An array of names <em class="serif">is too weak.</em></h2>
+<p class="lede rise">Why the order matters is the fact. trip_history produces the dates finance_recent_transactions needs.</p></div>
+<deck-compare class="rise" id="depCols">
+<deck-col state="dim"><h3>JUST NAMES</h3><p><span style="color:#fff">dependsOn: ['trip_history']</span></p><p>Says a step is first.</p><p>Cannot say why — or what it hands over.</p></deck-col>
+<deck-col><h3>A REASON AND WHAT IT PROVIDES</h3><p>“Transactions must use the selected trip range.”</p><p>Provides <span style="color:#fff">tripId</span>, <span style="color:#fff">startDate</span>, <span style="color:#fff">endDate</span>.</p><p>Independent reads stay independent.</p></deck-col>
+</deck-compare></deck-scene>
+
+<deck-scene id="s5" title="VALIDATE" layout="split"><div>
+<h2 class="rise">Six ways a plan <em class="serif">fails the schema.</em></h2>
+<p class="lede rise">Rejected before anything runs — in <span style="color:#fff">tool-planner.ts</span>.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>REJECTED</span><span>SCHEMA</span></div>
+<deck-grid id="rejectGrid">
+<deck-cell><b>Unknown tools</b><span>A tool that isn’t in the registry</span></deck-cell>
+<deck-cell><b>Duplicate steps</b><span>The same work, twice</span></deck-cell>
+<deck-cell><b>Forward dependencies</b><span>A step that needs something later</span></deck-cell>
+<deck-cell><b>Cycles</b><span>Two steps that wait on each other</span></deck-cell>
+<deck-cell><b>Invalid arguments</b><span>The shape doesn’t match the tool</span></deck-cell>
+<deck-cell><b>Write before read</b><span>A write with nothing behind it</span></deck-cell></deck-grid></div></deck-scene>
+
+<deck-scene id="s6" title="THE RE-CHECK" layout="split"><div>
+<h2 class="rise">A valid plan can still be <em class="serif">the wrong call.</em></h2>
+<p class="lede rise">Schema validation is necessary, not sufficient. So the runtime validates every model-requested call <em>again</em>.</p>
+<p class="note">The model proposes. The runtime decides.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>AT RUNTIME</span><span>PER CALL</span></div>
+<deck-code id="recheckCode" set:html={recheckCode}></deck-code>
+<deck-verdict><deck-case><b>ACCEPTED</b>The call is in the plan, in order.</deck-case><deck-case id="refuseVerdict" state="refuse"><b>REFUSED</b>Outside the plan — or ahead of a prerequisite.</deck-case></deck-verdict></div></deck-scene>
+
+<deck-scene id="s7" title="AUTHORIZATION" layout="split"><div>
+<h2 class="rise">A valid plan does not <em class="serif">authorize deletion.</em></h2>
+<p class="lede rise">The runtime still checks ownership, idempotency, cancellation, confirmation policy, and successful prerequisites.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>THE WRITE GUARD</span><span>EVERY WRITE</span></div>
+<deck-code id="guardCode" set:html={guardCode}></deck-code>
+<deck-verdict><deck-case><b>ACCEPTED</b>A read completed first.</deck-case><deck-case id="refuseGuard" state="refuse"><b>REFUSED</b>No preceding read.</deck-case></deck-verdict></div></deck-scene>
+
+<deck-scene id="s8" title="STANDALONE WRITES" layout="full">
+<h2 class="rise">One exemption, <em class="serif">opt-in per tool.</em></h2>
+<p class="lede rise">A write that depends on no existing record — a task, a note, a remembered fact — may run without a read.</p>
+<deck-compare class="rise" style="margin-top:30px" id="writeCols">
+<deck-col><h3>EVERY OTHER WRITE</h3><p>Needs a preceding read-only lookup.</p><p>Depends on a record that already exists.</p></deck-col>
+<deck-col><h3>STANDALONEWRITE</h3><p>Depends on no existing record.</p><p>Declared per tool. Opt-in. Every other write still needs one.</p></deck-col>
+</deck-compare>
+<p class="note rise">The exemption is per tool — never a blanket rule.</p></deck-scene>
+
+<deck-scene id="s9" title="THE RECORD" layout="full">
+<h2 class="rise">Record the plan.<br>Record the call.</h2>
+<p class="lede rise">Five ways a run fails — and only the trace tells them apart.</p>
+<deck-chips class="rise" id="failBadges" style="margin-top:24px"><deck-chip>WRONG CAPABILITY</deck-chip><deck-chip>WRONG TOOL</deck-chip><deck-chip>LOST IDENTIFIER</deck-chip><deck-chip>BROKEN ORDERING</deck-chip><deck-chip>SAFETY VIOLATION</deck-chip></deck-chips>
+<p class="note rise">Planning makes intent inspectable. Runtime guards make execution safe.</p></deck-scene>
+
+<deck-scene id="s10" title="CLOSE" layout="full">
+<div class="finish rise">The tool call is an event.<br><em class="serif">The plan is the contract around the event.</em></div>
+<p class="lede rise" style="margin-top:28px">Route, select, plan, validate, guard, trace — and let the runtime decide. <deck-mark inline></deck-mark></p>
+<deck-flow class="rise" style="margin-top:34px"><deck-step>NEXT VIDEO</deck-step><deck-step hot>CONFIRMATION IS A PROTOCOL</deck-step></deck-flow></deck-scene>
+</Deck>
+
+<script is:inline slot="script">
+/* Build functions, registered once. The stage resolves them by the scene's
+   [data-replay] name and fires on first view and on R. */
+const { seq, pulse, register } = window.deckBuild;
+register({
+  decisions: () => seq('#decisionBlocks .block'),
+  plan: () => pulse('planCode'),
+  deps: () => seq('#depCols .col'),
+  rejects: () => seq('#rejectGrid .block'),
+  recheck: () => pulse('refuseVerdict'),
+  guard: () => pulse('refuseGuard'),
+  compare: () => seq('#writeCols .col'),
+  failures: () => seq('#failBadges .badge')
+});
+</script>

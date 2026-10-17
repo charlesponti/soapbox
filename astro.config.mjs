@@ -3,7 +3,7 @@ import { cp, rm, mkdir } from 'node:fs/promises';
 
 // Decks not yet migrated to Astro — copied into the build output so the
 // published site stays a SUPERSET and switching Pages to Actions drops nothing.
-const LEGACY_DECKS = ['the-tool-call.html', 'stage-poc.html', 'streamchat-offline.html'];
+const LEGACY_DECKS = ['stage-poc.html', 'streamchat-offline.html'];
 
 // components/ stays the canonical library — the root static decks reference it
 // too — so Astro must not own it. This mirrors it into public/ at config time:

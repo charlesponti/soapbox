@@ -9,7 +9,6 @@ import { readFileSync } from 'node:fs';
 
 const { decks } = JSON.parse(readFileSync(new URL('../decks.json', import.meta.url), 'utf8'));
 const FIT_DEBT = new Set([
-  'the-tool-call',
   'confirmation-is-a-protocol',
   'what-your-eval-is-measuring',
   'models-fail-differently',

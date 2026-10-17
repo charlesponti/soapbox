@@ -19,7 +19,7 @@
       "series": "EPISODE 02 — THE CONTRACT",
       "episode": 2,
       "accent": "REFUSED",
-      "migrated": false,
+      "migrated": true,
       "article": "essays/01-the-tool-call-is-not-the-plan.md"
     },
     {
