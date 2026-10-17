@@ -9,3 +9,14 @@ poc/frames/
 poc/*.mp3
 poc/*.mp4
 poc/still-*.jpg
+
+# Astro build (Phase 0/1 migration — components/ is the source of truth;
+# public/components is a generated mirror, see astro.config.mjs)
+node_modules/
+dist/
+.astro/
+public/components/
+
+# Playwright
+playwright-report/
+test-results/

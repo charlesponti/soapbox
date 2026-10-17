@@ -14,7 +14,11 @@ import { dirname, join } from 'node:path';
 
 const POC = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(POC);
-const URL = 'file://' + join(ROOT, 'stage-poc.html');
+// Target page: the bespoke stage-poc.html by default, or any built deck opened
+// with ?stage (Phase 4). Drive a built deck with:
+//   POC_URL='http://localhost:4321/soapbox/next-token/?stage' \
+//   POC_OPTS='{"scene":"s2","atMs":17832,"doneAtMs":46500}' node poc/capture.mjs
+const URL = process.env.POC_URL || 'file://' + join(ROOT, 'stage-poc.html');
 const OUT = join(POC, 'frames');
 const PORT = 9333;
 // Inter-frame pause. The loop is round-trip-bound (each captureScreenshot is a
@@ -25,7 +29,7 @@ const SLEEP_MS = Number(process.env.POC_SLEEP_MS ?? 30);
 // Single-source the cue offset from the durable timing artifact instead of
 // hardcoding it: the slice fires on the start of chunk c3 (poc/manifest.json).
 const manifest = JSON.parse(readFileSync(join(POC, 'manifest.json'), 'utf8'));
-const pocOpts = {
+const pocOpts = process.env.POC_OPTS ? JSON.parse(process.env.POC_OPTS) : {
   sliceAtMs: Math.round(manifest.find(m => m.chunk === 'c3.mp3').start * 1000),
   doneAtMs: Math.round(manifest.find(m => m.total != null).total * 1000) + 1500,
 };

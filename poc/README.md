@@ -103,3 +103,24 @@ must match it.
 - A `build.mjs` that takes a script + manifest and emits the finished MP4
   in one command (chunk render → measure → stage → step/capture → mux).
 - Apply to the 7-scene YouTube re-cut of the deck.
+
+## Capturing a built (Astro) deck
+
+`capture.mjs` targets `stage-poc.html` by default. It now also drives any
+**built** deck, via the opt-in stage driver in the deck shell
+(`components/deck-stage-driver.js`): open the page with `?stage` and the driver
+hides the presenter chrome, freezes scrolling, and exposes the same
+`window.__pocStart` / `window.__marks` contract the capture scripts poll.
+
+```bash
+npm run preview                                   # serve dist/ at /soapbox
+POC_URL='http://localhost:4321/soapbox/next-token/?stage' \
+POC_OPTS='{"scene":"s2","atMs":17832,"doneAtMs":46500}' \
+node poc/capture.mjs
+```
+
+`POC_OPTS` takes `{ scene, atMs, doneAtMs }` (scene id or index); without it the
+script falls back to the manifest-derived slice timings above, so the original
+`node poc/capture.mjs` run is unchanged. Generalizing this to a full event
+timeline is still the next step.
+

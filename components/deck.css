@@ -1,20 +1,99 @@
-/* YouTube Slide System — component styles (SYSTEM.md §9).
-   Components are LIGHT DOM on purpose: they inherit the deck's tokens
-   (--bg/--ink/--line/--panel) and the Geist stacks, so a component can
-   never drift off-system. Never restyle a component inside a deck. */
+/* YouTube Slide System — shared styles (SYSTEM.md §9 components, §10 stage).
+   Loaded by every deck: <link rel="stylesheet" href="components/deck.css">
+   This file carries the parts that are identical in every deck: the design
+   tokens, the base scene/typography, the <deck-stage> chrome, and the shared
+   component styles. Scene-specific diagram primitives stay in each deck.
+   LIGHT DOM on purpose: everything inherits these tokens and the Geist
+   stacks, so nothing can drift off-system. Never restyle a component inside
+   a deck. */
 
-/* ---------- <deck-chat> : the ONLY way a conversation may appear ---------- */
-.deck-chat{border:1px solid var(--line);background:var(--panel);padding:22px;display:flex;flex-direction:column;gap:12px}
-.deck-chat .chat-head{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--g1);display:flex;justify-content:space-between;margin-bottom:2px}
-.deck-chat chat-msg{display:block;max-width:86%;padding:13px 17px;font-size:17px;line-height:1.45;border:1px solid #3a3a3a;color:#eee}
-.deck-chat chat-msg .who{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;margin-bottom:6px;color:var(--g1)}
-.deck-chat chat-msg[from="user"]{align-self:flex-end;background:#fff;color:#000;border-color:#fff}
-.deck-chat chat-msg[from="user"] .who{color:#555}
-.deck-chat chat-msg[from="ai"]{align-self:flex-start}
-.deck-chat .pending{display:none!important}
-.deck-chat .think{align-self:flex-start;border:1px solid #3a3a3a;padding:13px 17px;display:flex;gap:6px;align-items:center}
-.deck-chat .think i{width:7px;height:7px;border-radius:50%;background:var(--g1);display:block;animation:deckpulse 1s infinite}
-.deck-chat .think i:nth-child(2){animation-delay:.15s}
-.deck-chat .think i:nth-child(3){animation-delay:.3s}
+/* ---------- design tokens (SYSTEM.md §1–3) ---------- */
+:root{color-scheme:dark;--bg:#000;--ink:#fff;--g1:#a1a1a1;--g2:#666;--line:#262626;--panel:#0a0a0a;--accent:#E4181B;
+--sans:"Geist",ui-sans-serif,system-ui,sans-serif;--serif:"Geist Serif",Georgia,"Times New Roman",serif;--mono:"Geist Mono",ui-monospace,monospace;font-family:var(--sans)}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-snap-type:y proximity}
+body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden}
+
+/* ---------- <deck-stage> chrome (rendered by deck-stage.js) ---------- */
+deck-stage{display:block}
+nav{position:fixed;z-index:20;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(20px,4vw,64px);background:rgba(0,0,0,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--g1)}.brand b{color:var(--ink);font-weight:600}
+.mark{display:inline-block;width:11px;height:11px;background:var(--accent);border-radius:2px;margin-right:10px;vertical-align:-1px}
+.navright{display:flex;align-items:center;gap:10px}.count{font-family:var(--mono);font-size:12px;color:var(--g1);font-variant-numeric:tabular-nums}
+button{font-family:var(--mono);cursor:pointer;border:1px solid #333;background:#000;color:#fff;border-radius:999px;padding:8px 14px;font-size:11px;letter-spacing:.08em}
+button:hover{background:#fff;color:#000}button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+nav button{display:inline-flex;align-items:center;gap:.45em}
+.progress{height:2px;background:#fff;position:absolute;bottom:-1px;left:0;width:100%;transform-origin:0 50%;transform:scaleX(0)}
+
+/* ---------- scenes + base typography ---------- */
+.scene{min-height:100svh;scroll-snap-align:start;padding:110px clamp(20px,6vw,110px) 80px;display:flex;align-items:center;position:relative;border-bottom:1px solid var(--line)}
+.scene-inner{max-width:1320px;width:100%;margin:auto}
+.eyebrow{font-family:var(--mono);color:var(--g1);letter-spacing:.18em;font-size:11px;text-transform:uppercase}
+h1{font-size:clamp(52px,6.6vw,108px);line-height:.99;letter-spacing:-.045em;margin:20px 0 24px;font-weight:800;max-width:1100px}
+h2{font-size:clamp(40px,4.8vw,74px);line-height:1.01;letter-spacing:-.04em;margin:16px 0 18px;font-weight:800;max-width:1000px}
+.serif{font-family:var(--serif);font-weight:500;letter-spacing:-.015em}
+h1 em,h2 em,.finish em{font-style:italic}
+.lede{font-size:clamp(16px,1.5vw,22px);line-height:1.55;color:var(--g1);max-width:780px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:clamp(28px,5vw,90px)}
+.diagram{border:1px solid var(--line);background:var(--panel);padding:clamp(22px,3vw,40px)}
+.dlabel{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--g1);display:flex;justify-content:space-between;margin-bottom:20px}
+.finish{font-size:clamp(44px,5.6vw,90px);line-height:1.04;max-width:1100px;letter-spacing:-.03em;font-weight:800}
+.note{font-size:13px;color:var(--g2);line-height:1.6;margin-top:22px;max-width:680px}
+.replay{margin-top:18px;display:inline-flex;align-items:center;gap:.5em}
+.scrollcue{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--g2)}
+
+/* entrance reveal (SYSTEM.md §4 motion pattern 1) */
+.rise{opacity:0}
+.no-motion .rise{opacity:1}
+
+/* ---------- speaker cues panel (owned by <deck-stage>) ---------- */
+.cues{position:fixed;z-index:30;right:18px;bottom:18px;width:min(400px,calc(100vw - 36px));padding:20px;border:1px solid #333;background:rgba(5,5,5,.97);display:none}
+.cues.on{display:block}.cues strong{display:block;margin-bottom:8px;font-size:15px}
+.cues p{font-size:13px;line-height:1.6;color:#ddd;margin:0}.cue-time{font-family:var(--mono);font-size:11px;color:var(--g1);margin-bottom:8px;letter-spacing:.12em}
+
+/* ---------- <deck-cue> : the talk track, invisible in the deck ---------- */
+deck-cue{display:none}
+
+/* ---------- <deck-chat> : the CORE chat component (SYSTEM.md §9) ----------
+   A phone conversation with an animated message lifecycle, run on the beat by
+   deck-chat.js. The ONLY way a conversation or message lifecycle may appear. */
+deck-chat{display:flex;flex-direction:column;gap:14px;max-width:420px;width:100%}
+deck-chat .chat-head{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--g1);display:flex;justify-content:space-between}
+deck-chat .deck-phone{border:1px solid #3a3a3a;border-radius:26px;background:#0d0d0d;padding:16px 14px 14px;display:flex;flex-direction:column;min-height:380px;transform-style:preserve-3d;will-change:transform}
+deck-chat .phone-head{display:flex;align-items:center;gap:10px;padding-bottom:14px;border-bottom:1px solid #262626;font-weight:600;font-size:15px;letter-spacing:-.01em}
+deck-chat .phone-head .avatar{width:28px;height:28px;border-radius:50%;background:#242424;border:1px solid #3a3a3a;flex:none}
+deck-chat .phone-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+deck-chat .signal{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--g1);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+deck-chat .signal:before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+deck-chat .signal.off{color:var(--g2)}
+deck-chat .phone-body{display:flex;flex-direction:column;gap:12px;padding:18px 2px 6px;flex:1}
+deck-chat .in,deck-chat .out{font-size:15px;line-height:1.45;max-width:86%;transition:opacity .4s ease,transform .4s ease}
+deck-chat .in{align-self:flex-start;background:#1b1b1b;border:1px solid #2f2f2f;color:#eee;border-radius:15px 15px 15px 4px;padding:12px 16px}
+deck-chat .out{align-self:flex-end;display:flex;flex-direction:column;align-items:flex-end}
+deck-chat .out .bubble{background:#fff;color:#000;font-weight:500;border-radius:15px 15px 4px 15px;padding:12px 16px}
+deck-chat .out .status{font-family:var(--mono);font-size:11px;letter-spacing:.08em;margin-top:7px;min-height:14px;color:var(--g2);text-align:right}
+deck-chat .out .status.sending{background:linear-gradient(100deg,var(--g2) 15%,#fff 45%,var(--g2) 70%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:chatshine 1.6s linear infinite}
+@keyframes chatshine{to{background-position-x:-250%}}
+deck-chat chat-think{display:none}
+deck-chat .think{align-self:flex-start;display:inline-flex;gap:6px;padding:14px 16px;border:1px solid #2f2f2f;border-radius:15px 15px 15px 4px;background:#1b1b1b}
+deck-chat .think i{width:7px;height:7px;border-radius:50%;background:var(--g1);display:block;animation:deckpulse 1s infinite}
+deck-chat .think i:nth-child(2){animation-delay:.15s}
+deck-chat .think i:nth-child(3){animation-delay:.3s}
 @keyframes deckpulse{0%,100%{opacity:.25}50%{opacity:1}}
-@media(prefers-reduced-motion:reduce){.deck-chat .think i{animation:none}}
+deck-chat .pending{opacity:0;transform:translateY(12px)}
+deck-chat .out.lost{opacity:0;transform:translateY(-10px)}
+deck-chat .out.failed .bubble{opacity:.45;text-decoration:line-through}
+deck-chat .phone-composer{margin-top:14px;border-top:1px solid #262626;padding-top:12px;display:flex;align-items:center;gap:8px;opacity:.5}
+deck-chat .phone-composer .composer-input{flex:1;font-family:var(--mono);font-size:12px;color:var(--g2);border:1px solid #333;border-radius:999px;padding:9px 14px}
+deck-chat .phone-composer .composer-send{font-size:14px;color:var(--g2)}
+@media(prefers-reduced-motion:reduce){deck-chat *{transition:none!important;animation:none!important}}
+
+/* ---------- <deck-icon> : inline monochrome Lucide geometry (SYSTEM.md §10) ---------- */
+deck-icon{display:inline-flex;width:1em;height:1em;vertical-align:-.125em;color:inherit;line-height:0}
+deck-icon svg{width:100%;height:100%;display:block}
+
+/* ---------- responsive + reduced motion ---------- */
+@media(max-width:900px){.layout{grid-template-columns:1fr}.scene{padding-top:96px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

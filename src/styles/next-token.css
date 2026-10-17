@@ -1,0 +1,48 @@
+/* Scene primitives for The Next Token (SYSTEM.md §6 / §10). Global classes —
+   imported by the deck page. Tokens, base typography and the stage chrome come
+   from components/deck.css. */
+/* THE MACHINE — the accumulating build (SYSTEM.md §8). One component, present
+   in every scene; parts install in build order and stay installed. */
+.machine{border:1px solid var(--line);background:var(--panel);padding:clamp(20px,2.6vw,34px)}
+.mlabel{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--g1);display:flex;justify-content:space-between;margin-bottom:16px}
+.mpart{border:1px solid #3a3a3a;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.mpart strong{font-size:15px;letter-spacing:.02em}.mpart small{color:var(--g1);font-size:11px;display:block;margin-top:2px}
+.mpart .st{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--g1)}
+.mpart.ghost{border-style:dashed;border-color:#2c2c2c;color:#3d3d3d}.mpart.ghost small,.mpart.ghost .st{color:#3d3d3d}
+.mpart.newp{background:#fff;color:#000;border-color:#fff}.mpart.newp small,.mpart.newp .st{color:#333}
+.mpart.score{border-color:#555}.mpart.ledger{border-color:#555;background:#111}
+.word{font-size:clamp(34px,4.2vw,64px);font-weight:800;letter-spacing:-.03em;text-align:center;padding:18px 0 6px}
+.tiles{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.tile{border:1px solid #3a3a3a;padding:14px 18px;text-align:center;min-width:104px}
+.tile b{display:block;font-size:22px}.tile span{font-family:var(--mono);font-size:11px;color:var(--g1)}
+.loop{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.loopnode{border:1px solid #3a3a3a;padding:22px;font-size:19px;font-weight:700;color:var(--g2);transition:all .35s}
+.loopnode small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;letter-spacing:.14em;margin-top:6px;color:inherit}
+.loopnode.on{background:#fff;color:#000;border-color:#fff}
+.stack{display:flex;flex-direction:column;gap:0}
+.node{border:1px solid #3a3a3a;padding:18px 20px;display:flex;justify-content:space-between;align-items:center}
+.node strong{font-size:17px}.node small{color:var(--g1);font-size:12px;display:block;margin-top:3px}
+.node b{font-family:var(--mono);font-size:11px;color:var(--g1);letter-spacing:.12em}
+.connector{height:26px;width:1px;background:#3a3a3a;margin-left:34px}
+.bignum{font-family:var(--mono);font-size:clamp(80px,10vw,170px);font-weight:600;letter-spacing:-.05em;line-height:1;text-align:center;font-variant-numeric:tabular-nums}
+.jobbar{height:10px;background:#fff;margin-top:26px;transform-origin:0 50%}
+.joblabel{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--g1);margin-top:10px}
+.badges{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.badge{border:1px solid #3a3a3a;border-radius:999px;padding:12px 20px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--g2);transition:all .3s}
+.badge.on{color:#000;background:#fff;border-color:#fff}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.col{border:1px solid #3a3a3a;padding:22px}.col h3{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--g1);margin:0 0 14px;font-weight:500}
+.col p{margin:0 0 10px;font-size:16px;line-height:1.5;color:#ddd}
+.col.dim p{color:var(--g2)}
+.blocks{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.block{background:#fff;color:#000;padding:24px;min-height:132px}
+.block b{display:block;font-size:19px}.block span{font-size:13px;color:#444;display:block;margin-top:6px;line-height:1.45}
+.flow{display:flex;align-items:center;gap:10px;margin-top:26px;flex-wrap:wrap}
+.flowbox{border:1px solid #3a3a3a;padding:15px 20px;font-family:var(--mono);font-size:13px;letter-spacing:.1em}
+.flowbox.hot{background:#fff;color:#000;border-color:#fff}
+.flowarr{color:var(--g2);font-size:20px}
+.funnel{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.frow{display:flex;align-items:center;gap:16px}
+.fbar{height:44px;background:#fff}
+.frow span{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--g1)}
+@media(max-width:900px){.cols,.blocks{grid-template-columns:1fr}}

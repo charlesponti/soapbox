@@ -1,0 +1,70 @@
+// Phase 3 — the deck suite. One set of assertions, run for every deck listed in
+// decks.json against the built site. This is the manual browser checking from
+// the build sessions, codified.
+import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+const { decks } = JSON.parse(readFileSync(new URL('../decks.json', import.meta.url), 'utf8'));
+const route = (d) => (d.migrated ? `/soapbox/${d.slug}/` : `/soapbox/${d.slug}.html`);
+
+for (const deck of decks) {
+  test.describe(deck.slug, () => {
+    test('loads clean and structurally sound', async ({ page }) => {
+      const errors = [];
+      page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+      page.on('pageerror', (e) => errors.push(String(e)));
+
+      await page.goto(route(deck), { waitUntil: 'load' });
+      await expect(page.locator('deck-stage')).toHaveCount(1);
+
+      const info = await page.evaluate(() => {
+        const s = document.querySelector('deck-stage');
+        const scenes = s ? s.scenes : [];
+        const ids = scenes.map((x) => x.id);
+        const icons = [...document.querySelectorAll('deck-icon')];
+        return {
+          scenes: scenes.length,
+          missingIds: ids.filter((i) => !i).length,
+          uniqueIds: new Set(ids).size,
+          icons: icons.length,
+          iconsRendered: icons.filter((i) => i.querySelector('svg')).length
+        };
+      });
+
+      expect(info.scenes).toBeGreaterThan(0);
+      expect(info.missingIds, 'every scene needs an id').toBe(0);
+      expect(info.uniqueIds, 'scene ids must be unique').toBe(info.scenes);
+      expect(info.iconsRendered, 'every <deck-icon> must resolve').toBe(info.icons);
+      expect(errors).toEqual([]);
+
+      if (deck.migrated) {
+        await expect(page.locator('deck-cue')).toHaveCount(info.scenes);
+      }
+    });
+
+    test('reduced motion renders the final state', async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.goto(route(deck), { waitUntil: 'load' });
+      await page.waitForTimeout(250);
+      const hidden = await page.evaluate(() =>
+        [...document.querySelectorAll('.rise')].filter((e) => getComputedStyle(e).opacity === '0').length);
+      expect(hidden, 'no .rise element may stay hidden under reduced motion').toBe(0);
+    });
+
+    test('every scene is a shareable deep link', async ({ page }) => {
+      await page.goto(route(deck), { waitUntil: 'load' });
+      const target = await page.evaluate(() => {
+        const s = document.querySelector('deck-stage');
+        return s.scenes[Math.min(3, s.scenes.length - 1)].id;
+      });
+      await page.goto(`${route(deck)}#${target}`, { waitUntil: 'load' });
+      await page.waitForTimeout(250);
+      const state = await page.evaluate(() => {
+        const s = document.querySelector('deck-stage');
+        return { hash: location.hash, active: s.scenes[s.active].id };
+      });
+      expect(state.hash).toBe(`#${target}`);
+      expect(state.active).toBe(target);
+    });
+  });
+}

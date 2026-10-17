@@ -1,0 +1,32 @@
+{
+  "$comment": "The series manifest — single source for the index page, the checks and the video pipeline. `migrated:false` decks still live as static HTML at the repo root.",
+  "site": { "title": "Soapbox", "subtitle": "Full-screen HTML scenes, talked over" },
+  "decks": [
+    {
+      "slug": "next-token",
+      "title": "The Next Token",
+      "brand": "NEXT TOKEN",
+      "series": "EPISODE 01 — THE BUILD",
+      "episode": 1,
+      "accent": "NONE",
+      "migrated": true,
+      "article": null
+    },
+    {
+      "slug": "the-tool-call",
+      "title": "The Tool Call Is Not the Plan",
+      "brand": "THE TOOL CALL",
+      "series": "EPISODE 02 — THE CONTRACT",
+      "episode": 2,
+      "accent": "REFUSED",
+      "migrated": false,
+      "article": "01-the-tool-call-is-not-the-plan.md"
+    }
+  ],
+  "planned": [
+    { "title": "Confirmation Is a Protocol", "article": "02-confirmation-is-a-protocol.md" },
+    { "title": "What Your Eval Is Measuring", "article": "03-what-your-eval-is-measuring.md" },
+    { "title": "Models Fail Differently", "article": "04-models-fail-differently.md" },
+    { "title": "The Personal Agent Is a Typed Capability System", "article": "05-the-personal-agent-is-a-typed-capability-system.md" }
+  ]
+}
