@@ -135,6 +135,7 @@
 
     /* ---------- behaviour ---------- */
     _wire() {
+      this._placeReplays();
       const io = new IntersectionObserver((es) => {
         const best = es.filter((e) => e.isIntersecting).sort((a, c) => c.intersectionRatio - a.intersectionRatio)[0];
         if (best) this.update(this.scenes.indexOf(best.target));
@@ -180,6 +181,28 @@
         rises.forEach((el) => { el.style.opacity = 1; });
       }
       this._fireBuild(scene);
+    }
+
+    /* the replay control belongs with the scene's visual: inside its .diagram
+       card when there is one, otherwise right after the visual block. */
+    _placeReplays() {
+      this.scenes.forEach((scene) => {
+        const btn = scene.querySelector('[data-replay]');
+        if (!btn || btn.closest('.diagram-action')) return;
+        const card = scene.querySelector('.diagram');
+        const visual = card || scene.querySelector('deck-compare, deck-grid, deck-flow, deck-chat, deck-verdict');
+        if (!visual) return;
+        const action = document.createElement('div');
+        action.className = 'diagram-action';
+        action.appendChild(btn);
+        if (card) card.appendChild(action);
+        else {
+          const wrap = document.createElement('div');
+          wrap.className = 'visual-stack';
+          visual.parentNode.insertBefore(wrap, visual);
+          wrap.append(visual, action);
+        }
+      });
     }
 
     _fireBuild(scene) {

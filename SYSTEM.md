@@ -310,6 +310,9 @@ headline is over-abstraction; a component per diagram that recurs is not.
 4. Reduced motion renders every scene's final state, from one place.
 5. Colour lives only in accent-sanctioned components (§2) and the stage's mark —
    enforced by the component boundary, not by the audit comment alone.
+6. A scene's **replay control lives with its visual** — inside its `.diagram`
+   card, or stacked directly under the visual. Never in the text column
+   (`deck-stage` places it there; `tests/decks.spec.js` asserts it).
 
 ## 11. Repo layout and build (added 17 Oct 2026)
 

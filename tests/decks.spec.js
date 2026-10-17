@@ -69,6 +69,24 @@ for (const deck of decks) {
   });
 }
 
+test('a scene\'s replay control lives with its visual', async ({ page }) => {
+  await page.goto('/soapbox/next-token/', { waitUntil: 'load' });
+  await page.waitForTimeout(300);
+  const bad = await page.evaluate(() => {
+    const s = document.querySelector('deck-stage');
+    return s.scenes.filter((sc) => {
+      const b = sc.querySelector('[data-replay]');
+      if (!b) return false;
+      const action = b.closest('.diagram-action');
+      if (!action) return true;                                 // not moved at all
+      const card = sc.querySelector('.diagram');
+      return card ? !card.contains(b)                           // must be in the card
+        : !action.parentElement.classList.contains('visual-stack'); // or stacked with it
+    }).map((sc) => sc.id);
+  });
+  expect(bad, `replay control not with its visual: ${bad.join(', ')}`).toEqual([]);
+});
+
 test('the Next button morphs into Restart on the last scene', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });   // instant jumps, no scroll race
   await page.goto('/soapbox/next-token/', { waitUntil: 'load' });
