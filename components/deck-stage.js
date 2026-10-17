@@ -73,7 +73,10 @@
           '<span class="count" data-counter></span>' +
           '<button data-cues>SPEAKER CUES</button>' +
           '<button data-prev aria-label="Previous slide"><deck-icon name="arrow-up">↑</deck-icon></button>' +
-          '<button data-next aria-label="Next slide">NEXT <deck-icon name="arrow-down">↓</deck-icon></button>' +
+          '<button data-next class="deck-next" aria-label="Next slide">' +
+            '<span class="deck-nstate n-next">NEXT <deck-icon name="arrow-down">↓</deck-icon></span>' +
+            '<span class="deck-nstate n-restart">RESTART <deck-icon name="rotate-ccw">↻</deck-icon></span>' +
+          '</button>' +
         '</div>' +
         '<div class="progress" data-progress></div>';
       nav.querySelector('[data-brand]').textContent = this.getAttribute('brand') || '';
@@ -108,7 +111,9 @@
 
       nav.querySelector('[data-cues]').addEventListener('click', () => this._toggleCues());
       nav.querySelector('[data-prev]').addEventListener('click', () => this.goto(this.active - 1));
-      nav.querySelector('[data-next]').addEventListener('click', () => this.goto(this.active + 1));
+      nav.querySelector('[data-next]').addEventListener('click', () => {
+        this.goto(this.active >= this.scenes.length - 1 ? 0 : this.active + 1);
+      });
     }
 
     _buildOverview() {
@@ -195,6 +200,12 @@
       this.active = n;
       this._counter && (this._counter.textContent = String(n + 1).padStart(2, '0') + ' / ' + String(this.scenes.length).padStart(2, '0'));
       if (this._dots) this._dots.forEach((d, i) => d.classList.toggle('on', i === n));
+      const nextBtn = this._nav && this._nav.querySelector('[data-next]');
+      if (nextBtn) {
+        const last = n >= this.scenes.length - 1;
+        nextBtn.classList.toggle('is-restart', last);
+        nextBtn.setAttribute('aria-label', last ? 'Restart deck' : 'Next slide');
+      }
       const cue = this.cues[n];
       if (cue && this._cuesPanel) {
         this._cuesPanel.querySelector('.cue-time').textContent = cue.getAttribute('time') || '';

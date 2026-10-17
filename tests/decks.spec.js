@@ -68,3 +68,20 @@ for (const deck of decks) {
     });
   });
 }
+
+test('the Next button morphs into Restart on the last scene', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });   // instant jumps, no scroll race
+  await page.goto('/soapbox/next-token/', { waitUntil: 'load' });
+  await page.evaluate(() => {
+    const s = document.querySelector('deck-stage');
+    s.goto(s.scenes.length - 1);
+  });
+  await page.waitForTimeout(400);
+  const btn = page.locator('[data-next]');
+  await expect(btn).toHaveClass(/is-restart/);
+  await expect(btn).toHaveAttribute('aria-label', 'Restart deck');
+  await btn.click();
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => document.querySelector('deck-stage').active)).toBe(0);
+  await expect(btn).not.toHaveClass(/is-restart/);
+});
