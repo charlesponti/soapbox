@@ -9,10 +9,7 @@ import { readFileSync } from 'node:fs';
 
 const { decks } = JSON.parse(readFileSync(new URL('../decks.json', import.meta.url), 'utf8'));
 const FIT_DEBT = new Set([
-  'confirmation-is-a-protocol',
-  'what-your-eval-is-measuring',
-  'models-fail-differently',
-  'the-personal-agent-is-a-typed-capability-system'
+  // cleared 17 Oct 2026 — every deck now fits. Add nothing here; fix the scene.
 ]);
 const route = (d) => (d.migrated ? `/soapbox/${d.slug}/` : `/soapbox/${d.slug}.html`);
 const PAD = 190; // .scene top+bottom padding at 1600×900

@@ -1,8 +1,10 @@
 ---
 import Deck from '../layouts/Deck.astro';
 const scoreCode = `<span class="kw">const</span> score = scoreMcpTrace(trace, {
-  requiredTools: [<span class="kw">'trip_history'</span>, <span class="kw">'finance_recent_transactions'</span>],
-  dependencies: [[<span class="kw">'trip_history'</span>, <span class="kw">'finance_recent_transactions'</span>]],
+  requiredTools: [<span class="kw">'trip_history'</span>,
+                  <span class="kw">'finance_recent_transactions'</span>],
+  dependencies: [[<span class="kw">'trip_history'</span>,
+                  <span class="kw">'finance_recent_transactions'</span>]],
   outputIncludes: [<span class="kw">'Sushi Dai'</span>],
 });`;
 const lookupCode = `<span class="kw">type</span> LookupResult&lt;T&gt; =
@@ -13,73 +15,69 @@ const lookupCode = `<span class="kw">type</span> LookupResult&lt;T&gt; =
 const traceCode = `{
   <span class="cm">"model"</span>: <span class="kw">"openai/gpt-4o-mini"</span>,
   <span class="cm">"scenario"</span>: <span class="kw">"trip-finance-date-chain"</span>,
-  <span class="cm">"plannedSteps"</span>: [<span class="kw">"trip_history"</span>, <span class="kw">"finance_recent_transactions"</span>],
+  <span class="cm">"plannedSteps"</span>: [<span class="kw">"trip_history"</span>],
   <span class="cm">"actualCalls"</span>: [
-    { <span class="cm">"tool"</span>: <span class="kw">"trip_history"</span>, <span class="cm">"arguments"</span>: {} },
+    { <span class="cm">"tool"</span>: <span class="kw">"trip_history"</span> },
     { <span class="cm">"tool"</span>: <span class="kw">"finance_recent_transactions"</span>,
-      <span class="cm">"arguments"</span>: { <span class="cm">"from"</span>: <span class="kw">"2025-04-10"</span>, <span class="cm">"to"</span>: <span class="kw">"2025-04-18"</span> } },
+      <span class="cm">"arguments"</span>: { <span class="cm">"from"</span>: <span class="kw">"2025-04-10"</span>,
+                     <span class="cm">"to"</span>: <span class="kw">"2025-04-18"</span> } },
   ],
-  <span class="cm">"dependencyChecks"</span>: { <span class="cm">"trip_history -> finance"</span>: <span class="kw">true</span> },
+  <span class="cm">"dependencyChecks"</span>: { <span class="cm">"trip -> finance"</span>: <span class="kw">true</span> },
   <span class="cm">"totalTokens"</span>: <span class="kw">644</span>, <span class="cm">"costUsd"</span>: <span class="kw">0.00011055</span>
 }`;
 ---
 <Deck title="What Your Eval Is Actually Measuring" brand="EVALS" series="EPISODE 04 — THE INSTRUMENT">
-<deck-cue time="STEP 0 · THE ORACLE" title="The wrong oracle">Open on the first benchmark: one expected array, compared to one actual array. It was deterministic and it measured the wrong thing — mis-scoring independent ordering, counting confirmations as completed writes, and hiding the difference between an invented id and a provider outage.</deck-cue>
-<deck-cue time="STEP 1 · ORDERING" title="Exact sequences">Independent reads are unordered; a dependency is strict. The evaluator should require the edge trip_history → finance_recent_transactions while leaving unrelated reads free to swap.</deck-cue>
-<deck-cue time="STEP 2 · DIMENSIONS" title="Score separately">A missing tool is a selection problem. A wrong date is argument propagation. A call outside the plan is authorization. A timeout is not evidence the model chose badly. Score the dimensions, not one number.</deck-cue>
-<deck-cue time="STEP 3 · THE SCORER" title="Require the edge">The scorer takes the trace, the tools that must appear, the edges that must hold, and the facts the answer must ground — and reports each dimension separately.</deck-cue>
-<deck-cue time="STEP 4 · FIXTURES" title="Real ambiguity">An ambiguous fixture with one Alex is not ambiguous. Fixtures need duplicate names, no-match versus failed lookup, existing and missing records, and normalized dates.</deck-cue>
-<deck-cue time="STEP 5 · THE CONVERSATION" title="Two turns">A single-turn test cannot prove a two-turn protocol. If the harness stops at confirmation and marks the run complete, a correct pause and a total misunderstanding look identical.</deck-cue>
-<deck-cue time="STEP 6 · THE TRACE" title="Grade the trace">Grade traces, not prose. Model, provider, prompt version, exposed tools, planned steps, actual calls, arguments, outputs, confirmation events, errors, tokens, cost, latency.</deck-cue>
-<deck-cue time="STEP 7 · REPEAT" title="The instrument panel">One successful run demonstrates possibility, not reliability. Run the hard suite repeatedly against versioned fixtures, with the model, provider and benchmark version recorded.</deck-cue>
-<deck-cue time="STEP 8 · CLOSE" title="The instrument">The benchmark is not a gate at the end of development. It is the instrument panel for the agent.</deck-cue>
+<deck-cue time="COVER" title="The title">Open on the title. An assertion can be deterministic and still measure the wrong thing.</deck-cue>
+<deck-cue time="STEP 1 · THE ORACLE" title="The wrong oracle">Open on the first benchmark: one expected array, compared to one actual array. It was deterministic and it measured the wrong thing — mis-scoring independent ordering, counting confirmations as completed writes, and hiding the difference between an invented id and a provider outage.</deck-cue>
+<deck-cue time="STEP 2 · ORDERING" title="Exact sequences">Independent reads are unordered; a dependency is strict. The evaluator should require the edge trip_history → finance_recent_transactions while leaving unrelated reads free to swap.</deck-cue>
+<deck-cue time="STEP 3 · DIMENSIONS" title="Score separately">A missing tool is a selection problem. A wrong date is argument propagation. A call outside the plan is authorization. A timeout is not evidence the model chose badly. Score the dimensions, not one number.</deck-cue>
+<deck-cue time="STEP 4 · THE SCORER" title="Require the edge">The scorer takes the trace, the tools that must appear, the edges that must hold, and the facts the answer must ground — and reports each dimension separately.</deck-cue>
+<deck-cue time="STEP 5 · FIXTURES" title="Real ambiguity">An ambiguous fixture with one Alex is not ambiguous. Fixtures need duplicate names, no-match versus failed lookup, existing and missing records, and normalized dates.</deck-cue>
+<deck-cue time="STEP 6 · THE CONVERSATION" title="Two turns">A single-turn test cannot prove a two-turn protocol. If the harness stops at confirmation and marks the run complete, a correct pause and a total misunderstanding look identical.</deck-cue>
+<deck-cue time="STEP 7 · THE TRACE" title="Grade the trace">Grade traces, not prose. Model, provider, prompt version, exposed tools, planned steps, actual calls, arguments, outputs, confirmation events, errors, tokens, cost, latency.</deck-cue>
+<deck-cue time="STEP 8 · REPEAT" title="The instrument panel">One successful run demonstrates possibility, not reliability. Run the hard suite repeatedly against versioned fixtures, with the model, provider and benchmark version recorded.</deck-cue>
+<deck-cue time="STEP 9 · CLOSE" title="The instrument">The benchmark is not a gate at the end of development. It is the instrument panel for the agent.</deck-cue>
 
-<deck-scene id="s1" title="THE ORACLE" layout="split"><div>
+<deck-scene id="s0" title="EPISODE 04 — THE INSTRUMENT" layout="full" cover>
+<h1 class="rise">What Your Eval Is Actually Measuring</h1>
+<p class="lede rise">An assertion can be deterministic and still measure the wrong behaviour.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="THE ORACLE" layout="full">
 <h2 class="rise">An assertion can be exact<br>and measure <em class="serif">the wrong thing.</em></h2>
 <p class="lede rise">The first MCP benchmark compared the model's tool calls with one expected array. It scored harmless ordering as failure, counted confirmations as completed writes, and hid the difference between an invented id and an outage.</p>
-<p class="note rise">The fix was not a stronger prompt. It was a better measurement model.</p></div>
-<deck-machine class="rise" label="THE INSTRUMENT" status="0 PARTS INSTALLED">
-<deck-part name="ORACLE" state="ghost"></deck-part>
-<deck-part name="SCORER" state="ghost"></deck-part>
-<deck-part name="FIXTURES" state="ghost"></deck-part>
-<deck-part name="TRACE" state="ghost"></deck-part>
-<deck-part name="REPEAT" state="ghost"></deck-part>
-</deck-machine></deck-scene>
+<p class="note rise">The fix was not a stronger prompt. It was a better measurement model.</p></deck-scene>
 
-<deck-scene id="s2" title="ORDERING" layout="full">
+<deck-scene id="s2" title="ORDERING" layout="split"><div>
 <h2 class="rise">Exact sequences are usually <em class="serif">the wrong oracle.</em></h2>
-<p class="lede rise">Both of these are correct. The order only matters when a call consumes what another returned.</p>
-<button class="replay rise" data-replay="oracle"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE ORACLE</button>
-<deck-compare class="rise" style="margin-top:26px" id="oracle">
+<p class="lede rise">Both of these are correct. The order only matters when a call consumes what another returned.</p></div>
+<deck-compare class="rise" id="oracle">
 <deck-col state="dim"><h3>INDEPENDENT — EITHER ORDER</h3><p><span style="color:#fff">trip_history</span>, <span style="color:#fff">career_profile</span></p><p><span style="color:#fff">career_profile</span>, <span style="color:#fff">trip_history</span></p><p>No edge between them.</p></deck-col>
 <deck-col><h3>DEPENDENT — ONE ORDER</h3><p><span style="color:#fff">trip_history</span> → <span style="color:#fff">finance_recent_transactions</span></p><p>The second call needs dates the first returned.</p><p>Reversed is a real failure.</p></deck-col>
 </deck-compare></deck-scene>
 
-<deck-scene id="s3" title="DIMENSIONS" layout="full">
+<deck-scene id="s3" title="DIMENSIONS" layout="split"><div>
 <h2 class="rise">A missing tool is not <em class="serif">a timeout.</em></h2>
-<p class="lede rise">One score hides the failure shape. Separate the dimensions, and each failure points at a different fix.</p>
-<button class="replay rise" data-replay="dimensions"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE DIMENSIONS</button>
-<deck-grid class="rise" style="margin-top:30px" id="dimensions">
+<p class="lede rise">One score hides the failure shape. Separate the dimensions, and each failure points at a different fix.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>FAILURE DIMENSIONS</span><span>SIX FIXES</span></div>
+<deck-grid id="dimensions" style="grid-template-columns:1fr 1fr">
 <deck-cell><b>Missing tool</b><span>Selection — the model didn't choose it.</span></deck-cell>
-<deck-cell><b>Wrong date</b><span>Argument propagation — facts lost between calls.</span></deck-cell>
+<deck-cell><b>Wrong date</b><span>Propagation — facts lost between calls.</span></deck-cell>
 <deck-cell><b>Outside the plan</b><span>Authorization — the runtime should refuse.</span></deck-cell>
 <deck-cell><b>Violated dependency</b><span>Ordering — a prerequisite was skipped.</span></deck-cell>
 <deck-cell><b>Confirmation failure</b><span>Protocol — a boundary state went wrong.</span></deck-cell>
-<deck-cell><b>Provider failure</b><span>Transport — not evidence of bad choice.</span></deck-cell>
-</deck-grid></deck-scene>
+<deck-cell><b>Provider failure</b><span>Transport — not evidence of bad choice.</span></deck-cell></deck-grid></div></deck-scene>
 
 <deck-scene id="s4" title="THE SCORER" layout="split"><div>
 <h2 class="rise">Require the edge.<br><em class="serif">Free the rest.</em></h2>
-<p class="lede rise">The scorer takes the trace, the tools that must appear, the edges that must hold, and the facts the answer must ground.</p>
-<button class="replay rise" data-replay="scorer"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SCORER</button></div>
+<p class="lede rise">The scorer takes the trace, the tools that must appear, the edges that must hold, and the facts the answer must ground.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>THE SCORER</span><span>DIMENSIONS, NOT A NUMBER</span></div>
 <deck-code id="scorerCode" set:html={scoreCode}></deck-code>
 <p class="note">It reports missing tools, forbidden tools, violated dependencies, confirmation failures, ungrounded output and runtime errors separately.</p></div></deck-scene>
 
 <deck-scene id="s5" title="FIXTURES" layout="split"><div>
 <h2 class="rise">An ambiguous fixture<br>with one Alex <em class="serif">is not ambiguous.</em></h2>
-<p class="lede rise">Stateful fixtures need duplicate names, no-match versus failed lookup, existing and missing records, and stable ids.</p>
-<button class="replay rise" data-replay="fixtures"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LOOKUP</button></div>
+<p class="lede rise">Stateful fixtures need duplicate names, no-match versus failed lookup, existing and missing records, and stable ids.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>THE LOOKUP RESULT</span><span>FOUR OUTCOMES, NOT TWO</span></div>
 <deck-code id="lookupCode" set:html={lookupCode}></deck-code>
 <p class="note">“No match” and “lookup failed” are different facts. A fixture that cannot tell them apart cannot score the model that confuses them.</p></div></deck-scene>
@@ -95,16 +93,14 @@ const traceCode = `{
 
 <deck-scene id="s7" title="THE TRACE" layout="split"><div>
 <h2 class="rise">Grade traces,<br><em class="serif">not only prose.</em></h2>
-<p class="lede rise">The trace is the evidence. It keeps the model, the tools, the calls, the arguments, the confirmation events, the cost — and the answer.</p>
-<button class="replay rise" data-replay="trace"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TRACE</button></div>
+<p class="lede rise">The trace is the evidence. It keeps the model, the tools, the calls, the arguments, the confirmation events, the cost — and the answer.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>ONE TRACE</span><span>SCORED, NOT GUESSED</span></div>
 <deck-code id="traceCode" set:html={traceCode}></deck-code>
 <p class="note">The scorer evaluates the trace instead of guessing from the final sentence.</p></div></deck-scene>
 
 <deck-scene id="s8" title="REPEAT" layout="split"><div>
 <h2 class="rise">One run is <em class="serif">possibility.</em><br>Repeat is reliability.</h2>
-<p class="lede rise">Run the hard suite repeatedly against versioned fixtures — model, provider, prompt and benchmark version recorded. It also exposes the evaluator's own bugs.</p>
-<button class="replay rise" data-replay="repeat"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LOOP</button></div>
+<p class="lede rise">Run the hard suite repeatedly against versioned fixtures — model, provider, prompt and benchmark version recorded. It also exposes the evaluator's own bugs.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>THE LOOP</span><span>LIVE</span></div>
 <deck-cycle id="repeatLoop">
 <deck-cycle-node note="WHAT ARE WE MEASURING?">INSTRUMENT</deck-cycle-node>
@@ -114,17 +110,10 @@ const traceCode = `{
 </deck-cycle>
 <p class="note">Inspect the trace, revise the instrument, run again.</p></div></deck-scene>
 
-<deck-scene id="s9" title="CLOSE — THE INSTRUMENT, ASSEMBLED" layout="split"><div>
+<deck-scene id="s9" title="CLOSE" layout="full">
 <div class="finish rise">The benchmark is not a gate.<br><em class="serif">It is the instrument panel.</em></div>
-<p class="lede rise" style="margin-top:26px">Oracle, scorer, fixtures, trace, repeat — for the agent, not for the demo. <deck-mark inline></deck-mark></p>
-<deck-flow class="rise"><deck-step>NEXT VIDEO</deck-step><deck-step hot>MODELS FAIL DIFFERENTLY</deck-step></deck-flow></div>
-<deck-machine class="rise" label="THE INSTRUMENT" status="COMPLETE">
-<deck-part name="ORACLE" note="Ordering only where an edge exists" step="STEP 1"></deck-part>
-<deck-part name="SCORER" note="Separate the failure dimensions" step="STEP 2"></deck-part>
-<deck-part name="FIXTURES" note="Real ambiguity, stable ids" step="STEP 3"></deck-part>
-<deck-part name="TRACE" note="Model, calls, arguments, events, cost" step="STEP 5"></deck-part>
-<deck-part name="REPEAT" note="Hard suite, versioned fixtures" state="trace" step="STEP 6"></deck-part>
-</deck-machine></deck-scene>
+<p class="lede rise" style="margin-top:28px">Oracle, scorer, fixtures, trace, repeat — for the agent, not for the demo. <deck-mark inline></deck-mark></p>
+<deck-flow class="rise" style="margin-top:34px"><deck-step>NEXT VIDEO</deck-step><deck-step hot>MODELS FAIL DIFFERENTLY</deck-step></deck-flow></deck-scene>
 </Deck>
 
 <script is:inline slot="script">

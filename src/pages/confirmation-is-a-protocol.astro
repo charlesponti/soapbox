@@ -17,60 +17,45 @@ const idemCode = `<span class="kw">const</span> idempotencyKey = \`\${generation
 <span class="kw">return</span> result;`;
 ---
 <Deck title="Confirmation Is a Protocol" brand="CONFIRMATION" series="EPISODE 03 — THE PROTOCOL" chat={true}>
-<deck-cue time="STEP 0 · THE CLAIM" title="A boolean is metadata">Open on the trap: requiresConfirmation true looks like safety and carries none. A boolean cannot say whether an action was previewed, approved, rejected, or blocked while a dependent write waits.</deck-cue>
-<deck-cue time="STEP 1 · THE STATE" title="Four states">Model the boundary as state, not a flag: ready, pending, approved, rejected. The move into pending must not execute anything — it freezes the exact tool and arguments being presented.</deck-cue>
-<deck-cue time="STEP 2 · THE SCOPE" title="Scoped approval">Approval is bound to one exact action: the tool and the serialized input must match. A later turn cannot swap the recipient or the record and reuse the earlier yes.</deck-cue>
-<deck-cue time="STEP 3 · THE CONVERSATION" title="Preview, then decide">Walk the two-turn protocol out loud: the request, the preview of who is affected and which ids are targeted, the human yes, then the effect. Preview is safe to repeat; the effect happens once, after approval.</deck-cue>
-<deck-cue time="STEP 4 · THE BOUNDARY" title="Dependent writes stop">A provider can emit several calls in one response. The moment the first consequential action reaches confirmation, everything downstream must stop — a runtime invariant, not a prompt instruction.</deck-cue>
-<deck-cue time="STEP 5 · THE REJECTION" title="Safety success">A rejected confirmation is not a failed tool call. It means control was preserved. Report no change, offer a safe next step, and do not retry the write.</deck-cue>
-<deck-cue time="STEP 6 · THE RETRY" title="Idempotency">Approval crosses UI, network and worker boundaries. Every consequential effect carries an idempotency key tied to the generation and call identity, so an authorized action is safe to retry.</deck-cue>
-<deck-cue time="STEP 7 · THE PROOF" title="Test the protocol">The harness stopped after the confirmation event — that tested whether it could stop, not whether the model could resume after approval or recover after rejection. Test the transitions.</deck-cue>
-<deck-cue time="STEP 8 · CLOSE" title="Never one boolean">Propose, pause, decide, then execute. Never compress those steps into one boolean.</deck-cue>
+<deck-cue time="COVER" title="The title">Open on the title and the thesis: a boolean cannot hold a state machine.</deck-cue>
+<deck-cue time="STEP 1 · THE CLAIM" title="A boolean is metadata">Open on the trap: requiresConfirmation true looks like safety and carries none. A boolean cannot say whether an action was previewed, approved, rejected, or blocked while a dependent write waits.</deck-cue>
+<deck-cue time="STEP 2 · THE STATE" title="Four states">Model the boundary as state, not a flag: ready, pending, approved, rejected. Pending must not execute anything — it freezes the exact tool and arguments being presented; rejected is a success, not a failure.</deck-cue>
+<deck-cue time="STEP 3 · THE SCOPE" title="Scoped approval">Approval is bound to one exact action: the tool and the serialized input must match. A later turn cannot swap the recipient or the record and reuse the earlier yes.</deck-cue>
+<deck-cue time="STEP 4 · THE CONVERSATION" title="Preview, then decide">Walk the two-turn protocol out loud: the request, the preview of who is affected and which ids are targeted, the human yes, then the effect. Preview is safe to repeat; the effect happens once, after approval.</deck-cue>
+<deck-cue time="STEP 5 · THE BOUNDARY" title="Dependent writes stop">A provider can emit several calls in one response. The moment the first consequential action reaches confirmation, everything downstream must stop — a runtime invariant, not a prompt instruction.</deck-cue>
+<deck-cue time="STEP 6 · THE REJECTION" title="Safety success">A rejected confirmation is not a failed tool call. It means control was preserved. Report no change, offer a safe next step, and do not retry the write.</deck-cue>
+<deck-cue time="STEP 7 · THE RETRY" title="Idempotency">Approval crosses UI, network and worker boundaries. Every consequential effect carries an idempotency key tied to the generation and call identity, so an authorized action is safe to retry.</deck-cue>
+<deck-cue time="STEP 8 · THE PROOF" title="Test the protocol">The harness stopped after the confirmation event — that tested whether it could stop, not whether the model could resume after approval or recover after rejection. Test the transitions.</deck-cue>
+<deck-cue time="STEP 9 · CLOSE" title="Never one boolean">Propose, pause, decide, then execute. Never compress those steps into one boolean.</deck-cue>
 
-<deck-scene id="s1" title="THE CLAIM" layout="split"><div>
+<deck-scene id="s0" title="EPISODE 03 — THE PROTOCOL" layout="full" cover>
+<h1 class="rise">Confirmation Is a Protocol</h1>
+<p class="lede rise">A boolean cannot hold a state machine.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="THE CLAIM" layout="full">
 <h2 class="rise">A boolean is <em class="serif">metadata.</em><br>Not a protocol.</h2>
-<p class="lede rise"><span style="color:#fff">requiresConfirmation: true</span> cannot say whether an action was previewed, approved, rejected — or blocked while a dependent write waits.</p>
-<p class="note rise">We build the protocol around the flag, one part at a time.</p></div>
-<deck-machine class="rise" label="THE PROTOCOL" status="0 PARTS INSTALLED">
-<deck-part name="STATE" state="ghost"></deck-part>
-<deck-part name="SCOPE" state="ghost"></deck-part>
-<deck-part name="BOUNDARY" state="ghost"></deck-part>
-<deck-part name="IDEMPOTENCY" state="ghost"></deck-part>
-<deck-part name="PROOF" state="ghost"></deck-part>
-</deck-machine></deck-scene>
+<p class="lede rise"><span style="color:#fff">requiresConfirmation: true</span> cannot say whether an action was previewed, approved, rejected — or blocked while a dependent write waits.</p></deck-scene>
 
 <deck-scene id="s2" title="THE STATE" layout="split"><div>
 <h2 class="rise">Model the boundary as <em class="serif">state.</em></h2>
-<p class="lede rise">A flag is one bit. The boundary needs four: what is in flight, what was approved, what was refused.</p>
-<button class="replay rise" data-replay="states"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE STATES</button>
-<div class="diagram rise" style="margin-top:22px"><div class="dlabel"><span>CONFIRMATION STATE</span><span>ONE ACTION AT A TIME</span></div>
-<deck-stack id="states">
-<deck-node label="READY" note="Nothing in flight" tag="01"></deck-node>
-<deck-node label="PENDING" note="Exact tool + arguments frozen — not executed" tag="02"></deck-node>
-<deck-node label="APPROVED" note="This action, exactly" tag="03"></deck-node>
-<deck-node label="REJECTED" note="No change was made" tag="04"></deck-node>
-</deck-stack></div></div>
-<deck-machine class="rise" label="THE PROTOCOL" status="1 / 5 PARTS">
-<deck-part name="STATE" note="ready · pending · approved · rejected" state="installed" step="INSTALLED · STEP 1"></deck-part>
-<deck-part name="SCOPE" state="ghost"></deck-part>
-<deck-part name="BOUNDARY" state="ghost"></deck-part>
-<deck-part name="IDEMPOTENCY" state="ghost"></deck-part>
-<deck-part name="PROOF" state="ghost"></deck-part>
-</deck-machine></deck-scene>
+<p class="lede rise">A flag is one bit. The boundary needs four — and the move into pending must not execute anything.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>CONFIRMATION STATE</span><span>ONE ACTION AT A TIME</span></div>
+<deck-flow id="states"><deck-step>READY</deck-step><deck-step>PENDING</deck-step><deck-step>APPROVED</deck-step><deck-step hot>EXECUTE</deck-step></deck-flow>
+<deck-flow id="reject" style="margin-top:14px"><deck-step>PENDING</deck-step><deck-step hot>REJECTED</deck-step></deck-flow>
+<p class="note">Pending freezes the exact tool and arguments. Nothing runs until approved — and rejected is a success, not a failure.</p></div></deck-scene>
 
 <deck-scene id="s3" title="THE SCOPE" layout="split"><div>
 <h2 class="rise">Approval is scoped to <em class="serif">one exact action.</em></h2>
-<p class="lede rise">The tool and the serialized input must both match. A later turn cannot swap the target and reuse the yes.</p>
-<button class="replay rise" data-replay="scope"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CHECK</button></div>
+<p class="lede rise">The tool and the serialized input must both match. A later turn cannot swap the target and reuse the yes.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>THE APPROVAL TEST</span><span>EXACT MATCH</span></div>
 <deck-code id="scopeCode" set:html={scopeCode}></deck-code>
 <p class="note">Approval is a value, not a mood. Recompute it on every resume.</p></div></deck-scene>
 
 <deck-scene id="s4" title="THE CONVERSATION" layout="split"><div>
 <h2 class="rise">Preview, then <em class="serif">decide.</em></h2>
-<p class="lede rise">The preview names the change, the people, and the stable ids. Only the approval produces an effect — and the effect happens once.</p>
-<button class="replay rise" data-replay="chat"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PROTOCOL</button></div>
-<deck-chat class="rise" id="confirmChat" title="Assistant" signal="ONLINE" label="THE PROTOCOL" meta="TWO TURNS">
+<p class="lede rise">The preview names the change, the people, and the stable ids. Only the approval produces an effect — and the effect happens once.</p></div>
+<deck-chat class="rise" id="confirmChat" title="Assistant" signal="ONLINE">
 <chat-out>Remove alex@example.com from Japan restaurants</chat-out>
 <chat-in>Alex will lose access to 12 places. Confirm?</chat-in>
 <chat-out state="confirmed" at="Approved">Yes — remove Alex</chat-out>
@@ -79,8 +64,7 @@ const idemCode = `<span class="kw">const</span> idempotencyKey = \`\${generation
 
 <deck-scene id="s5" title="THE BOUNDARY" layout="split"><div>
 <h2 class="rise">Dependent writes <em class="serif">stop at the boundary.</em></h2>
-<p class="lede rise">A provider can emit several calls in one response. When the first consequential action reaches confirmation, everything downstream freezes.</p>
-<button class="replay rise" data-replay="boundary"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE STOP</button></div>
+<p class="lede rise">A provider can emit several calls in one response. When the first consequential action reaches confirmation, everything downstream freezes.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>ONE RESPONSE, THREE CALLS</span><span>RUNTIME INVARIANT</span></div>
 <deck-flow id="boundary"><deck-step>READ: TRIP</deck-step><deck-step>WRITE: REMOVE MEMBER</deck-step><deck-step>WRITE: NOTIFY</deck-step></deck-flow>
 <deck-verdict><deck-case><b>WOULD RUN</b>The read only reads.</deck-case><deck-case id="boundaryStop" state="refuse"><b>STOPPED</b>Pending. Downstream writes do not run.</deck-case></deck-verdict></div></deck-scene>
@@ -96,8 +80,7 @@ const idemCode = `<span class="kw">const</span> idempotencyKey = \`\${generation
 
 <deck-scene id="s7" title="THE RETRY" layout="split"><div>
 <h2 class="rise">Idempotency closes the <em class="serif">retry gap.</em></h2>
-<p class="lede rise">Approval crosses UI, network and worker boundaries. A retry must return the same effect, not a second one.</p>
-<button class="replay rise" data-replay="idempotency"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE KEY</button></div>
+<p class="lede rise">Approval crosses UI, network and worker boundaries. A retry must return the same effect, not a second one.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>EFFECT STORE</span><span>ONCE PER CALL</span></div>
 <deck-code id="idemCode" set:html={idemCode}></deck-code>
 <p class="note">Idempotency makes an authorized action safe to retry. It does not replace authorization.</p></div></deck-scene>
@@ -109,30 +92,22 @@ const idemCode = `<span class="kw">const</span> idempotencyKey = \`\${generation
 <deck-compare class="rise" style="margin-top:26px" id="proof">
 <deck-col state="dim"><h3>SHALLOW TEST</h3><p>Did the run emit <span style="color:#fff">confirmation_required</span>?</p><p>Stops. Marks complete.</p><p>A correct pause and a total misunderstanding look identical.</p></deck-col>
 <deck-col><h3>PROTOCOL TEST</h3><p>Did it resume after approval?</p><p>Did it recover after rejection?</p><p>Did dependent writes stay frozen?</p><p>Did approval bind to the exact action?</p></deck-col>
-</deck-compare>
-<p class="note rise">Prove the transitions, not the checkpoint.</p></deck-scene>
+</deck-compare></deck-scene>
 
-<deck-scene id="s9" title="CLOSE — THE PROTOCOL, ASSEMBLED" layout="split"><div>
+<deck-scene id="s9" title="CLOSE" layout="full">
 <div class="finish rise">Propose, pause, decide, execute.<br><em class="serif">Never one boolean.</em></div>
-<p class="lede rise" style="margin-top:26px">State, scope, boundary, idempotency, proof — and a rejection that is a success. <deck-mark inline></deck-mark></p>
-<deck-flow class="rise"><deck-step>NEXT VIDEO</deck-step><deck-step hot>WHAT YOUR EVAL IS MEASURING</deck-step></deck-flow></div>
-<deck-machine class="rise" label="THE PROTOCOL" status="COMPLETE">
-<deck-part name="STATE" note="ready · pending · approved · rejected" step="STEP 1"></deck-part>
-<deck-part name="SCOPE" note="Approval bound to one exact action" step="STEP 2"></deck-part>
-<deck-part name="BOUNDARY" note="Dependent writes stop at confirmation" step="STEP 4"></deck-part>
-<deck-part name="IDEMPOTENCY" note="One effect per generation + call" step="STEP 6"></deck-part>
-<deck-part name="PROOF" note="Resume after approval, recover after rejection" state="trace" step="STEP 7"></deck-part>
-</deck-machine></deck-scene>
+<p class="lede rise" style="margin-top:28px">State, scope, boundary, idempotency, proof — and a rejection that is a success. <deck-mark inline></deck-mark></p>
+<deck-flow class="rise" style="margin-top:34px"><deck-step>NEXT VIDEO</deck-step><deck-step hot>WHAT YOUR EVAL IS MEASURING</deck-step></deck-flow></deck-scene>
 </Deck>
 
 <script is:inline slot="script">
 const { seq, pulse, register } = window.deckBuild;
 register({
-  states: () => seq('#states .node'),
+  states: () => seq('#states .flowbox, #reject .flowbox'),
   scope: () => pulse('scopeCode'),
   boundary: () => { seq('#boundary .flowbox'); pulse('boundaryStop'); },
+  rejection: () => seq('#rejection .col'),
   idempotency: () => pulse('idemCode'),
-  proof: () => seq('#proof .col'),
-  chat: () => { const c = document.getElementById('confirmChat'); if (c) c.replay(); }
+  proof: () => seq('#proof .col')
 });
 </script>
