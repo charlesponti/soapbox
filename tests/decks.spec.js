@@ -69,6 +69,18 @@ for (const deck of decks) {
   });
 }
 
+test('code cards render as blocks and never clip a line', async ({ page }) => {
+  for (const deck of decks) {
+    await page.setViewportSize({ width: 1600, height: 900 });
+    await page.goto(route(deck), { waitUntil: 'load' });
+    const bad = await page.evaluate(() =>
+      [...document.querySelectorAll('.code')]
+        .filter((c) => getComputedStyle(c).display === 'inline' || c.scrollWidth > c.clientWidth + 1)
+        .map((c) => `${c.id}:${getComputedStyle(c).display}/${c.scrollWidth - c.clientWidth}px`));
+    expect(bad, `${deck.slug}: code card problems — ${bad.join(', ')}`).toEqual([]);
+  }
+});
+
 test('a scene\'s replay control lives with its visual', async ({ page }) => {
   await page.goto('/soapbox/next-token/', { waitUntil: 'load' });
   await page.waitForTimeout(300);

@@ -31,7 +31,8 @@ const outputCode = `<span class="kw">type</span> Trip = {
   truncated: <span class="kw">boolean</span>;
 };`;
 const evidenceCode = `<span class="kw">type</span> Evidence =
-  | { kind: <span class="kw">'tool_fact'</span>; tool: <span class="kw">string</span>; field: <span class="kw">string</span>; value: <span class="kw">unknown</span> }
+  | { kind: <span class="kw">'tool_fact'</span>;
+      tool: <span class="kw">string</span>; field: <span class="kw">string</span>; value: <span class="kw">unknown</span> }
   | { kind: <span class="kw">'inference'</span>; basis: <span class="kw">string</span> }
   | { kind: <span class="kw">'recommendation'</span>; reason: <span class="kw">string</span> };`;
 const traceCode = `<span class="kw">type</span> AgentTrace = {
@@ -39,7 +40,10 @@ const traceCode = `<span class="kw">type</span> AgentTrace = {
   provider: <span class="kw">string</span>;
   promptVersion: <span class="kw">string</span>;
   plannedSteps: <span class="kw">string</span>[];
-  actualCalls: Array&lt;{ tool: <span class="kw">string</span>; arguments: Record&lt;<span class="kw">string</span>, <span class="kw">unknown</span>&gt; }&gt;;
+  actualCalls: Array&lt;{
+    tool: <span class="kw">string</span>;
+    arguments: Record&lt;<span class="kw">string</span>, <span class="kw">unknown</span>&gt;;
+  }&gt;;
   confirmationEvents: <span class="kw">string</span>[];
   errors: Array&lt;{ category: <span class="kw">string</span>; message: <span class="kw">string</span> }&gt;;
   costUsd: <span class="kw">number</span> | <span class="kw">null</span>;

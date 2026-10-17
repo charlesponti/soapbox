@@ -204,7 +204,8 @@
   <span class="kw">const</span> hasCompletedRead = plannedSteps.some(
     (candidate) =&gt;
       completedPlannedTools.has(candidate.tool) &amp;&amp;
-      (runtime.getToolDefinition(candidate.tool)?.readOnly ?? <span class="kw">false</span>),
+      (runtime.getToolDefinition(candidate.tool)
+        ?.readOnly ?? <span class="kw">false</span>),
   );
   <span class="kw">if</span> (!hasCompletedRead)
     <span class="kw">return</span> <span class="cm">'Tool requires a preceding read-only lookup'</span>;
