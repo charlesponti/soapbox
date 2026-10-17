@@ -1,0 +1,189 @@
+---
+import Deck from '../layouts/Deck.astro';
+const registryCode = `<span class="kw">interface</span> CapabilityDefinition {
+  name: <span class="kw">string</span>;
+  title: <span class="kw">string</span>;
+  inputSchema: z.ZodType;
+  outputSchema: z.ZodType;
+  readOnly: <span class="kw">boolean</span>;
+  scopes: <span class="kw">readonly string</span>[];
+  resultCap: <span class="kw">number</span>;
+  requiresConfirmation?: <span class="kw">boolean</span>;
+  idempotent?: <span class="kw">boolean</span>;
+}`;
+const idCode = `<span class="kw">type</span> PersonLookup = {
+  id: <span class="kw">string</span>;
+  name: <span class="kw">string</span>;
+  email: <span class="kw">string</span> | <span class="kw">null</span>;
+};
+
+<span class="kw">type</span> PersonTimelineInput = { personId: <span class="kw">string</span> };`;
+const outputCode = `<span class="kw">type</span> Trip = {
+  id: <span class="kw">string</span>;
+  city: <span class="kw">string</span>;
+  startDate: <span class="kw">string</span>;
+  endDate: <span class="kw">string</span>;
+};
+
+<span class="kw">type</span> TripHistoryOutput = {
+  trips: Trip[];
+  count: <span class="kw">number</span>;
+  truncated: <span class="kw">boolean</span>;
+};`;
+const guardCode = `<span class="kw">const</span> writePolicy = {
+  task_update:               { requiresPrior: [<span class="kw">'task_list'</span>] },
+  invite_member:             { requiresPrior: [<span class="kw">'list_collections'</span>, <span class="kw">'people_lookup'</span>] },
+  career_application_delete: { requiresPrior: [<span class="kw">'career_applications'</span>] },
+};`;
+const evidenceCode = `<span class="kw">type</span> Evidence =
+  | { kind: <span class="kw">'tool_fact'</span>; tool: <span class="kw">string</span>; field: <span class="kw">string</span>; value: <span class="kw">unknown</span> }
+  | { kind: <span class="kw">'inference'</span>; basis: <span class="kw">string</span> }
+  | { kind: <span class="kw">'recommendation'</span>; reason: <span class="kw">string</span> };`;
+const traceCode = `<span class="kw">type</span> AgentTrace = {
+  model: <span class="kw">string</span>;
+  provider: <span class="kw">string</span>;
+  promptVersion: <span class="kw">string</span>;
+  plannedSteps: <span class="kw">string</span>[];
+  actualCalls: Array&lt;{ tool: <span class="kw">string</span>; arguments: Record&lt;<span class="kw">string</span>, <span class="kw">unknown</span>&gt; }&gt;;
+  confirmationEvents: <span class="kw">string</span>[];
+  errors: Array&lt;{ category: <span class="kw">string</span>; message: <span class="kw">string</span> }&gt;;
+  costUsd: <span class="kw">number</span> | <span class="kw">null</span>;
+  latencyMs: <span class="kw">number</span>;
+};`;
+---
+<Deck title="The Personal Agent Is a Typed Capability System" brand="CAPABILITIES" series="EPISODE 06 — THE CONTRACT">
+<deck-cue time="STEP 0 · THE CONTRACT" title="Not a prompt">Open on the thesis: the durable advantage is not a clever system prompt. Personal data makes weak contracts expensive — a name matches several people, a date belongs to a timezone, a write is harmless to repeat or impossible to undo.</deck-cue>
+<deck-cue time="STEP 1 · THE REGISTRY" title="One registry">The in-app chat and the external MCP surface must derive from the same capability definitions, or the model sees three truths: one in chat, a different schema through MCP, a third at runtime.</deck-cue>
+<deck-cue time="STEP 2 · IDS" title="IDs beat names">Names are for humans; ids are for execution. The model may search for “Alex” but must load a timeline with the returned personId. Multiple matches require clarification, not a guess.</deck-cue>
+<deck-cue time="STEP 3 · OUTPUTS" title="Outputs serve the next step">A tool output is an input contract for the next decision: stable ids, normalized dates, bounded results, explicit truncation. “Tokyo trip found” without an id forces reconstruction from prose.</deck-cue>
+<deck-cue time="STEP 4 · THE GUARD" title="Read before write">A write follows a read because the system needs a target and a duplicate check — enforced by the runtime, not requested in the prompt. The exception is a write with no target: the standalone write.</deck-cue>
+<deck-cue time="STEP 5 · EVIDENCE" title="Facts from inference">The answer should separate tool facts from recommendations and inference. That makes it auditable and lets evaluators reject invented fields.</deck-cue>
+<deck-cue time="STEP 6 · TRACE" title="Behavior into data">Observability turns behavior into data: model, provider, prompt version, planned steps, actual calls, confirmation events, errors, tokens, cost, latency.</deck-cue>
+<deck-cue time="STEP 7 · FLYWHEEL" title="The capability flywheel">Contract, plan, guard, trace, classify, fixture, evaluate, revise. Each failure names the layer to fix — boundaries, lookup outputs, runtime validation, provider behavior.</deck-cue>
+<deck-cue time="STEP 8 · CLOSE" title="Who supplies what">The model supplies language understanding. The contract supplies stable semantics. The runtime supplies authority. The trace supplies evidence.</deck-cue>
+
+<section class="scene" id="s1"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 0 / 9 · THE CONTRACT</div>
+<h2 class="rise">The advantage isn't a clever<br><em class="serif">system prompt.</em></h2>
+<p class="lede rise">It is a typed capability system that knows what data exists, how entities are identified, which actions are safe, and what evidence supports the answer.</p>
+<p class="note rise">Personal data makes weak contracts expensive.</p></div>
+<div class="machine rise"><div class="mlabel"><span>THE CONTRACT</span><span>0 PARTS INSTALLED</span></div>
+<div class="mpart ghost"><div><strong>REGISTRY</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>IDS</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>OUTPUTS</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>GUARD</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>TRACE</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>FLYWHEEL</strong><small>—</small></div><span class="st">NOT YET</span></div></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s2"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 1 / 9 · THE REGISTRY</div>
+<h2 class="rise">One registry,<br><em class="serif">two surfaces.</em></h2>
+<p class="lede rise">Chat and MCP derive from the same definition. Otherwise the schema drifts into three versions of the truth.</p>
+<button class="replay rise" data-replay="registry"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE DEFINITION</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE CAPABILITY DEFINITION</span><span>DESCRIBED ONCE</span></div>
+<div class="code" id="registryCode" set:html={registryCode}></div>
+<p class="note">A field like <span style="color:#fff">readOnly</span> is not decoration: it is the same fact the guard checks at runtime.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s3"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 2 / 9 · IDS</div>
+<h2 class="rise">Names are for humans.<br><em class="serif">IDs are for execution.</em></h2>
+<p class="lede rise">The model may search for “Alex”. It must use the returned <span style="color:#fff">personId</span> to load a timeline, invite a collaborator, or remove a member.</p>
+<button class="replay rise" data-replay="ids"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LOOKUP</button></div>
+<div class="diagram rise"><div class="dlabel"><span>LOOKUP, THEN USE THE ID</span><span>NEVER GUESS</span></div>
+<div class="code" id="idCode" set:html={idCode}></div>
+<p class="note">Multiple matches require clarification. The same rule turns “Tokyo trip” into a finance query only after a travel lookup returns normalised dates.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s4"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 3 / 9 · OUTPUTS</div>
+<h2 class="rise">A tool output is an input<br><em class="serif">contract.</em></h2>
+<p class="lede rise">Stable ids, normalised dates, bounded results, explicit truncation — so the agent can decide whether it has enough evidence.</p>
+<button class="replay rise" data-replay="outputs"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE OUTPUT</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE OUTPUT SHAPE</span><span>BOUNDED, EXPLICIT</span></div>
+<div class="code" id="outputCode" set:html={outputCode}></div>
+<p class="note">Prose that says “Tokyo trip found” forces reconstruction. An id and a range do not.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s5"><div class="scene-inner">
+<div class="eyebrow rise">STEP 4 / 9 · THE GUARD</div>
+<h2 class="rise">Read-before-write is <em class="serif">an invariant.</em></h2>
+<p class="lede rise">The runtime needs a target and a duplicate check. The prompt improves behavior; the guard protects the user when the model misbehaves.</p>
+<button class="replay rise" data-replay="guard"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE GUARD</button>
+<div class="flow rise" id="guardFlow">
+<div class="flowbox">READ</div><deck-icon class="flowarr" name="arrow-right"></deck-icon>
+<div class="flowbox">GUARD</div><deck-icon class="flowarr" name="arrow-right"></deck-icon>
+<div class="flowbox hot">WRITE</div>
+</div>
+<div class="badges rise" style="margin-top:20px" id="guardChips"><span class="badge">STANDALONEWRITE — NO TARGET NEEDED</span><span class="badge">REMEMBER — IDEMPOTENT</span><span class="badge">CREATE TASK — MAY RUN FIRST</span></div>
+<p class="note rise">Making the model read before every create made it stall on the simplest requests.</p></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s6"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 5 / 9 · EVIDENCE</div>
+<h2 class="rise">Evidence belongs<br><em class="serif">in the answer.</em></h2>
+<p class="lede rise">Distinguish what a tool returned from what the agent inferred, and from what it recommends.</p>
+<button class="replay rise" data-replay="evidence"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE KINDS</button>
+<div class="badges rise" style="margin-top:20px" id="evidenceChips"><span class="badge">TOOL FACT</span><span class="badge">INFERENCE</span><span class="badge">RECOMMENDATION</span></div></div>
+<div class="diagram rise"><div class="dlabel"><span>THE DISTINCTION</span><span>AUDITABLE</span></div>
+<div class="code" id="evidenceCode" set:html={evidenceCode}></div>
+<p class="note">It lets evaluators reward grounded wording — and reject invented fields.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s7"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 6 / 9 · TRACE</div>
+<h2 class="rise">Observability turns<br>behavior into <em class="serif">data.</em></h2>
+<p class="lede rise">The scorer evaluates the trace, not the final sentence. Record the run once, and every failure gets a category.</p>
+<button class="replay rise" data-replay="trace"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TRACE</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE AGENT TRACE</span><span>ONE RECORD</span></div>
+<div class="code" id="traceCode" set:html={traceCode}></div></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s8"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 7 / 9 · THE FLYWHEEL</div>
+<h2 class="rise">Every failure names<br><em class="serif">the layer to fix.</em></h2>
+<p class="lede rise">Wrong tool — improve boundaries or planning evidence. Invented id — improve lookup outputs and validation. Stopped at confirmation — check the harness supplied approval. Timeout — classify provider behavior before rewriting the prompt.</p>
+<button class="replay rise" data-replay="flywheel"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE FLYWHEEL</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE CAPABILITY FLYWHEEL</span><span>LIVE</span></div>
+<div class="loop" id="flywheel">
+<div class="loopnode">CONTRACT<small>DEFINE THE BOUNDARY</small></div>
+<div class="loopnode">PLAN<small>ORDER THE STEPS</small></div>
+<div class="loopnode">GUARD<small>ENFORCE SAFETY</small></div>
+<div class="loopnode">TRACE<small>RECORD THE RUN</small></div>
+<div class="loopnode">CLASSIFY<small>NAME THE FAILURE</small></div>
+<div class="loopnode">FIXTURE<small>MAKE IT REAL</small></div>
+<div class="loopnode">EVALUATE<small>SCORE THE TRACE</small></div>
+<div class="loopnode">REVISE<small>FIX THE RIGHT LAYER</small></div>
+</div></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s9"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 8 / 9 · CLOSE — THE CONTRACT, ASSEMBLED</div>
+<div class="finish rise">The model supplies language.<br><em class="serif">The contract supplies meaning.</em></div>
+<p class="lede rise" style="margin-top:26px">The runtime supplies authority. The trace supplies evidence. <span class="mark" style="margin:0 0 0 8px"></span></p>
+<div class="flow rise"><div class="flowbox">END OF SEASON ONE</div><deck-icon class="flowarr" name="arrow-right"></deck-icon><div class="flowbox hot">SEASON TWO</div></div></div>
+<div class="machine rise"><div class="mlabel"><span>THE CONTRACT</span><span>COMPLETE</span></div>
+<div class="mpart"><div><strong>REGISTRY</strong><small>One definition, two surfaces</small></div><span class="st">STEP 1</span></div>
+<div class="mpart"><div><strong>IDS</strong><small>Names search; ids execute</small></div><span class="st">STEP 2</span></div>
+<div class="mpart"><div><strong>OUTPUTS</strong><small>Bounded, normalised, explicit</small></div><span class="st">STEP 3</span></div>
+<div class="mpart"><div><strong>GUARD</strong><small>Read before write, enforced</small></div><span class="st">STEP 4</span></div>
+<div class="mpart trace"><div><strong>TRACE</strong><small>Behaviour as data</small></div><span class="st">STEP 6</span></div>
+<div class="mpart ledger"><div><strong>FLYWHEEL</strong><small>Fix the layer the failure names</small></div><span class="st">STEP 7</span></div></div></div>
+</section>
+</Deck>
+
+<script is:inline slot="script">
+const { seq, pulse, cycle } = window.deckBuild;
+const flywheelState = {};
+const builders = {
+  registry: () => pulse('registryCode'),
+  ids: () => pulse('idCode'),
+  outputs: () => pulse('outputCode'),
+  guard: () => { seq('#guardFlow .flowbox'); seq('#guardChips .badge'); },
+  evidence: () => { seq('#evidenceChips .badge'); pulse('evidenceCode'); },
+  trace: () => pulse('traceCode'),
+  flywheel: () => cycle('#flywheel .loopnode', flywheelState)
+};
+document.querySelectorAll('[data-replay]').forEach(b => { b.onclick = () => { const f = builders[b.dataset.replay]; if (f) f(); }; });
+</script>

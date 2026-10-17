@@ -1,0 +1,162 @@
+---
+import Deck from '../layouts/Deck.astro';
+const scoreCode = `<span class="kw">const</span> score = scoreMcpTrace(trace, {
+  requiredTools: [<span class="kw">'trip_history'</span>, <span class="kw">'finance_recent_transactions'</span>],
+  dependencies: [[<span class="kw">'trip_history'</span>, <span class="kw">'finance_recent_transactions'</span>]],
+  outputIncludes: [<span class="kw">'Sushi Dai'</span>],
+});`;
+const lookupCode = `<span class="kw">type</span> LookupResult&lt;T&gt; =
+  | { status: <span class="kw">'found'</span>;     items: T[] }
+  | { status: <span class="kw">'no_match'</span>;  items: [] }
+  | { status: <span class="kw">'ambiguous'</span>; items: T[] }
+  | { status: <span class="kw">'failed'</span>;    error: <span class="kw">string</span> };`;
+const traceCode = `{
+  <span class="cm">"model"</span>: <span class="kw">"openai/gpt-4o-mini"</span>,
+  <span class="cm">"scenario"</span>: <span class="kw">"trip-finance-date-chain"</span>,
+  <span class="cm">"plannedSteps"</span>: [<span class="kw">"trip_history"</span>, <span class="kw">"finance_recent_transactions"</span>],
+  <span class="cm">"actualCalls"</span>: [
+    { <span class="cm">"tool"</span>: <span class="kw">"trip_history"</span>, <span class="cm">"arguments"</span>: {} },
+    { <span class="cm">"tool"</span>: <span class="kw">"finance_recent_transactions"</span>,
+      <span class="cm">"arguments"</span>: { <span class="cm">"from"</span>: <span class="kw">"2025-04-10"</span>, <span class="cm">"to"</span>: <span class="kw">"2025-04-18"</span> } },
+  ],
+  <span class="cm">"dependencyChecks"</span>: { <span class="cm">"trip_history -> finance"</span>: <span class="kw">true</span> },
+  <span class="cm">"totalTokens"</span>: <span class="kw">644</span>, <span class="cm">"costUsd"</span>: <span class="kw">0.00011055</span>
+}`;
+---
+<Deck title="What Your Eval Is Actually Measuring" brand="EVALS" series="EPISODE 04 — THE INSTRUMENT">
+<deck-cue time="STEP 0 · THE ORACLE" title="The wrong oracle">Open on the first benchmark: one expected array, compared to one actual array. It was deterministic and it measured the wrong thing — mis-scoring independent ordering, counting confirmations as completed writes, and hiding the difference between an invented id and a provider outage.</deck-cue>
+<deck-cue time="STEP 1 · ORDERING" title="Exact sequences">Independent reads are unordered; a dependency is strict. The evaluator should require the edge trip_history → finance_recent_transactions while leaving unrelated reads free to swap.</deck-cue>
+<deck-cue time="STEP 2 · DIMENSIONS" title="Score separately">A missing tool is a selection problem. A wrong date is argument propagation. A call outside the plan is authorization. A timeout is not evidence the model chose badly. Score the dimensions, not one number.</deck-cue>
+<deck-cue time="STEP 3 · THE SCORER" title="Require the edge">The scorer takes the trace, the tools that must appear, the edges that must hold, and the facts the answer must ground — and reports each dimension separately.</deck-cue>
+<deck-cue time="STEP 3 · FIXTURES" title="Real ambiguity">An ambiguous fixture with one Alex is not ambiguous. Fixtures need duplicate names, no-match versus failed lookup, existing and missing records, and normalized dates.</deck-cue>
+<deck-cue time="STEP 4 · THE CONVERSATION" title="Two turns">A single-turn test cannot prove a two-turn protocol. If the harness stops at confirmation and marks the run complete, a correct pause and a total misunderstanding look identical.</deck-cue>
+<deck-cue time="STEP 5 · THE TRACE" title="Grade the trace">Grade traces, not prose. Model, provider, prompt version, exposed tools, planned steps, actual calls, arguments, outputs, confirmation events, errors, tokens, cost, latency.</deck-cue>
+<deck-cue time="STEP 6 · REPEAT" title="The instrument panel">One successful run demonstrates possibility, not reliability. Run the hard suite repeatedly against versioned fixtures, with the model, provider and benchmark version recorded.</deck-cue>
+<deck-cue time="STEP 7 · CLOSE" title="The instrument">The benchmark is not a gate at the end of development. It is the instrument panel for the agent.</deck-cue>
+
+<section class="scene" id="s1"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 0 / 9 · THE ORACLE</div>
+<h2 class="rise">An assertion can be exact<br>and measure <em class="serif">the wrong thing.</em></h2>
+<p class="lede rise">The first MCP benchmark compared the model's tool calls with one expected array. It scored harmless ordering as failure, counted confirmations as completed writes, and hid the difference between an invented id and an outage.</p>
+<p class="note rise">The fix was not a stronger prompt. It was a better measurement model.</p></div>
+<div class="machine rise"><div class="mlabel"><span>THE INSTRUMENT</span><span>0 PARTS INSTALLED</span></div>
+<div class="mpart ghost"><div><strong>ORACLE</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>SCORER</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>FIXTURES</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>TRACE</strong><small>—</small></div><span class="st">NOT YET</span></div>
+<div class="mpart ghost"><div><strong>REPEAT</strong><small>—</small></div><span class="st">NOT YET</span></div></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s2"><div class="scene-inner">
+<div class="eyebrow rise">STEP 1 / 9 · ORDERING</div>
+<h2 class="rise">Exact sequences are usually <em class="serif">the wrong oracle.</em></h2>
+<p class="lede rise">Both of these are correct. The order only matters when a call consumes what another returned.</p>
+<button class="replay rise" data-replay="oracle"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE ORACLE</button>
+<div class="cols rise" style="margin-top:26px" id="oracle">
+<div class="col dim"><h3>INDEPENDENT — EITHER ORDER</h3><p><span style="color:#fff">trip_history</span>, <span style="color:#fff">career_profile</span></p><p><span style="color:#fff">career_profile</span>, <span style="color:#fff">trip_history</span></p><p>No edge between them.</p></div>
+<div class="col"><h3>DEPENDENT — ONE ORDER</h3><p><span style="color:#fff">trip_history</span> → <span style="color:#fff">finance_recent_transactions</span></p><p>The second call needs dates the first returned.</p><p>Reversed is a real failure.</p></div>
+</div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s3"><div class="scene-inner">
+<div class="eyebrow rise">STEP 2 / 9 · DIMENSIONS</div>
+<h2 class="rise">A missing tool is not <em class="serif">a timeout.</em></h2>
+<p class="lede rise">One score hides the failure shape. Separate the dimensions, and each failure points at a different fix.</p>
+<button class="replay rise" data-replay="scorer"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE DIMENSIONS</button>
+<div class="blocks rise" style="margin-top:30px;grid-template-columns:repeat(3,1fr)" id="dimensions">
+<div class="block"><b>Missing tool</b><span>Selection — the model didn't choose it.</span></div>
+<div class="block"><b>Wrong date</b><span>Argument propagation — facts lost between calls.</span></div>
+<div class="block"><b>Outside the plan</b><span>Authorization — the runtime should refuse.</span></div>
+<div class="block"><b>Violated dependency</b><span>Ordering — a prerequisite was skipped.</span></div>
+<div class="block"><b>Confirmation failure</b><span>Protocol — a boundary state went wrong.</span></div>
+<div class="block"><b>Provider failure</b><span>Transport — not evidence of bad choice.</span></div>
+</div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s4"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 3 / 9 · THE SCORER</div>
+<h2 class="rise">Require the edge.<br><em class="serif">Free the rest.</em></h2>
+<p class="lede rise">The scorer takes the trace, the tools that must appear, the edges that must hold, and the facts the answer must ground.</p>
+<button class="replay rise" data-replay="scorer"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SCORER</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE SCORER</span><span>DIMENSIONS, NOT A NUMBER</span></div>
+<div class="code" id="scorerCode" set:html={scoreCode}></div>
+<p class="note">It reports missing tools, forbidden tools, violated dependencies, confirmation failures, ungrounded output and runtime errors separately.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s5"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 4 / 9 · FIXTURES</div>
+<h2 class="rise">An ambiguous fixture<br>with one Alex <em class="serif">is not ambiguous.</em></h2>
+<p class="lede rise">Stateful fixtures need duplicate names, no-match versus failed lookup, existing and missing records, and stable ids.</p>
+<button class="replay rise" data-replay="fixtures"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LOOKUP</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE LOOKUP RESULT</span><span>FOUR OUTCOMES, NOT TWO</span></div>
+<div class="code" id="lookupCode" set:html={lookupCode}></div>
+<p class="note">“No match” and “lookup failed” are different facts. A fixture that cannot tell them apart cannot score the model that confuses them.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s6"><div class="scene-inner">
+<div class="eyebrow rise">STEP 5 / 9 · THE CONVERSATION</div>
+<h2 class="rise">Confirmation needs <em class="serif">a conversation.</em></h2>
+<p class="lede rise">A single-turn test cannot prove a two-turn protocol. If the harness stops early, two very different runs look the same.</p>
+<button class="replay rise" data-replay="conversation"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PROTOCOL</button>
+<div class="flow rise" id="conversation">
+<div class="flowbox">REQUEST</div><deck-icon class="flowarr" name="arrow-right"></deck-icon>
+<div class="flowbox">TOOL CALL</div><deck-icon class="flowarr" name="arrow-right"></deck-icon>
+<div class="flowbox">CONFIRMATION</div><deck-icon class="flowarr" name="arrow-right"></deck-icon>
+<div class="flowbox">APPROVE / REJECT</div><deck-icon class="flowarr" name="arrow-right"></deck-icon>
+<div class="flowbox hot">RESUME</div>
+</div>
+<p class="note rise">Stop after the third step and a correct pause is indistinguishable from a model that never understood the request.</p></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s7"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 6 / 9 · THE TRACE</div>
+<h2 class="rise">Grade traces,<br><em class="serif">not only prose.</em></h2>
+<p class="lede rise">The trace is the evidence. It keeps the model, the tools, the calls, the arguments, the confirmation events, the cost — and the answer.</p>
+<button class="replay rise" data-replay="trace"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TRACE</button></div>
+<div class="diagram rise"><div class="dlabel"><span>ONE TRACE</span><span>SCORED, NOT GUESSED</span></div>
+<div class="code" id="traceCode" set:html={traceCode}></div>
+<p class="note">The scorer evaluates the trace instead of guessing from the final sentence.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s8"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 7 / 9 · REPEAT</div>
+<h2 class="rise">One run is <em class="serif">possibility.</em><br>Repeat is reliability.</h2>
+<p class="lede rise">Run the hard suite repeatedly against versioned fixtures — model, provider, prompt and benchmark version recorded. It also exposes the evaluator's own bugs.</p>
+<button class="replay rise" data-replay="repeat"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LOOP</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE LOOP</span><span>LIVE</span></div>
+<div class="loop" id="repeatLoop">
+<div class="loopnode">INSTRUMENT<small>WHAT ARE WE MEASURING?</small></div>
+<div class="loopnode">CLASSIFY<small>NAME THE FAILURE</small></div>
+<div class="loopnode">FIXTURE<small>MAKE IT REAL</small></div>
+<div class="loopnode">RUN<small>SCORE THE TRACE</small></div>
+</div>
+<p class="note">Inspect the trace, revise the instrument, run again.</p></div></div>
+<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+
+<section class="scene" id="s9"><div class="scene-inner layout"><div>
+<div class="eyebrow rise">STEP 8 / 9 · CLOSE — THE INSTRUMENT, ASSEMBLED</div>
+<div class="finish rise">The benchmark is not a gate.<br><em class="serif">It is the instrument panel.</em></div>
+<p class="lede rise" style="margin-top:26px">Oracle, scorer, fixtures, trace, repeat — for the agent, not for the demo. <span class="mark" style="margin:0 0 0 8px"></span></p>
+<div class="flow rise"><div class="flowbox">NEXT VIDEO</div><deck-icon class="flowarr" name="arrow-right"></deck-icon><div class="flowbox hot">MODELS FAIL DIFFERENTLY</div></div></div>
+<div class="machine rise"><div class="mlabel"><span>THE INSTRUMENT</span><span>COMPLETE</span></div>
+<div class="mpart"><div><strong>ORACLE</strong><small>Ordering only where an edge exists</small></div><span class="st">STEP 1</span></div>
+<div class="mpart"><div><strong>SCORER</strong><small>Separate the failure dimensions</small></div><span class="st">STEP 2</span></div>
+<div class="mpart"><div><strong>FIXTURES</strong><small>Real ambiguity, stable ids</small></div><span class="st">STEP 3</span></div>
+<div class="mpart"><div><strong>TRACE</strong><small>Model, calls, arguments, events, cost</small></div><span class="st">STEP 5</span></div>
+<div class="mpart trace"><div><strong>REPEAT</strong><small>Hard suite, versioned fixtures</small></div><span class="st">STEP 6</span></div></div></div>
+</section>
+</Deck>
+
+<script is:inline slot="script">
+const { seq, pulse, cycle } = window.deckBuild;
+const repeatState = {};
+const builders = {
+  oracle: () => seq('#oracle .col'),
+  scorer: () => { seq('#dimensions .block'); pulse('scorerCode'); },
+  fixtures: () => pulse('lookupCode'),
+  conversation: () => seq('#conversation .flowbox'),
+  trace: () => pulse('traceCode'),
+  repeat: () => cycle('#repeatLoop .loopnode', repeatState)
+};
+document.querySelectorAll('[data-replay]').forEach(b => { b.onclick = () => { const f = builders[b.dataset.replay]; if (f) f(); }; });
+</script>

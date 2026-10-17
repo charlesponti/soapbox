@@ -26,6 +26,7 @@ const base = raw.endsWith('/') ? raw : raw + '/';
 <script is:inline src={`${base}components/deck-icon.js`}></script>
 <script is:inline src={`${base}components/deck-stage.js`}></script>
 {chat && <script is:inline src={`${base}components/deck-chat.js`}></script>}
+<script is:inline src={`${base}components/deck-build.js`}></script>
 <script is:inline src={`${base}components/deck-stage-driver.js`}></script>
 <slot name="script" />
 </body></html>
