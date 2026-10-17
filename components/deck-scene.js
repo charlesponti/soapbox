@@ -30,7 +30,9 @@
 
       const eyebrow = document.createElement('div');
       eyebrow.className = 'eyebrow rise';
-      eyebrow.textContent = 'STEP ' + step + ' / ' + total + (title ? ' · ' + title : '');
+      eyebrow.textContent = this.hasAttribute('cover')
+        ? title                                   // cover: no "STEP n / N"
+        : 'STEP ' + step + ' / ' + total + (title ? ' · ' + title : '');
 
       const frag = document.createDocumentFragment();
       while (this.firstChild) frag.appendChild(this.firstChild);

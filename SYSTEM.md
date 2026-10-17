@@ -111,48 +111,46 @@ exempt.
 
 ## 6. Scene types (the catalogue — build from these, don't invent)
 
-1. **Statement** — one headline, one lede. The default.
-2. **Quote / Thesis** — serif, oversized, almost nothing else on screen.
-3. **Word-object** — one word or object manipulated (sliced, weighed, priced).
-4. **Stack** — layered architecture nodes with connectors (routing, layers).
-5. **Flow** — 3–5 boxes with arrows (propose → pause → decide → execute).
-6. **Cycle** — 4 nodes whose highlight rotates (the loop).
-7. **Counter** — one huge mono number that counts on entry (Goodhart, funnel).
-8. **Compare** — two monochrome panels, before/after, same geometry.
-9. **Close** — the question the video leaves behind + what comes next.
+1. **Title card** — the series/title + one line of thesis. Opens every deck.
+2. **Statement** — one headline, one lede. The default.
+3. **Quote / Thesis** — serif, oversized, almost nothing else on screen.
+4. **Word-object** — one word or object manipulated (sliced, weighed, priced).
+5. **Stack** — layered architecture nodes with connectors (routing, layers).
+6. **Flow** — 3–5 boxes with arrows (propose → pause → decide → execute).
+7. **Cycle** — 4 nodes whose highlight rotates (the loop).
+8. **Counter** — one huge mono number that counts on entry (Goodhart, funnel).
+9. **Compare** — two monochrome panels, before/after, same geometry.
+10. **Close** — the question the video leaves behind + what comes next.
 
 ## 7. Building a deck for a new video
 
-1. Copy `next-token.html`; strip its scenes and `cueData`.
-2. From the video plan, take one scene per script segment (merge short
-   neighbours; a 26-minute video lands at 8–12 scenes, not 13+).
-3. Assign each scene a type from §6. Write its visible text under the 30-word
-   ceiling; put the talk track in `cueData` with the plan's timestamps.
+1. Author an Astro page from an essay (§11); do not copy a deck file.
+2. Take one scene per script segment (a 26-minute video lands at 8–12 scenes,
+   not 13+). Open on a title card; close on the question.
+3. Write each scene under the ~30-word ceiling; put the talk track in
+   `<deck-cue>`. Diagram right, text left.
 4. Choose the deck's single semantic accent (§2) in advance — or none.
-5. Run the checks: no colour outside the audit · Geist stacks on every text
-   element · every diagram replays with `R` · reduced-motion renders clean ·
-   counter total matches scene count.
+5. Run the checks: `npm run build && npm run check && npm test` — colour audit,
+   one build per scene, every diagram replays, reduced motion renders clean,
+   and every scene fits 1600×900.
 
-## 8. Narrative decks — the build-order pattern (added 16 Oct 2026)
+## 8. Narrative decks — self-contained scenes (revised 17 Oct 2026)
 
-For explainer videos (a teacher laying a system out step by step), the deck
-is not a sequence of illustrations; it is ONE accumulating diagram. Rules:
+The earlier build-order device — one **machine** panel assembling across the
+deck — is retired. It put the story in a side panel instead of on the screen,
+and it crowded each diagram out of its own column. The law now:
 
-- A single persistent component — **the machine** — appears in every scene
-  from the cold open onward, starting empty (all parts ghosted, dashed,
-  "NOT YET").
-- Each scene installs exactly the part(s) its script step builds. Installed
-  parts stay installed, in build order, for the rest of the deck. The
-  scene's new part is highlighted by white-on-black inversion (the loop-node
-  device), never by a new colour.
-- Parts the argument later reveals (a hidden scoreboard, a missing ledger)
-  enter the stack when the script reveals them, labelled with their story
-  ("WAS THERE ALL ALONG" / "USUALLY ABSENT").
-- The closing scene shows the complete assembly next to the opening image.
-- Script-side, the same law: steps in build order, no part introduced
-  before the previous part fails to explain something, each step ending on
-  the question the next step answers. The reference build is
-  `next-token.html` v2 with plan v2 (goal: first-episode flagship).
+- Every deck opens on a **title card** (§6.1): the series/title and one line of
+  thesis. No step counter on the cover.
+- **The slide does the narrative work.** One claim per scene, carried by the
+  headline and lede; the diagram proves it. Nothing recurs between scenes.
+- Text owns the **left** column, the diagram owns the **right**. Never stack a
+  diagram under the text in the same column — that is what pushed scenes past
+  the 16:9 frame.
+- A scene must **fit 1600×900** (`tests/fit.spec.js`). What does not fit is cut,
+  not scrolled.
+- Steps still hand off — each scene ends on the question the next answers — but
+  the hand-off lives in the writing, not in a persistent widget.
 
 ## 9. Components — the library, and the conversation rule (added 16 Oct 2026)
 

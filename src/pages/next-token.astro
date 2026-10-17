@@ -2,130 +2,94 @@
 import Deck from '../layouts/Deck.astro';
 ---
 <Deck title="The Next Token" brand="NEXT TOKEN" series="EPISODE 01 — THE BUILD" chat={true}>
-<deck-cue time="STEP 0 · THE MYSTERY" title="The question">Open on the premise, then the meme: the models said two, it is three, two camps formed overnight. Land the join: both camps argued about the answer — nobody asked what the machine was looking at. We build it, one part at a time.</deck-cue>
-<deck-cue time="STEP 1 · ITS EYES" title="Part 1: eyes">It never saw letters: chunks and numbers, slices that do not align with letters. The JPEG line: the information is in there, practically unreadable. Replay the slice on "chunks". Hand-off: so what does it do with them?</deck-cue>
-<deck-cue time="STEP 2 · ONE MOVE, THEN THE LOOP" title="Parts 2–3: the move, the loop">The whole move is prediction — it commits to a digit with no counter, guessing what a correct answer looks like. Kill the smuggled definition of intelligence (flawless, internal, one pass). Intelligence is the loop: intent, artifact, reaction, revision. The correction is the thinking.</deck-cue>
-<deck-cue time="STEP 3 · THE PARTNER" title="Part 4: the partner">The builder version: the specification emerges while you build. Not an autonomous genius — a high-bandwidth execution partner. Land his diagram line, then the join: "deterministic tools underneath — hold onto that phrase."</deck-cue>
-<deck-cue time="STEP 4 · THE ROUTER" title="Part 5: the router">The loop alone spins; intelligence is the routing. Four layers; routing itself can fail. Newsboy as the worked proof: ownership, not emphasis — compute where exact, infer where ambiguous. Civilisation ran the same playbook. Recap beat, then: the machine is built.</deck-cue>
-<deck-cue time="STEP 5 · THE CATCH" title="The scoreboard">Slow down. Every loop optimises for something, not always what is written on the box. Goodhart: the measure becomes the target. Point at the machine: the scoreboard was there all along — we just had not labelled it.</deck-cue>
-<deck-cue time="STEP 6 · RUNNING US" title="The same machine, running us">Aim it at belief: stated vs revealed preference, badges, insulation, no blame — universal equipment. Then the narrator: the reasons are the press release, the incentives are the process. Gates as the worked example. Climax: build the check outside the thing being checked.</deck-cue>
-<deck-cue time="STEP 7 · THE CHECK, ENGINEERED" title="The ledger">The philosophy becomes architecture: plausible is not valid. Where does reality live? Inference proposes, authority decides. Distrust the instrument before the subject. Permission is propose, pause, decide, execute — never one boolean.</deck-cue>
-<deck-cue time="STEP 8 · AT SCALE" title="The same machine, at scale">Zoom out: Pareto (records, not speeches), Mosca (the political formula), Michels (the iron law where it should have failed). The funnel: the minority sets the menu. Then money as interface — the monthly payment is not the price.</deck-cue>
-<deck-cue time="STEP 9 · CLOSE" title="The machine, assembled">Return to the strawberry, now sliced. That is the show: not the news, the machinery underneath. Final question to camera — what is your loop optimising for, and can anything outside it tell it it is wrong? Hold. End card: The Tool Call Is Not the Plan.</deck-cue>
+<deck-cue time="COVER" title="The title">Open on the title. Say what the episode is about, then cut straight to the gotcha.</deck-cue>
+<deck-cue time="STEP 1 · THE MYSTERY" title="The question">Open on the meme: the models said two, it is three, two camps formed overnight. Land the join: both camps argued about the answer — nobody asked what the machine was looking at.</deck-cue>
+<deck-cue time="STEP 2 · ITS EYES" title="It never saw letters">Chunks and numbers, slices that do not align with letters. The JPEG line is the whole point: the information is in there, practically unreadable. Replay the slice on "chunks". Hand-off: so what does it do with them?</deck-cue>
+<deck-cue time="STEP 3 · THE LOOP" title="The move and the loop">The whole move is prediction — it commits to a digit with no counter. Kill the smuggled definition of intelligence (flawless, internal, one pass). Intelligence is the loop: intent, artifact, reaction, revision. The correction is the thinking.</deck-cue>
+<deck-cue time="STEP 4 · THE PARTNER" title="Not a genius">The builder version: the specification emerges while you build. Not an autonomous genius that takes one perfect brief — a high-bandwidth execution partner. Land the join: "deterministic tools underneath."</deck-cue>
+<deck-cue time="STEP 5 · THE ROUTER" title="Compute where exact">The loop alone spins; intelligence is the routing. Four layers; routing itself can fail. Newsboy as the worked proof: compute where exact, infer where ambiguous. Civilisation ran the same playbook.</deck-cue>
+<deck-cue time="STEP 6 · THE CATCH" title="The scoreboard">Slow down. Every loop optimises for something, not always what is written on the box. Goodhart: the measure becomes the target — the scoreboard was there all along.</deck-cue>
+<deck-cue time="STEP 7 · RUNNING US" title="The same machine, us">Aim it at belief: stated vs revealed preference, badges, insulation, no blame — universal equipment. Then the narrator: the reasons are the press release, the incentives are the process. Climax: build the check outside the thing being checked.</deck-cue>
+<deck-cue time="STEP 8 · THE CHECK" title="Let the state decide">The philosophy becomes architecture: plausible is not valid. Inference proposes, authority decides. Prompts persuade; runtimes enforce. "No" has to be a complete answer.</deck-cue>
+<deck-cue time="STEP 9 · AT SCALE" title="At scale">Zoom out: Pareto (records, not speeches), Mosca (the political formula), Michels (the iron law where it should have failed). The funnel: the minority sets the menu.</deck-cue>
+<deck-cue time="STEP 10 · CLOSE" title="Tokens are cheap">Return to the strawberry. That is the show: not the news, the machinery underneath. Final question to camera — what is your loop optimising for, and can anything outside it tell it it is wrong? Hold. End card: The Tool Call Is Not the Plan.</deck-cue>
 
-<deck-scene id="s1" title="00:00 · THE MYSTERY" layout="split"><div>
-<deck-chat class="rise" id="rsChat" title="THE MODEL" signal="ONLINE" label="A CONVERSATION" meta="THE GOTCHA">
+<deck-scene id="s0" title="EPISODE 01 — THE BUILD" layout="full" cover>
+<h1 class="rise">The Next Token</h1>
+<p class="lede rise">Two camps argued about the answer. Nobody asked what the machine was looking at.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="THE MYSTERY" layout="split"><div>
+<h2 class="rise">The internet's<br>favourite <em class="serif">gotcha.</em></h2>
+<p class="lede rise">The models said two. It's three. And both camps built a theory of intelligence on it.</p>
+<button class="replay rise" data-replay="chat"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CHAT</button></div>
+<deck-chat class="rise" id="rsChat" title="THE MODEL" signal="ONLINE">
 <chat-out>How many Rs are in “strawberry”?</chat-out>
 <chat-think></chat-think>
 <chat-in>2</chat-in>
 <chat-out>You can’t count!</chat-out>
-</deck-chat>
-<button class="replay rise" data-replay="chat"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CHAT</button>
-<p class="lede rise">The internet's favourite gotcha. The models said two. It's three — and both camps built a theory of intelligence on it. Nobody asked what the machine was looking at.</p>
-</div>
-<deck-machine class="rise" label="THE MACHINE" status="0 PARTS INSTALLED">
-<deck-part name="EYES" state="ghost"></deck-part>
-<deck-part name="THE MOVE" state="ghost"></deck-part>
-<deck-part name="THE LOOP" state="ghost"></deck-part>
-<deck-part name="THE PARTNER" state="ghost"></deck-part>
-<deck-part name="THE ROUTER" state="ghost"></deck-part>
-<p class="note">We build it one part at a time. No part appears until the previous one fails to explain something.</p>
-</deck-machine></deck-scene>
+</deck-chat></deck-scene>
 
 <deck-scene id="s2" title="ITS EYES" layout="split"><div>
 <h2 class="rise">It never saw<br><em class="serif">letters.</em></h2>
-<p class="lede rise">The model sees chunks — token fragments that don't line up with the letters inside the word.</p>
-<button class="replay rise" data-replay="slices"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SLICE</button>
-<div class="diagram rise" style="margin-top:28px"><div class="dlabel"><span>ONE WORD IN</span><span>TOKENS OUT</span></div>
+<p class="lede rise">Asking it to count the Rs is asking for pixels in a compressed JPEG. The information is in there — practically unreadable.</p>
+<button class="replay rise" data-replay="slices"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SLICE</button></div>
+<div class="diagram rise"><div class="dlabel"><span>ONE WORD IN</span><span>TOKENS OUT</span></div>
 <div class="word" id="wholeWord">STRAWBERRY</div>
 <deck-tiles id="tiles"><deck-tile k="straw" v="1082"></deck-tile><deck-tile k="ber" v="497"></deck-tile><deck-tile k="ry" v="831"></deck-tile></deck-tiles>
-<p class="note">Asking it to count the Rs is asking for pixels in a compressed JPEG. The information is in there. It's practically unreadable.</p></div></div>
-<deck-machine class="rise" label="THE MACHINE" status="1 / 5 PARTS">
-<deck-part name="EYES" note="Sees chunks — never letters" state="installed" step="INSTALLED · STEP 1"></deck-part>
-<deck-part name="THE MOVE" state="ghost"></deck-part>
-<deck-part name="THE LOOP" state="ghost"></deck-part>
-<deck-part name="THE PARTNER" state="ghost"></deck-part>
-<deck-part name="THE ROUTER" state="ghost"></deck-part>
-</deck-machine></deck-scene>
+<p class="note">The model sees chunks — token fragments that don't line up with the letters inside the word.</p></div></deck-scene>
 
-<deck-scene id="s3" title="ONE MOVE, THEN THE LOOP" layout="split"><div>
+<deck-scene id="s3" title="THE LOOP" layout="split"><div>
 <h2 class="rise">Intelligence<br>isn't one shot.<br><em class="serif">It's the loop.</em></h2>
 <p class="lede rise">One move — predict the next chunk. Run it in a loop, and guessing becomes correcting.</p>
-<button class="replay rise" data-replay="loop"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LOOP</button>
-<div class="diagram rise" style="margin-top:28px"><div class="dlabel"><span>THE LOOP</span><span>LIVE</span></div>
+<button class="replay rise" data-replay="loop"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LOOP</button></div>
+<div class="diagram rise"><div class="dlabel"><span>THE LOOP</span><span>LIVE</span></div>
 <deck-cycle id="loopBox">
 <deck-cycle-node note="THE HALF-FORMED IDEA">INTENT</deck-cycle-node>
 <deck-cycle-node note="MAKE SOMETHING ROUGH">ARTIFACT</deck-cycle-node>
 <deck-cycle-node note="LOOK AT WHAT YOU MADE">REACTION</deck-cycle-node>
 <deck-cycle-node note="FIX IT — THAT'S THE THINKING">REVISION</deck-cycle-node>
-</deck-cycle></div></div>
-<deck-machine class="rise" label="THE MACHINE" status="3 / 5 PARTS">
-<deck-part name="EYES" note="Sees chunks — never letters" step="STEP 1"></deck-part>
-<deck-part name="THE MOVE" note="Predict the next chunk" state="installed" step="INSTALLED · STEP 2"></deck-part>
-<deck-part name="THE LOOP" note="Intent → artifact → reaction → revision" state="installed" step="INSTALLED · STEP 2"></deck-part>
-<deck-part name="THE PARTNER" state="ghost"></deck-part>
-<deck-part name="THE ROUTER" state="ghost"></deck-part>
-</deck-machine></deck-scene>
+</deck-cycle>
+<p class="note">Correction is the thinking. The loop is where the machine meets itself.</p></div></deck-scene>
 
 <deck-scene id="s4" title="THE PARTNER" layout="split"><div>
 <h2 class="rise">Not a genius.<br><em class="serif">A partner.</em></h2>
-<p class="lede rise">The specification emerges while you build. What the builder needs is a high-bandwidth execution partner — vague intent in, artifact out, feedback coming back around.</p>
-</div>
-<deck-machine class="rise" label="THE MACHINE" status="4 / 5 PARTS">
-<deck-part name="EYES" note="Sees chunks — never letters" step="STEP 1"></deck-part>
-<deck-part name="THE MOVE" note="Predict the next chunk" step="STEP 2"></deck-part>
-<deck-part name="THE LOOP" note="Intent → artifact → reaction → revision" step="STEP 2"></deck-part>
-<deck-part name="THE PARTNER" note="Human intent at the wheel" state="installed" step="INSTALLED · STEP 3"></deck-part>
-<deck-part name="THE ROUTER" state="ghost"></deck-part>
-<p class="note">“Deterministic tools underneath.” Hold onto that phrase.</p>
-</deck-machine></deck-scene>
+<p class="lede rise">The specification emerges while you build. What the builder needs is bandwidth, not brilliance.</p></div>
+<deck-compare class="rise">
+<deck-col state="dim"><h3>THE ORACLE MODEL</h3><p>Waits for a perfect brief.</p><p>One big shot.</p><p>You specify; it delivers.</p></deck-col>
+<deck-col><h3>THE PARTNER</h3><p>The spec emerges while you build.</p><p>Small loops, high bandwidth.</p><p>Vague intent in, artifact out.</p></deck-col>
+</deck-compare></deck-scene>
 
 <deck-scene id="s5" title="THE ROUTER" layout="split"><div>
 <h2 class="rise">Compute where<br>computation<br><em class="serif">is exact.</em></h2>
-<p class="lede rise">Newsboy, the daily word game: code owns the constraints, the model makes the one semantic choice, code revalidates before it ships.</p>
-<div class="diagram rise" style="margin-top:28px"><div class="dlabel"><span>FOUR LAYERS</span><span>EVERY SYSTEM</span></div>
+<p class="lede rise">Newsboy: code owns the constraints, the model makes the one semantic choice, code revalidates before it ships.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>FOUR LAYERS</span><span>EVERY SYSTEM</span></div>
 <deck-stack>
 <deck-node label="Recognition" note="What kind of problem is this?" tag="01"></deck-node>
 <deck-node label="Routing" note="Which mechanism solves it reliably?" tag="02"></deck-node>
 <deck-node label="Execution" note="Run the mechanism" tag="03"></deck-node>
 <deck-node label="Interpretation" note="What does it mean, in human terms?" tag="04"></deck-node>
-</deck-stack></div></div>
-<deck-machine class="rise" label="THE MACHINE" status="5 / 5 PARTS — BUILT">
-<deck-part name="EYES" note="Sees chunks — never letters" step="STEP 1"></deck-part>
-<deck-part name="THE MOVE" note="Predict the next chunk" step="STEP 2"></deck-part>
-<deck-part name="THE LOOP" note="Intent → artifact → reaction → revision" step="STEP 2"></deck-part>
-<deck-part name="THE PARTNER" note="Human intent at the wheel" step="STEP 3"></deck-part>
-<deck-part name="THE ROUTER" note="Each problem to its mechanism" state="installed" step="INSTALLED · STEP 4"></deck-part>
-<p class="note">The machine works. Which is exactly when you ask the dangerous question.</p>
-</deck-machine></deck-scene>
+</deck-stack></div></deck-scene>
 
 <deck-scene id="s6" title="THE CATCH" layout="split"><div>
 <h2 class="rise">Every loop optimises<br>for <em class="serif">something.</em></h2>
-<p class="lede rise">And what it optimises for is not always what's written on the box.</p>
-<button class="replay rise" data-replay="score"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SCOREBOARD</button>
-<div class="diagram rise" style="margin-top:22px"><div class="dlabel"><span>GOODHART — THE SCOREBOARD</span><span>THE JOB</span></div>
-<deck-counter num-id="scoreNum" value="0.0" suffix="%" bar bar-id="jobBar" bar-left="MEASURE BECOMES THE TARGET" bar-right="THE THING IT WAS TRACKING"></deck-counter></div></div>
-<deck-machine class="rise" label="THE MACHINE" status="BUILT — ONE PART UNLABELLED">
-<deck-part name="THE SCOREBOARD" note="What the loop is optimising for" state="score" step="WAS THERE ALL ALONG"></deck-part>
-<deck-part name="EYES" note="Sees chunks — never letters" step="STEP 1"></deck-part>
-<deck-part name="THE MOVE" note="Predict the next chunk" step="STEP 2"></deck-part>
-<deck-part name="THE LOOP" note="Intent → artifact → reaction → revision" step="STEP 2"></deck-part>
-<deck-part name="THE PARTNER" note="Human intent at the wheel" step="STEP 3"></deck-part>
-<deck-part name="THE ROUTER" note="Each problem to its mechanism" step="STEP 4"></deck-part>
-</deck-machine></deck-scene>
+<p class="lede rise">What it optimises for is not always what's written on the box.</p>
+<button class="replay rise" data-replay="score"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SCOREBOARD</button></div>
+<div class="diagram rise"><div class="dlabel"><span>GOODHART — THE SCOREBOARD</span><span>THE JOB</span></div>
+<deck-counter num-id="scoreNum" value="0.0" suffix="%" bar bar-id="jobBar" bar-left="MEASURE BECOMES THE TARGET" bar-right="THE THING IT WAS TRACKING"></deck-counter>
+<p class="note">The scoreboard was there all along. We just had not labelled it.</p></div></deck-scene>
 
 <deck-scene id="s7" title="THE SAME MACHINE, RUNNING US" layout="full">
 <div class="finish serif rise">“Nobody has beliefs about gravity.”</div>
-<p class="lede rise" style="margin-top:26px">Belief lives where feedback is absent — and that's exactly where a belief can become a badge. Cheap to profess. Expensive to defect from.</p>
+<p class="lede rise" style="margin-top:26px">Belief lives where feedback is absent — and that's exactly where a belief can become a badge.</p>
 <button class="replay rise" data-replay="badges"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE BADGES</button>
 <deck-chips class="rise" id="badges" style="margin-top:20px"><deck-chip>STATUS</deck-chip><deck-chip>BELONGING</deck-chip><deck-chip>ORIENTATION</deck-chip><deck-chip>MORAL CLEARANCE</deck-chip><deck-chip>INSULATION</deck-chip></deck-chips>
 <deck-compare class="rise" style="margin-top:34px">
 <deck-col><h3>THE MACHINE</h3>
-<p><b>EYES</b> — sees tokens</p><p><b>THE MOVE</b> — predicts the next one</p><p><b>THE LOOP</b> — corrects against feedback</p><p><b>THE SCOREBOARD</b> — the benchmark</p><p><b>THE LEDGER</b> — owned by the system</p></deck-col>
+<p><b>EYES</b> — sees tokens</p><p><b>THE MOVE</b> — predicts the next one</p><p><b>THE LOOP</b> — corrects against feedback</p></deck-col>
 <deck-col><h3>THE SAME MACHINE — US</h3>
-<p><b>EYES</b> — sees badges</p><p><b>THE MOVE</b> — the narrator talks</p><p><b>THE LOOP</b> — insulated from feedback</p><p><b>THE SCOREBOARD</b> — status</p><p><b>THE LEDGER</b> — usually absent</p></deck-col>
-</deck-compare>
-<p class="note rise">The reasons are the press release. The incentives are the process.</p></deck-scene>
+<p><b>EYES</b> — sees badges</p><p><b>THE MOVE</b> — the narrator talks</p><p><b>THE LOOP</b> — insulated from feedback</p></deck-col>
+</deck-compare></deck-scene>
 
 <deck-scene id="s8" title="THE CHECK, ENGINEERED" layout="full">
 <h2 class="rise">Let the model propose.<br><em class="serif">Let the state decide.</em></h2>
@@ -136,13 +100,12 @@ import Deck from '../layouts/Deck.astro';
 <deck-flow class="rise">
 <deck-step>PROPOSE</deck-step><deck-step>PAUSE</deck-step><deck-step>DECIDE</deck-step><deck-step hot>EXECUTE</deck-step>
 </deck-flow>
-<p class="note rise">The outside check, built into the architecture: inference proposes, authority decides. Prompts persuade. Runtimes enforce. “No” has to be a complete answer.</p>
+<p class="note rise">Inference proposes, authority decides. Prompts persuade; runtimes enforce. “No” has to be a complete answer.</p>
 </deck-scene>
 
 <deck-scene id="s9" title="THE SAME MACHINE, AT SCALE" layout="split"><div>
 <h2 class="rise">At scale, democracy<br>is <em class="serif">oligarchy.</em></h2>
-<p class="lede rise">Pareto pulled the records, not the speeches. Mosca named the formula. Michels proved it in the one place it should have failed. The only question is which oligarchy.</p>
-<p class="note rise">And the interface trick runs on money too: £30,000 is a stock; £499 a month is a flow. The monthly payment is another interface. It is not the price.</p></div>
+<p class="lede rise">Pareto pulled the records, not the speeches. Mosca named the formula. Michels proved it in the one place it should have failed. The only question is which oligarchy.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>THE ELECTION FUNNEL</span><span>WHO CHOOSES?</span></div>
 <div class="funnel">
 <div class="frow"><div class="fbar" style="width:88%"></div><span>100% — THE PUBLIC</span></div>
@@ -152,20 +115,10 @@ import Deck from '../layouts/Deck.astro';
 </div>
 <p class="note">By the time a voter walks into the booth, 99.99% of the filtering is done. The minority sets the menu. The majority picks the dish.</p></div></deck-scene>
 
-<deck-scene id="s10" title="CLOSE — THE MACHINE, ASSEMBLED" layout="split"><div>
+<deck-scene id="s10" title="CLOSE" layout="full">
 <div class="finish rise">Everyone is predicting<br>the next token. <em class="serif">Tokens are cheap.</em></div>
-<p class="lede rise" style="margin-top:28px">The question is what the loop is optimising for — and whether anything outside it can tell it it's wrong. Build the check before you need it. Then listen to it. <deck-mark inline></deck-mark></p>
-<deck-tiles class="rise" style="justify-content:flex-start;margin-top:26px"><deck-tile k="straw" v="1082"></deck-tile><deck-tile k="ber" v="497"></deck-tile><deck-tile k="ry" v="831"></deck-tile></deck-tiles>
-<deck-flow class="rise"><deck-step>NEXT VIDEO</deck-step><deck-step hot>THE TOOL CALL IS NOT THE PLAN</deck-step></deck-flow></div>
-<deck-machine class="rise" label="THE MACHINE" status="COMPLETE">
-<deck-part name="THE SCOREBOARD" note="What the loop is optimising for" state="score" step="STEP 5"></deck-part>
-<deck-part name="EYES" note="Sees chunks — never letters" step="STEP 1"></deck-part>
-<deck-part name="THE MOVE" note="Predict the next chunk" step="STEP 2"></deck-part>
-<deck-part name="THE LOOP" note="Intent → artifact → reaction → revision" step="STEP 2"></deck-part>
-<deck-part name="THE PARTNER" note="Human intent at the wheel" step="STEP 3"></deck-part>
-<deck-part name="THE ROUTER" note="Each problem to its mechanism" step="STEP 4"></deck-part>
-<deck-part name="THE LEDGER" note="The check outside the loop" state="ledger" step="STEP 7"></deck-part>
-</deck-machine></deck-scene>
+<p class="lede rise" style="margin-top:28px">The question is what the loop is optimising for — and whether anything outside it can tell it it's wrong. <deck-mark inline></deck-mark></p>
+<deck-flow class="rise" style="margin-top:34px"><deck-step>NEXT VIDEO</deck-step><deck-step hot>THE TOOL CALL IS NOT THE PLAN</deck-step></deck-flow></deck-scene>
 </Deck>
 
 <script is:inline slot="script">

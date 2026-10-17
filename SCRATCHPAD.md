@@ -10,6 +10,17 @@ Legend: **P0** next · **P1** soon · **P2** someday · 🔥 obviously good.
 
 ## Shipped (17 Oct 2026)
 
+### Design decisions (reshaped the decks)
+- **Every deck opens on a title card** (series + one-line thesis; no step counter).
+- **The recurring "machine" panel is retired.** Slides do the narrative work;
+  the panel crowded each diagram out of its own column.
+- **Text left, diagram right.** Never stack a diagram under the text — that is
+  what pushed scenes past the 16:9 frame.
+- **Fit is a gate:** `tests/fit.spec.js` fails if any scene is taller than
+  1600×900. Not-yet-reworked decks are listed in `FIT_DEBT`, cleared one by one.
+
+### Done
+
 - ✅ **`<deck-scene>` + `<deck-parts>`** — scene, machine/part, flow/step,
   stack/node, code, compare/col, chips/chip, grid/cell, verdict/case,
   cycle/node, counter, tiles/tile, metrics/row, trace, mark. All six decks were
