@@ -25,51 +25,46 @@ const idemCode = `<span class="kw">const</span> idempotencyKey = \`\${generation
 <deck-cue time="STEP 7 · THE PROOF" title="Test the protocol">The harness stopped after the confirmation event — that tested whether it could stop, not whether the model could resume after approval or recover after rejection. Test the transitions.</deck-cue>
 <deck-cue time="STEP 8 · CLOSE" title="Never one boolean">Propose, pause, decide, then execute. Never compress those steps into one boolean.</deck-cue>
 
-<section class="scene" id="s1"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 0 / 9 · THE CLAIM</div>
+<deck-scene id="s1" title="THE CLAIM" layout="split"><div>
 <h2 class="rise">A boolean is <em class="serif">metadata.</em><br>Not a protocol.</h2>
 <p class="lede rise"><span style="color:#fff">requiresConfirmation: true</span> cannot say whether an action was previewed, approved, rejected — or blocked while a dependent write waits.</p>
 <p class="note rise">We build the protocol around the flag, one part at a time.</p></div>
-<div class="machine rise"><div class="mlabel"><span>THE PROTOCOL</span><span>0 PARTS INSTALLED</span></div>
-<div class="mpart ghost"><div><strong>STATE</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>SCOPE</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>BOUNDARY</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>IDEMPOTENCY</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>PROOF</strong><small>—</small></div><span class="st">NOT YET</span></div></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-machine class="rise" label="THE PROTOCOL" status="0 PARTS INSTALLED">
+<deck-part name="STATE" state="ghost"></deck-part>
+<deck-part name="SCOPE" state="ghost"></deck-part>
+<deck-part name="BOUNDARY" state="ghost"></deck-part>
+<deck-part name="IDEMPOTENCY" state="ghost"></deck-part>
+<deck-part name="PROOF" state="ghost"></deck-part>
+</deck-machine></deck-scene>
 
-<section class="scene" id="s2"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 1 / 9 · THE STATE</div>
+<deck-scene id="s2" title="THE STATE" layout="split"><div>
 <h2 class="rise">Model the boundary as <em class="serif">state.</em></h2>
 <p class="lede rise">A flag is one bit. The boundary needs four: what is in flight, what was approved, what was refused.</p>
 <button class="replay rise" data-replay="states"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE STATES</button>
 <div class="diagram rise" style="margin-top:22px"><div class="dlabel"><span>CONFIRMATION STATE</span><span>ONE ACTION AT A TIME</span></div>
-<div class="stack" id="states">
-<div class="node"><div><strong>READY</strong><small>Nothing in flight</small></div><b>01</b></div><div class="connector"></div>
-<div class="node"><div><strong>PENDING</strong><small>Exact tool + arguments frozen — not executed</small></div><b>02</b></div><div class="connector"></div>
-<div class="node"><div><strong>APPROVED</strong><small>This action, exactly</small></div><b>03</b></div><div class="connector"></div>
-<div class="node"><div><strong>REJECTED</strong><small>No change was made</small></div><b>04</b></div>
-</div></div></div>
-<div class="machine rise"><div class="mlabel"><span>THE PROTOCOL</span><span>1 / 5 PARTS</span></div>
-<div class="mpart newp"><div><strong>STATE</strong><small>ready · pending · approved · rejected</small></div><span class="st">INSTALLED · STEP 1</span></div>
-<div class="mpart ghost"><div><strong>SCOPE</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>BOUNDARY</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>IDEMPOTENCY</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>PROOF</strong><small>—</small></div><span class="st">NOT YET</span></div></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-stack id="states">
+<deck-node label="READY" note="Nothing in flight" tag="01"></deck-node>
+<deck-node label="PENDING" note="Exact tool + arguments frozen — not executed" tag="02"></deck-node>
+<deck-node label="APPROVED" note="This action, exactly" tag="03"></deck-node>
+<deck-node label="REJECTED" note="No change was made" tag="04"></deck-node>
+</deck-stack></div></div>
+<deck-machine class="rise" label="THE PROTOCOL" status="1 / 5 PARTS">
+<deck-part name="STATE" note="ready · pending · approved · rejected" state="installed" step="INSTALLED · STEP 1"></deck-part>
+<deck-part name="SCOPE" state="ghost"></deck-part>
+<deck-part name="BOUNDARY" state="ghost"></deck-part>
+<deck-part name="IDEMPOTENCY" state="ghost"></deck-part>
+<deck-part name="PROOF" state="ghost"></deck-part>
+</deck-machine></deck-scene>
 
-<section class="scene" id="s3"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 2 / 9 · THE SCOPE</div>
+<deck-scene id="s3" title="THE SCOPE" layout="split"><div>
 <h2 class="rise">Approval is scoped to <em class="serif">one exact action.</em></h2>
 <p class="lede rise">The tool and the serialized input must both match. A later turn cannot swap the target and reuse the yes.</p>
 <button class="replay rise" data-replay="scope"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CHECK</button></div>
 <div class="diagram rise"><div class="dlabel"><span>THE APPROVAL TEST</span><span>EXACT MATCH</span></div>
-<div class="code" id="scopeCode" set:html={scopeCode}></div>
-<p class="note">Approval is a value, not a mood. Recompute it on every resume.</p></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-code id="scopeCode" set:html={scopeCode}></deck-code>
+<p class="note">Approval is a value, not a mood. Recompute it on every resume.</p></div></deck-scene>
 
-<section class="scene" id="s4"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 3 / 9 · THE CONVERSATION</div>
+<deck-scene id="s4" title="THE CONVERSATION" layout="split"><div>
 <h2 class="rise">Preview, then <em class="serif">decide.</em></h2>
 <p class="lede rise">The preview names the change, the people, and the stable ids. Only the approval produces an effect — and the effect happens once.</p>
 <button class="replay rise" data-replay="chat"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PROTOCOL</button></div>
@@ -78,81 +73,64 @@ const idemCode = `<span class="kw">const</span> idempotencyKey = \`\${generation
 <chat-in>Alex will lose access to 12 places. Confirm?</chat-in>
 <chat-out state="confirmed" at="Approved">Yes — remove Alex</chat-out>
 <chat-in>Done. 12 collections updated, 1 member removed.</chat-in>
-</deck-chat></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+</deck-chat></deck-scene>
 
-<section class="scene" id="s5"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 4 / 9 · THE BOUNDARY</div>
+<deck-scene id="s5" title="THE BOUNDARY" layout="split"><div>
 <h2 class="rise">Dependent writes <em class="serif">stop at the boundary.</em></h2>
 <p class="lede rise">A provider can emit several calls in one response. When the first consequential action reaches confirmation, everything downstream freezes.</p>
 <button class="replay rise" data-replay="boundary"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE STOP</button></div>
 <div class="diagram rise"><div class="dlabel"><span>ONE RESPONSE, THREE CALLS</span><span>RUNTIME INVARIANT</span></div>
-<div class="flow" id="boundary">
-<div class="flowbox">READ: TRIP</div>
-<deck-icon class="flowarr" name="arrow-right"></deck-icon>
-<div class="flowbox">WRITE: REMOVE MEMBER</div>
-<deck-icon class="flowarr" name="arrow-right"></deck-icon>
-<div class="flowbox">WRITE: NOTIFY</div>
-</div>
-<div class="verdict"><div class="v"><b>WOULD RUN</b>The read only reads.</div><div class="v refuse" id="boundaryStop"><b>STOPPED</b>Pending. Downstream writes do not run.</div></div></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-flow id="boundary"><deck-step>READ: TRIP</deck-step><deck-step>WRITE: REMOVE MEMBER</deck-step><deck-step>WRITE: NOTIFY</deck-step></deck-flow>
+<deck-verdict><deck-case><b>WOULD RUN</b>The read only reads.</deck-case><deck-case id="boundaryStop" state="refuse"><b>STOPPED</b>Pending. Downstream writes do not run.</deck-case></deck-verdict></div></deck-scene>
 
-<section class="scene" id="s6"><div class="scene-inner">
-<div class="eyebrow rise">STEP 5 / 9 · THE REJECTION</div>
+<deck-scene id="s6" title="THE REJECTION" layout="full">
 <h2 class="rise">Rejection is a <em class="serif">safety success.</em></h2>
 <p class="lede rise">A rejected confirmation is not a failed tool call. It means the user stayed in control.</p>
-<div class="cols rise" style="margin-top:30px" id="rejection">
-<div class="col"><h3>WHAT IT IS NOT</h3><p>A failed write.</p><p>Something to retry.</p><p>A reason to continue into dependent actions.</p></div>
-<div class="col"><h3>WHAT IT IS</h3><p>No change, reported plainly.</p><p>A safe next step, offered.</p><p>Control, preserved.</p></div>
-</div>
-<p class="note rise">The assistant says what did <em>not</em> happen before what could.</p></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-compare class="rise" style="margin-top:30px" id="rejection">
+<deck-col><h3>WHAT IT IS NOT</h3><p>A failed write.</p><p>Something to retry.</p><p>A reason to continue into dependent actions.</p></deck-col>
+<deck-col><h3>WHAT IT IS</h3><p>No change, reported plainly.</p><p>A safe next step, offered.</p><p>Control, preserved.</p></deck-col>
+</deck-compare>
+<p class="note rise">The assistant says what did <em>not</em> happen before what could.</p></deck-scene>
 
-<section class="scene" id="s7"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 6 / 9 · THE RETRY</div>
+<deck-scene id="s7" title="THE RETRY" layout="split"><div>
 <h2 class="rise">Idempotency closes the <em class="serif">retry gap.</em></h2>
 <p class="lede rise">Approval crosses UI, network and worker boundaries. A retry must return the same effect, not a second one.</p>
 <button class="replay rise" data-replay="idempotency"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE KEY</button></div>
 <div class="diagram rise"><div class="dlabel"><span>EFFECT STORE</span><span>ONCE PER CALL</span></div>
-<div class="code" id="idemCode" set:html={idemCode}></div>
-<p class="note">Idempotency makes an authorized action safe to retry. It does not replace authorization.</p></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-code id="idemCode" set:html={idemCode}></deck-code>
+<p class="note">Idempotency makes an authorized action safe to retry. It does not replace authorization.</p></div></deck-scene>
 
-<section class="scene" id="s8"><div class="scene-inner">
-<div class="eyebrow rise">STEP 7 / 9 · THE PROOF</div>
+<deck-scene id="s8" title="THE PROOF" layout="full">
 <h2 class="rise">Test the protocol, <em class="serif">not the flag.</em></h2>
 <p class="lede rise">A harness that stops at the confirmation event proves only that it can stop.</p>
 <button class="replay rise" data-replay="proof"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PROOF</button>
-<div class="cols rise" style="margin-top:26px" id="proof">
-<div class="col dim"><h3>SHALLOW TEST</h3><p>Did the run emit <span style="color:#fff">confirmation_required</span>?</p><p>Stops. Marks complete.</p><p>A correct pause and a total misunderstanding look identical.</p></div>
-<div class="col"><h3>PROTOCOL TEST</h3><p>Did it resume after approval?</p><p>Did it recover after rejection?</p><p>Did dependent writes stay frozen?</p><p>Did approval bind to the exact action?</p></div>
-</div>
-<p class="note rise">Prove the transitions, not the checkpoint.</p></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-compare class="rise" style="margin-top:26px" id="proof">
+<deck-col state="dim"><h3>SHALLOW TEST</h3><p>Did the run emit <span style="color:#fff">confirmation_required</span>?</p><p>Stops. Marks complete.</p><p>A correct pause and a total misunderstanding look identical.</p></deck-col>
+<deck-col><h3>PROTOCOL TEST</h3><p>Did it resume after approval?</p><p>Did it recover after rejection?</p><p>Did dependent writes stay frozen?</p><p>Did approval bind to the exact action?</p></deck-col>
+</deck-compare>
+<p class="note rise">Prove the transitions, not the checkpoint.</p></deck-scene>
 
-<section class="scene" id="s9"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 8 / 9 · CLOSE — THE PROTOCOL, ASSEMBLED</div>
+<deck-scene id="s9" title="CLOSE — THE PROTOCOL, ASSEMBLED" layout="split"><div>
 <div class="finish rise">Propose, pause, decide, execute.<br><em class="serif">Never one boolean.</em></div>
-<p class="lede rise" style="margin-top:26px">State, scope, boundary, idempotency, proof — and a rejection that is a success. <span class="mark" style="margin:0 0 0 8px"></span></p>
-<div class="flow rise"><div class="flowbox">NEXT VIDEO</div><deck-icon class="flowarr" name="arrow-right"></deck-icon><div class="flowbox hot">WHAT YOUR EVAL IS MEASURING</div></div></div>
-<div class="machine rise"><div class="mlabel"><span>THE PROTOCOL</span><span>COMPLETE</span></div>
-<div class="mpart"><div><strong>STATE</strong><small>ready · pending · approved · rejected</small></div><span class="st">STEP 1</span></div>
-<div class="mpart"><div><strong>SCOPE</strong><small>Approval bound to one exact action</small></div><span class="st">STEP 2</span></div>
-<div class="mpart"><div><strong>BOUNDARY</strong><small>Dependent writes stop at confirmation</small></div><span class="st">STEP 4</span></div>
-<div class="mpart"><div><strong>IDEMPOTENCY</strong><small>One effect per generation + call</small></div><span class="st">STEP 6</span></div>
-<div class="mpart trace"><div><strong>PROOF</strong><small>Resume after approval, recover after rejection</small></div><span class="st">STEP 7</span></div></div></div>
-</section>
+<p class="lede rise" style="margin-top:26px">State, scope, boundary, idempotency, proof — and a rejection that is a success. <deck-mark inline></deck-mark></p>
+<deck-flow class="rise"><deck-step>NEXT VIDEO</deck-step><deck-step hot>WHAT YOUR EVAL IS MEASURING</deck-step></deck-flow></div>
+<deck-machine class="rise" label="THE PROTOCOL" status="COMPLETE">
+<deck-part name="STATE" note="ready · pending · approved · rejected" step="STEP 1"></deck-part>
+<deck-part name="SCOPE" note="Approval bound to one exact action" step="STEP 2"></deck-part>
+<deck-part name="BOUNDARY" note="Dependent writes stop at confirmation" step="STEP 4"></deck-part>
+<deck-part name="IDEMPOTENCY" note="One effect per generation + call" step="STEP 6"></deck-part>
+<deck-part name="PROOF" note="Resume after approval, recover after rejection" state="trace" step="STEP 7"></deck-part>
+</deck-machine></deck-scene>
 </Deck>
 
 <script is:inline slot="script">
-const { seq, pulse } = window.deckBuild;
-const builders = {
+const { seq, pulse, register } = window.deckBuild;
+register({
   states: () => seq('#states .node'),
   scope: () => pulse('scopeCode'),
   boundary: () => { seq('#boundary .flowbox'); pulse('boundaryStop'); },
   idempotency: () => pulse('idemCode'),
   proof: () => seq('#proof .col'),
   chat: () => { const c = document.getElementById('confirmChat'); if (c) c.replay(); }
-};
-document.querySelectorAll('[data-replay]').forEach(b => { b.onclick = () => { const f = builders[b.dataset.replay]; if (f) f(); }; });
+});
 </script>

@@ -7,6 +7,7 @@ import { join, relative } from 'node:path';
 const ROOT = process.cwd();
 const DIST = join(ROOT, 'dist');
 const fail = [];
+const warn = [];
 const note = (m) => console.log('  ' + m);
 
 if (!existsSync(DIST)) { console.error('check-decks: no dist/ — run `npm run build` first.'); process.exit(1); }
@@ -49,17 +50,56 @@ for (const file of files) {
   const markup = strip(strip(strip(body, /<script\b[^>]*>[\s\S]*?<\/script>/gi), /<style\b[^>]*>[\s\S]*?<\/style>/gi), /<!--[\s\S]*?-->/g);
 
   const stageTags = (markup.match(/<deck-stage\b/g) || []).length;
-  const scenes = (markup.match(/<section class="scene"/g) || []).length;
+  // scenes are authored as <deck-scene> (rendered to <section class="scene"> at
+  // runtime) or, in older decks, as a literal <section class="scene">.
+  const sceneEls = (markup.match(/<deck-scene\b/g) || []).length + (markup.match(/<section class="scene"/g) || []).length;
   const cues = (markup.match(/<deck-cue\b/g) || []).length;
-  const ids = [...markup.matchAll(/<section class="scene"[^>]*\sid="([^"]+)"/g)].map((m) => m[1]);
+  const ids = [
+    ...[...markup.matchAll(/<deck-scene\b[^>]*\sid="([^"]+)"/g)].map((m) => m[1]),
+    ...[...markup.matchAll(/<section class="scene"[^>]*\sid="([^"]+)"/g)].map((m) => m[1])
+  ];
 
   if (stageTags !== 1) fail.push(`${rel}: needs exactly one <deck-stage> (found ${stageTags})`);
-  if (ids.length !== scenes) fail.push(`${rel}: every .scene needs an id (${scenes} scenes, ${ids.length} ids)`);
+  if (ids.length !== sceneEls) fail.push(`${rel}: every scene needs an id (${sceneEls} scenes, ${ids.length} ids)`);
   if (new Set(ids).size !== ids.length) fail.push(`${rel}: duplicate scene ids`);
-  if (cues && cues !== scenes) fail.push(`${rel}: ${scenes} scenes vs ${cues} <deck-cue>`);
+  if (cues && cues !== sceneEls) fail.push(`${rel}: ${sceneEls} scenes vs ${cues} <deck-cue>`);
 
   if (/cdn\.jsdelivr\.net\/npm\/motion/.test(markup)) fail.push(`${rel}: Motion must be vendored, not the CDN`);
   if (markup.includes('↻')) fail.push(`${rel}: replay must use <deck-icon name="rotate-ccw">, not "↻"`);
+
+  // a11y basics
+  if (!/<html[^>]*\slang=/.test(markup)) fail.push(`${rel}: <html> needs a lang attribute`);
+  if (!/<title>[^<]+<\/title>/.test(markup)) fail.push(`${rel}: needs a <title>`);
+
+  // accent audit: an inline style may use only greyscale, never the accent hue
+  // (the one semantic accent lives in components/, i.e. .v.refuse in deck.css).
+  for (const m of markup.matchAll(/style="([^"]*)"/g)) {
+    for (const c of m[1].matchAll(/#([0-9a-fA-F]{3,6})\b/g)) {
+      let h = c[1];
+      if (h.length === 3) h = h.split('').map((x) => x + x).join('');
+      const ok = h.slice(0, 2).toLowerCase() === h.slice(2, 4).toLowerCase() && h.slice(2, 4).toLowerCase() === h.slice(4, 6).toLowerCase();
+      if (!ok) fail.push(`${rel}: inline style uses a colour (#${c[1]}) — only the accent component may carry a hue`);
+    }
+  }
+
+  // one build per name
+  const replays = [...markup.matchAll(/data-replay="([^"]+)"/g)].map((m) => m[1]);
+  const dupes = replays.filter((v, i) => replays.indexOf(v) !== i);
+  if (dupes.length) fail.push(`${rel}: duplicate data-replay value(s): ${[...new Set(dupes)].join(', ')}`);
+
+  // word ceiling — advisory; counts headline/body words, not diagram labels,
+  // code or annotations (which the spec exempts).
+  let maxWords = 0;
+  for (const m of markup.matchAll(/<deck-scene\b[^>]*>([\s\S]*?)<\/deck-scene>/g)) {
+    const text = m[1]
+      .replace(/<deck-code\b[\s\S]*?<\/deck-code>/g, ' ')
+      .replace(/<deck-machine\b[\s\S]*?<\/deck-machine>/g, ' ')
+      .replace(/<p class="note"[^>]*>[\s\S]*?<\/p>/g, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&[a-z]+;/g, ' ');
+    maxWords = Math.max(maxWords, text.trim().split(/\s+/).filter(Boolean).length);
+  }
+  if (maxWords > 70) warn.push(`${rel}: dense scene — ${maxWords} words (spec is ~30)`);
 
   for (const m of markup.matchAll(/<deck-icon\b[^>]*\bname="([^"]+)"/g)) {
     if (!ICONS.has(m[1])) fail.push(`${rel}: <deck-icon name="${m[1]}"> is not in the registry (components/deck-icon.js)`);
@@ -70,5 +110,6 @@ for (const file of files) {
 }
 
 console.log(`\ncheck-decks: scanned ${scanned} deck(s), ${ICONS.size} icons in the registry.`);
+if (warn.length) console.log('\nwarnings:\n' + warn.map((w) => '  · ' + w).join('\n'));
 if (fail.length) { console.error('\nFAILED:\n' + fail.map((f) => '  ✗ ' + f).join('\n') + '\n'); process.exit(1); }
 console.log('check-decks: OK\n');

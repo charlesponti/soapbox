@@ -23,10 +23,12 @@ const base = raw.endsWith('/') ? raw : raw + '/';
 <deck-stage brand={brand} series={series}>
 <slot />
 </deck-stage>
+<script is:inline src={`${base}components/deck-scene.js`}></script>
 <script is:inline src={`${base}components/deck-icon.js`}></script>
 <script is:inline src={`${base}components/deck-stage.js`}></script>
 {chat && <script is:inline src={`${base}components/deck-chat.js`}></script>}
 <script is:inline src={`${base}components/deck-build.js`}></script>
+<script is:inline src={`${base}components/deck-parts.js`}></script>
 <script is:inline src={`${base}components/deck-stage-driver.js`}></script>
 <slot name="script" />
 </body></html>

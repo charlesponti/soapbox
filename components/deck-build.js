@@ -16,9 +16,14 @@
   const beat = () => window.DECK_BEAT || 900;
   const M = window.Motion || null;
 
+  window.deckBuilds = window.deckBuilds || {};
   window.deckBuild = {
     reduced,
     Motion: M,
+
+    /* decks register their play functions here; the stage resolves them by
+       [data-replay] / [data-build] name. */
+    register(obj) { Object.assign(window.deckBuilds, obj); },
 
     /* reveal a group one item per beat (the progressive beat, §4) */
     seq(sel, cls) {

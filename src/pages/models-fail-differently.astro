@@ -22,123 +22,108 @@ const providerCode = `{
 <Deck title="Models Fail Differently" brand="MODEL CHOICE" series="EPISODE 05 — FAILURE SHAPES">
 <deck-cue time="STEP 0 · THE SNAPSHOT" title="No single best model">Open on the results table: the same hard suite, five models, five failure shapes. These are fixture-specific engineering measurements, not a leaderboard.</deck-cue>
 <deck-cue time="STEP 1 · THE RESULTS" title="Five models, one suite">One hard suite, five models, five failure shapes. Score is not rank — the cheapest model wins on this workload and the most expensive comes last. Do not read it as a leaderboard.</deck-cue>
-<deck-cue time="STEP 1 · THE SHAPE" title="A score hides the shape">Two models both score 5/10 and need opposite fixes: one picks irrelevant tools but keeps every id, the other picks the right tools and stops at confirmation because the harness never approved. The score hides the shape.</deck-cue>
-<deck-cue time="STEP 2 · THE PROFILE" title="Profile in the system">Put the model profile in the system, not scattered through router branches. A model that can't emit the structured plan is isolated behind a compatibility profile.</deck-cue>
-<deck-cue time="STEP 3 · THE DIMENSIONS" title="Product dimensions">Stop scoring one number. Score tool selection, argument accuracy, dependency accuracy, confirmation compliance, grounding, provider errors, unauthorized calls, latency, tokens, cost.</deck-cue>
-<deck-cue time="STEP 4 · THE PROVIDER" title="Provider is the system">The model name is not the runtime. Provider defaults, schemas, reasoning controls, serialization, timeouts and retries shape the result. Record them, or someone rewrites the prompt to compensate for a transport bug.</deck-cue>
-<deck-cue time="STEP 5 · THE POLICY" title="Choose by workload">The useful question is not which model wins. It is which model meets the safety and quality threshold for this workload within its budget. No unauthorized writes, correct prerequisites, grounded answers — then latency, then cost.</deck-cue>
-<deck-cue time="STEP 6 · CLOSE" title="Product policy">Routing is product policy. The strongest model is the one that meets the contract consistently enough to keep the user in control.</deck-cue>
+<deck-cue time="STEP 2 · THE SHAPE" title="A score hides the shape">Two models both score 5/10 and need opposite fixes: one picks irrelevant tools but keeps every id, the other picks the right tools and stops at confirmation because the harness never approved.</deck-cue>
+<deck-cue time="STEP 3 · THE PROFILE" title="Profile in the system">Put the model profile in the system, not scattered through router branches. A model that can't emit the structured plan is isolated behind a compatibility profile.</deck-cue>
+<deck-cue time="STEP 4 · THE DIMENSIONS" title="Product dimensions">Stop scoring one number. Score tool selection, argument accuracy, dependency accuracy, confirmation compliance, grounding, provider errors, unauthorized calls, latency, tokens, cost.</deck-cue>
+<deck-cue time="STEP 5 · THE PROVIDER" title="Provider is the system">The model name is not the runtime. Provider defaults, schemas, reasoning controls, serialization, timeouts and retries shape the result. Record them.</deck-cue>
+<deck-cue time="STEP 6 · THE POLICY" title="Choose by workload">The useful question is not which model wins. It is which model meets the safety and quality threshold for this workload within its budget.</deck-cue>
+<deck-cue time="STEP 7 · CLOSE" title="Product policy">Routing is product policy. The strongest model is the one that meets the contract consistently enough to keep the user in control.</deck-cue>
 
-<section class="scene" id="s1"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 0 / 8 · THE SNAPSHOT</div>
+<deck-scene id="s1" title="THE SNAPSHOT" layout="split"><div>
 <h2 class="rise">There is no single<br>best <em class="serif">tool-calling model.</em></h2>
 <p class="lede rise">There are models that fail in different ways under a particular contract, provider, prompt and fixture set. Same suite, five models, five shapes.</p>
 <p class="note rise">Fixture-specific engineering measurements — not a general leaderboard.</p></div>
-<div class="machine rise"><div class="mlabel"><span>THE DECISION</span><span>0 PARTS INSTALLED</span></div>
-<div class="mpart ghost"><div><strong>SHAPE</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>PROFILES</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>DIMENSIONS</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>PROVIDER</strong><small>—</small></div><span class="st">NOT YET</span></div>
-<div class="mpart ghost"><div><strong>POLICY</strong><small>—</small></div><span class="st">NOT YET</span></div></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-machine class="rise" label="THE DECISION" status="0 PARTS INSTALLED">
+<deck-part name="SHAPE" state="ghost"></deck-part>
+<deck-part name="PROFILES" state="ghost"></deck-part>
+<deck-part name="DIMENSIONS" state="ghost"></deck-part>
+<deck-part name="PROVIDER" state="ghost"></deck-part>
+<deck-part name="POLICY" state="ghost"></deck-part>
+</deck-machine></deck-scene>
 
-<section class="scene" id="s2"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 1 / 8 · THE RESULTS</div>
+<deck-scene id="s2" title="THE RESULTS" layout="split"><div>
 <h2 class="rise">Five models.<br><em class="serif">One hard suite.</em></h2>
 <p class="lede rise">Score is not rank. The cheapest model wins here; the most expensive comes last — on this workload.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>DIRECT RAW-TOOL HARD SUITE</span><span>FIXTURE-SPECIFIC</span></div>
-<div class="metrics" id="results">
-<div class="mrow head"><span>MODEL</span><span class="num">SCORE</span><span class="num">COST</span><span class="num">LATENCY</span></div>
-<div class="mrow"><b>GPT-4o mini</b><span class="num">7/10</span><span class="num">$0.00086</span><span class="num">27.0s</span></div>
-<div class="mrow"><b>GPT-4.1</b><span class="num">5/10</span><span class="num">$0.01239</span><span class="num">29.7s</span></div>
-<div class="mrow"><b>Muse Spark 1.3</b><span class="num">3/10</span><span class="num">$0.03165</span><span class="num">102.1s</span></div>
-<div class="mrow"><b>Claude Sonnet 4.5</b><span class="num">5/10</span><span class="num">$0.05949</span><span class="num">75.7s</span></div>
-<div class="mrow"><b>GPT-5 mini</b><span class="num">5/10</span><span class="num">$0.01340</span><span class="num">113.7s</span></div>
-</div></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-metrics id="results">
+<deck-row head><span>MODEL</span><span class="num">SCORE</span><span class="num">COST</span><span class="num">LATENCY</span></deck-row>
+<deck-row><b>GPT-4o mini</b><span class="num">7/10</span><span class="num">$0.00086</span><span class="num">27.0s</span></deck-row>
+<deck-row><b>GPT-4.1</b><span class="num">5/10</span><span class="num">$0.01239</span><span class="num">29.7s</span></deck-row>
+<deck-row><b>Muse Spark 1.3</b><span class="num">3/10</span><span class="num">$0.03165</span><span class="num">102.1s</span></deck-row>
+<deck-row><b>Claude Sonnet 4.5</b><span class="num">5/10</span><span class="num">$0.05949</span><span class="num">75.7s</span></deck-row>
+<deck-row><b>GPT-5 mini</b><span class="num">5/10</span><span class="num">$0.01340</span><span class="num">113.7s</span></deck-row>
+</deck-metrics></div></deck-scene>
 
-<section class="scene" id="s3"><div class="scene-inner">
-<div class="eyebrow rise">STEP 2 / 8 · THE SHAPE</div>
+<deck-scene id="s3" title="THE SHAPE" layout="full">
 <h2 class="rise">A score hides <em class="serif">the failure shape.</em></h2>
 <p class="lede rise">Three models score 5/10. They do not have the same problem, or the same fix.</p>
 <button class="replay rise" data-replay="shape"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SHAPES</button>
-<div class="cols rise" style="margin-top:26px" id="shape">
-<div class="col"><h3>5/10 — WRONG TOOLS</h3><p>Chooses irrelevant tools.</p><p>Preserves every id.</p><p>Fix: selection and routing.</p></div>
-<div class="col"><h3>5/10 — RIGHT TOOLS</h3><p>Correct tools, correct order.</p><p>Stops at confirmation — never approved.</p><p>Fix: the harness, not the model.</p></div>
-</div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-compare class="rise" style="margin-top:26px" id="shape">
+<deck-col><h3>5/10 — WRONG TOOLS</h3><p>Chooses irrelevant tools.</p><p>Preserves every id.</p><p>Fix: selection and routing.</p></deck-col>
+<deck-col><h3>5/10 — RIGHT TOOLS</h3><p>Correct tools, correct order.</p><p>Stops at confirmation — never approved.</p><p>Fix: the harness, not the model.</p></deck-col>
+</deck-compare></deck-scene>
 
-<section class="scene" id="s4"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 3 / 8 · THE PROFILE</div>
+<deck-scene id="s4" title="THE PROFILE" layout="split"><div>
 <h2 class="rise">The profile belongs<br><em class="serif">in the system.</em></h2>
 <p class="lede rise">A model that cannot emit the requested structured plan is isolated behind one compatibility profile — not compensated for with provider-name checks in every branch.</p>
 <button class="replay rise" data-replay="profiles"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PROFILE</button></div>
 <div class="diagram rise"><div class="dlabel"><span>MODEL CAPABILITY PROFILE</span><span>ONE PLACE</span></div>
-<div class="code" id="profileCode" set:html={profileCode}></div>
-<p class="note">The benchmark can then separate weak planning from a provider rejecting structured output.</p></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-code id="profileCode" set:html={profileCode}></deck-code>
+<p class="note">The benchmark can then separate weak planning from a provider rejecting structured output.</p></div></deck-scene>
 
-<section class="scene" id="s5"><div class="scene-inner">
-<div class="eyebrow rise">STEP 4 / 8 · THE DIMENSIONS</div>
+<deck-scene id="s5" title="THE DIMENSIONS" layout="full">
 <h2 class="rise">Measure product<br><em class="serif">dimensions.</em></h2>
 <p class="lede rise">One model can be right for cheap lookups; another is worth reserving for cross-domain planning. Only the dimensions say which.</p>
 <button class="replay rise" data-replay="dimensions"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE DIMENSIONS</button>
-<div class="blocks rise" style="margin-top:30px" id="dims">
-<div class="block"><b>Tool selection</b><span>Did it choose the right tools?</span></div>
-<div class="block"><b>Argument accuracy</b><span>Did the facts survive the call?</span></div>
-<div class="block"><b>Dependency accuracy</b><span>Did prerequisites hold?</span></div>
-<div class="block"><b>Confirmation compliance</b><span>Did the boundary hold?</span></div>
-<div class="block"><b>Grounded answers</b><span>Facts, or invented fields?</span></div>
-<div class="block"><b>Unauthorized calls</b><span>The one that must stay at zero.</span></div>
-</div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-grid class="rise" style="margin-top:30px" id="dims">
+<deck-cell><b>Tool selection</b><span>Did it choose the right tools?</span></deck-cell>
+<deck-cell><b>Argument accuracy</b><span>Did the facts survive the call?</span></deck-cell>
+<deck-cell><b>Dependency accuracy</b><span>Did prerequisites hold?</span></deck-cell>
+<deck-cell><b>Confirmation compliance</b><span>Did the boundary hold?</span></deck-cell>
+<deck-cell><b>Grounded answers</b><span>Facts, or invented fields?</span></deck-cell>
+<deck-cell><b>Unauthorized calls</b><span>The one that must stay at zero.</span></deck-cell>
+</deck-grid></deck-scene>
 
-<section class="scene" id="s6"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 5 / 8 · THE PROVIDER</div>
+<deck-scene id="s6" title="THE PROVIDER" layout="split"><div>
 <h2 class="rise">Provider behavior is<br><em class="serif">part of the system.</em></h2>
 <p class="lede rise">Provider defaults, supported schemas, reasoning controls, serialization, timeouts and retries shape the observed result. Record them with the run.</p>
 <button class="replay rise" data-replay="provider"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE METADATA</button></div>
 <div class="diagram rise"><div class="dlabel"><span>RUN METADATA</span><span>NOT THE MODEL'S FAULT</span></div>
-<div class="code" id="providerCode" set:html={providerCode}></div>
-<p class="note">Without this, someone rewrites the prompt to compensate for a transport incompatibility.</p></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+<deck-code id="providerCode" set:html={providerCode}></deck-code>
+<p class="note">Without this, someone rewrites the prompt to compensate for a transport incompatibility.</p></div></deck-scene>
 
-<section class="scene" id="s7"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 6 / 8 · THE POLICY</div>
+<deck-scene id="s7" title="THE POLICY" layout="split"><div>
 <h2 class="rise">Choose models<br>by <em class="serif">workload.</em></h2>
 <p class="lede rise">No unauthorized writes, correct prerequisites, grounded answers — then latency, then cost. The order is explicit, and it moves with the surface.</p>
 <button class="replay rise" data-replay="policy"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE POLICY</button></div>
 <div class="diagram rise"><div class="dlabel"><span>EXPECTED VALUE</span><span>PRODUCT POLICY</span></div>
-<div class="code" id="policyCode">const expectedValue =
+<deck-code id="policyCode">const expectedValue =
   groundedAnswerRate * taskValue
   - costUsd
   - (providerErrorRate + unauthorizedCallRate) * safetyPenalty
-  - latencyMs * latencyPenalty;</div>
-<div class="verdict"><div class="v"><b>WITHIN BUDGET</b>Meets the threshold for this workload.</div><div class="v refuse" id="policyStop"><b>UNAUTHORIZED WRITE</b>The one term that never trades for cost.</div></div></div></div>
-<div class="scrollcue">SCROLL <deck-icon name="arrow-down"></deck-icon></div></section>
+  - latencyMs * latencyPenalty;</deck-code>
+<deck-verdict><deck-case><b>WITHIN BUDGET</b>Meets the threshold for this workload.</deck-case><deck-case id="policyStop" state="refuse"><b>UNAUTHORIZED WRITE</b>The one term that never trades for cost.</deck-case></deck-verdict></div></deck-scene>
 
-<section class="scene" id="s8"><div class="scene-inner layout"><div>
-<div class="eyebrow rise">STEP 7 / 8 · CLOSE — THE DECISION, ASSEMBLED</div>
+<deck-scene id="s8" title="CLOSE — THE DECISION, ASSEMBLED" layout="split"><div>
 <div class="finish rise">Not “which model wins.”<br><em class="serif">Which model keeps the user in control?</em></div>
-<p class="lede rise" style="margin-top:26px">Shape, profiles, dimensions, provider, policy — routing as product policy. <span class="mark" style="margin:0 0 0 8px"></span></p>
-<div class="flow rise"><div class="flowbox">NEXT VIDEO</div><deck-icon class="flowarr" name="arrow-right"></deck-icon><div class="flowbox hot">THE PERSONAL AGENT IS A TYPED CAPABILITY SYSTEM</div></div></div>
-<div class="machine rise"><div class="mlabel"><span>THE DECISION</span><span>COMPLETE</span></div>
-<div class="mpart"><div><strong>SHAPE</strong><small>A score hides how it fails</small></div><span class="st">STEP 2</span></div>
-<div class="mpart"><div><strong>PROFILES</strong><small>Compatibility in one place</small></div><span class="st">STEP 3</span></div>
-<div class="mpart"><div><strong>DIMENSIONS</strong><small>Selection, arguments, order, grounding</small></div><span class="st">STEP 4</span></div>
-<div class="mpart"><div><strong>PROVIDER</strong><small>Transport is part of the result</small></div><span class="st">STEP 5</span></div>
-<div class="mpart ledger"><div><strong>POLICY</strong><small>Threshold first, then budget</small></div><span class="st">STEP 6</span></div></div></div>
-</section>
+<p class="lede rise" style="margin-top:26px">Shape, profiles, dimensions, provider, policy — routing as product policy. <deck-mark inline></deck-mark></p>
+<deck-flow class="rise"><deck-step>NEXT VIDEO</deck-step><deck-step hot>THE PERSONAL AGENT IS A TYPED CAPABILITY SYSTEM</deck-step></deck-flow></div>
+<deck-machine class="rise" label="THE DECISION" status="COMPLETE">
+<deck-part name="SHAPE" note="A score hides how it fails" step="STEP 2"></deck-part>
+<deck-part name="PROFILES" note="Compatibility in one place" step="STEP 3"></deck-part>
+<deck-part name="DIMENSIONS" note="Selection, arguments, order, grounding" step="STEP 4"></deck-part>
+<deck-part name="PROVIDER" note="Transport is part of the result" step="STEP 5"></deck-part>
+<deck-part name="POLICY" note="Threshold first, then budget" state="ledger" step="STEP 6"></deck-part>
+</deck-machine></deck-scene>
 </Deck>
 
 <script is:inline slot="script">
-const { seq, pulse } = window.deckBuild;
-const builders = {
+const { seq, pulse, register } = window.deckBuild;
+register({
   shape: () => seq('#shape .col'),
   profiles: () => pulse('profileCode'),
   dimensions: () => seq('#dims .block'),
   provider: () => pulse('providerCode'),
   policy: () => { pulse('policyCode'); pulse('policyStop'); }
-};
-document.querySelectorAll('[data-replay]').forEach(b => { b.onclick = () => { const f = builders[b.dataset.replay]; if (f) f(); }; });
+});
 </script>

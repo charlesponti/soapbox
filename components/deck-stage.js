@@ -1,71 +1,74 @@
 /* <deck-stage> — YouTube Slide System presenter harness (SYSTEM.md §10).
-   Wraps a deck's scenes and owns everything that used to be copy-pasted into
-   every deck: the chrome (brand mark, counter, speaker-cues toggle, prev/next,
-   progress bar), the keyboard, the scene observer, the entrance reveal, and the
-   ONE progressive beat published as window.DECK_BEAT (SYSTEM.md §4).
+   Owns the chrome, the keyboard, the scene observer, the entrance reveal, the
+   shareable URL hash, and the ONE progressive beat.
 
    Usage:
      <deck-stage brand="NEXT TOKEN" series="EPISODE 01 — THE BUILD">
-       <deck-cue time="STEP 0 · 00:00" title="The question">talk track…</deck-cue>
-       <section class="scene" id="s1">…</section>
+       <deck-cue time="…" title="…">talk track…</deck-cue>
+       <deck-scene id="s1" title="…">…</deck-scene>
      </deck-stage>
 
-   Scenes must be DIRECT children of the stage; cues (one per scene, in
-   document order) are <deck-cue> children. Attributes: brand, series, beat
-   (ms, default 900 — the value published as window.DECK_BEAT), mark="false"
-   to hide the accent mark.
+   Scenes are any `.scene` (a <deck-scene> renders one). Their build animation
+   is declared by the scene's own [data-replay] button and/or a `data-build`
+   name resolved against window.deckBuilds — the stage fires it on first view
+   and on R.
 
-   A scene's build animation is defined by its own [data-replay] button — the
-   single source of truth: the stage clicks it on first view (so the scene
-   assembles as it enters) and again on R. Decks wire those buttons to their
-   play functions; they no longer re-implement navigation or the beat.
-
-   prefers-reduced-motion: no entrance, no stepping — every scene renders its
-   final state immediately, and the shared beat is still published. */
-(function(){
+   Modes / keys: ↑↓ ←→ or Space advance · C cues · R replay · O overview ·
+   B blackout · P presenter window. ?play auto-advances · ?present is the
+   presenter view · #s4@1200 deep-links to a beat. */
+(function () {
   if (customElements.get('deck-stage')) return;
   const DEFAULT_BEAT = 900;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const query = new URLSearchParams(location.search);
 
   class DeckStage extends HTMLElement {
-    connectedCallback(){
+    connectedCallback() {
       if (this._ready) return; this._ready = true;
 
-      // SYSTEM.md §4: the ONE progressive beat, declared here and published for
-      // every component and deck to read rather than redeclare.
       this.beat = parseInt(this.getAttribute('beat') || '', 10) || DEFAULT_BEAT;
       this.reduced = reducedMotion;
       window.DECK_BEAT = this.beat;
       window.DECK_REDUCED = this.reduced;
+      window.deckStage = this;
 
-      this.scenes = [...this.querySelectorAll(':scope > section.scene')];
-      this.scenes.forEach((s, i) => { if (!s.id) s.id = 'scene' + (i + 1); });   // every scene gets a shareable id
+      this.scenes = [...this.querySelectorAll('.scene')];
+      this.scenes.forEach((s, i) => { if (!s.id) s.id = 'scene' + (i + 1); });
       this.cues = [...this.querySelectorAll(':scope > deck-cue')];
       this.active = 0;
       this._entered = new Set();
 
       if (this.reduced || !window.Motion) document.documentElement.classList.add('no-motion');
 
+      if (query.has('present')) {
+        this._present = true;
+        document.documentElement.classList.add('deck-presenter');
+        this._buildPresenter();
+        this.update(0);
+        this._pollPresenter();
+        return;
+      }
+
       this._buildChrome();
       this._wire();
-      // deep link: open straight at the hash's scene, else the first scene.
       const start = this._sceneFromHash();
       this.update(start >= 0 ? start : 0);
       if (start >= 0) this.scenes[start].scrollIntoView({ behavior: 'instant' });
+      const beat = this._hashBeat();
+      if (beat) setTimeout(() => this._fireBuild(this.scenes[start]), beat);
+      if (query.has('play')) this._startPlay();
 
-      // reduced motion: settle every scene to its final state up front. Deferred
-      // one macrotask because the deck wires its [data-replay] handlers in a
-      // script that runs after this element upgrades.
-      if (this.reduced) setTimeout(() => this.scenes.forEach(sc => this._enter(sc, true)), 0);
+      if (this.reduced) setTimeout(() => this.scenes.forEach((sc) => this._enter(sc, true)), 0);
     }
 
     /* ---------- chrome ---------- */
-    _buildChrome(){
+    _buildChrome() {
       const showMark = this.getAttribute('mark') !== 'false';
       const nav = document.createElement('nav');
       nav.innerHTML =
         '<div class="brand">' + (showMark ? '<span class="mark"></span>' : '') +
           '<span data-brand></span> <b>/</b> <span data-series></span></div>' +
+        '<div class="deck-dots" data-dots></div>' +
         '<div class="navright">' +
           '<span class="count" data-counter></span>' +
           '<button data-cues>SPEAKER CUES</button>' +
@@ -73,41 +76,70 @@
           '<button data-next aria-label="Next slide">NEXT <deck-icon name="arrow-down">↓</deck-icon></button>' +
         '</div>' +
         '<div class="progress" data-progress></div>';
-      // set text via textContent so brand/series can never inject markup.
       nav.querySelector('[data-brand]').textContent = this.getAttribute('brand') || '';
       nav.querySelector('[data-series]').textContent = this.getAttribute('series') || '';
       this.prepend(nav);
-
       this._nav = nav;
       this._counter = nav.querySelector('[data-counter]');
       this._progress = nav.querySelector('[data-progress]');
+
+      const dots = nav.querySelector('[data-dots]');
+      this.scenes.forEach((sc, i) => {
+        const dot = document.createElement('button');
+        dot.className = 'deck-dot';
+        dot.setAttribute('aria-label', 'Scene ' + (i + 1));
+        dot.addEventListener('click', () => this.goto(i));
+        dots.appendChild(dot);
+      });
+      this._dots = [...dots.children];
+
       this._cuesPanel = document.createElement('div');
       this._cuesPanel.className = 'cues';
       this._cuesPanel.innerHTML = '<div class="cue-time"></div><strong></strong><p></p>';
       this.append(this._cuesPanel);
+
+      this._blank = document.createElement('div');
+      this._blank.className = 'deck-blank';
+      this.append(this._blank);
+      this._overlay = document.createElement('div');
+      this._overlay.className = 'deck-overlay';
+      this._buildOverview();
+      this.append(this._overlay);
 
       nav.querySelector('[data-cues]').addEventListener('click', () => this._toggleCues());
       nav.querySelector('[data-prev]').addEventListener('click', () => this.goto(this.active - 1));
       nav.querySelector('[data-next]').addEventListener('click', () => this.goto(this.active + 1));
     }
 
+    _buildOverview() {
+      const grid = document.createElement('div');
+      grid.className = 'deck-overview-grid';
+      this.scenes.forEach((sc, i) => {
+        const b = document.createElement('button');
+        const eyebrow = sc.querySelector('.eyebrow');
+        const title = (eyebrow ? eyebrow.textContent : '').replace(/^STEP\s*\d+\s*\/\s*\d+\s*/, '').replace(/^·\s*/, '');
+        b.innerHTML = '<span class="n"></span><span class="t"></span>';
+        b.children[0].textContent = String(i + 1).padStart(2, '0');
+        b.children[1].textContent = title || sc.id;
+        b.addEventListener('click', () => { this._toggleOverview(false); this.goto(i); });
+        grid.appendChild(b);
+      });
+      this._overlay.innerHTML = '<div class="deck-overlay-head"><span>SCENES</span><span>O TO CLOSE</span></div>';
+      this._overlay.appendChild(grid);
+    }
+
     /* ---------- behaviour ---------- */
-    _wire(){
-      const io = new IntersectionObserver(es => {
-        const best = es.filter(e => e.isIntersecting)
-          .sort((a, c) => c.intersectionRatio - a.intersectionRatio)[0];
+    _wire() {
+      const io = new IntersectionObserver((es) => {
+        const best = es.filter((e) => e.isIntersecting).sort((a, c) => c.intersectionRatio - a.intersectionRatio)[0];
         if (best) this.update(this.scenes.indexOf(best.target));
       }, { threshold: [.3, .5, .7] });
-      this.scenes.forEach(sc => io.observe(sc));
+      this.scenes.forEach((sc) => io.observe(sc));
       this._io = io;
 
       if (window.Motion && !this.reduced) {
-        window.Motion.scroll(progress => {
-          this._progress.style.transform = 'scaleX(' + (progress || 0) + ')';
-        });
-        this.scenes.forEach(sc => {
-          window.Motion.inView(sc, () => this._enter(sc, false), { amount: .35 });
-        });
+        window.Motion.scroll((p) => { this._progress.style.transform = 'scaleX(' + (p || 0) + ')'; });
+        this.scenes.forEach((sc) => window.Motion.inView(sc, () => this._enter(sc, false), { amount: .35 }));
       } else {
         addEventListener('scroll', () => {
           const h = document.documentElement;
@@ -115,42 +147,56 @@
         }, { passive: true });
       }
 
-      document.addEventListener('keydown', e => {
+      document.addEventListener('keydown', (e) => {
         if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); this.goto(this.active + 1); }
-        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); this.goto(this.active - 1); }
-        if (e.key.toLowerCase() === 'r') this.replayActive();
-        if (e.key.toLowerCase() === 'c') this._toggleCues();
+        const k = e.key.toLowerCase();
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+          if (k === ' ' && this._playing) { this._togglePlay(); } else { e.preventDefault(); this.goto(this.active + 1); }
+        }
+        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); this.goto(this.active - 1); }
+        if (e.key === 'Home') { e.preventDefault(); this.goto(0); }
+        if (e.key === 'End') { e.preventDefault(); this.goto(this.scenes.length - 1); }
+        if (k === 'r') this.replayActive();
+        if (k === 'c') this._toggleCues();
+        if (k === 'o') this._toggleOverview();
+        if (k === 'b') this._blank.classList.toggle('on');
+        if (k === 'p') this._openPresenter();
       });
 
-      // deep links: pasted hashes and #anchor links jump to that scene
       addEventListener('hashchange', () => this._applyHash());
     }
 
-    /* Entrance (fires once) + the scene's own build, run by clicking its
-       [data-replay] button — the same control the presenter sees. */
-    _enter(scene, immediate){
+    _enter(scene, immediate) {
       if (this._entered.has(scene)) return; this._entered.add(scene);
       const rises = scene.querySelectorAll('.rise');
       if (window.Motion && !this.reduced && !immediate) {
         window.Motion.animate(rises, { opacity: [0, 1], y: [24, 0] }, { duration: .6, delay: window.Motion.stagger(.08), ease: [.22, 1, .36, 1] });
       } else {
-        rises.forEach(el => { el.style.opacity = 1; });
+        rises.forEach((el) => { el.style.opacity = 1; });
       }
-      const build = scene.querySelector('[data-replay]');
-      if (build) build.click();
+      this._fireBuild(scene);
     }
 
-    goto(n){
+    _fireBuild(scene) {
+      if (!scene) return;
+      const btn = scene.querySelector('[data-replay]');
+      const name = scene.getAttribute('data-build') || (btn && btn.dataset.replay);
+      const reg = window.deckBuilds || {};
+      if (name && typeof reg[name] === 'function') { reg[name](); return; }
+      if (btn) btn.click();
+    }
+
+    goto(n) {
       const i = Math.max(0, Math.min(this.scenes.length - 1, n));
       this.scenes[i].scrollIntoView({ behavior: this.reduced ? 'instant' : 'smooth' });
     }
 
-    update(n){
+    update(n) {
       this.active = n;
-      this._counter.textContent = String(n + 1).padStart(2, '0') + ' / ' + String(this.scenes.length).padStart(2, '0');
+      this._counter && (this._counter.textContent = String(n + 1).padStart(2, '0') + ' / ' + String(this.scenes.length).padStart(2, '0'));
+      if (this._dots) this._dots.forEach((d, i) => d.classList.toggle('on', i === n));
       const cue = this.cues[n];
-      if (cue){
+      if (cue && this._cuesPanel) {
         this._cuesPanel.querySelector('.cue-time').textContent = cue.getAttribute('time') || '';
         this._cuesPanel.querySelector('strong').textContent = cue.getAttribute('title') || '';
         this._cuesPanel.querySelector('p').textContent = cue.textContent.trim();
@@ -158,36 +204,111 @@
       this._syncHash();
     }
 
-    /* ---------- shareable URLs (#scene-id) ---------- */
-    _sceneFromHash(){
-      const id = decodeURIComponent((location.hash || '').replace(/^#/, ''));
-      if (!id) return -1;
-      return this.scenes.findIndex(s => s.id === id);
+    replayActive() { this._fireBuild(this.scenes[this.active]); }
+
+    _toggleCues() {
+      const on = this._cuesPanel.classList.toggle('on');
+      const t = this._nav && this._nav.querySelector('[data-cues]');
+      if (t) t.textContent = on ? 'HIDE CUES' : 'SPEAKER CUES';
     }
-    _syncHash(){
+
+    _toggleOverview(force) {
+      const on = force === undefined ? !this._overlay.classList.contains('on') : force;
+      this._overlay.classList.toggle('on', on);
+    }
+
+    /* ---------- play mode ---------- */
+    _startPlay() {
+      this._playing = true;
+      const badge = document.createElement('div');
+      badge.className = 'deck-playing';
+      badge.textContent = '▶ PLAYING · SPACE TO PAUSE';
+      this.append(badge);
+      this._playBadge = badge;
+      const ms = parseInt(this.getAttribute('play-interval') || '', 10) || 12000;
+      this._playTimer = setInterval(() => {
+        if (this.active >= this.scenes.length - 1) { this._togglePlay(); return; }
+        this.goto(this.active + 1);
+      }, ms);
+      this._playBadge.classList.add('on');
+    }
+    _togglePlay() {
+      if (this._playing) { clearInterval(this._playTimer); this._playing = false; this._playBadge.textContent = '❚❚ PAUSED · SPACE TO RESUME'; }
+      else { this._playing = true; this._playBadge.textContent = '▶ PLAYING · SPACE TO PAUSE'; this._playTimer = setInterval(() => this.goto(this.active + 1), parseInt(this.getAttribute('play-interval') || '', 10) || 12000); }
+    }
+
+    /* ---------- presenter ---------- */
+    _openPresenter() {
+      const url = location.pathname + '?present';
+      this._presenterWin = window.open(url, 'soapbox-presenter', 'width=520,height=720');
+    }
+    _buildPresenter() {
+      const el = document.createElement('div');
+      el.className = 'deck-presenter-panel';
+      el.innerHTML =
+        '<div class="dp-row"><span class="dp-now"></span><span class="dp-clock"></span></div>' +
+        '<div class="dp-cue"><div class="cue-time"></div><strong></strong><p></p></div>' +
+        '<div class="dp-next"><span>NEXT</span><span class="dp-next-title"></span></div>' +
+        '<div class="dp-btns"><button data-pprev>↑ PREV</button><button data-pnext>NEXT ↓</button></div>' +
+        '<div class="dp-hint"></div>';
+      this.append(el);
+      this._panel = el;
+      el.querySelector('[data-pprev]').addEventListener('click', () => this._send('prev'));
+      el.querySelector('[data-pnext]').addEventListener('click', () => this._send('next'));
+      this._send = () => {};   // replaced once the opener is found
+    }
+    _pollPresenter() {
+      const openerStage = () => {
+        try { return window.opener && window.opener.deckStage; } catch (e) { return null; }
+      };
+      const st = openerStage();
+      if (st) {
+        this._send = (dir) => st.goto(st.active + (dir === 'next' ? 1 : -1));
+        this._panel.querySelector('.dp-hint').textContent = 'Controlling the deck window';
+      } else {
+        this._panel.querySelector('.dp-hint').textContent = 'Open from the deck window and press P.';
+      }
+      setInterval(() => {
+        const s = openerStage();
+        const clock = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        this._panel.querySelector('.dp-clock').textContent = clock;
+        if (!s) return;
+        const i = s.active;
+        this._panel.querySelector('.dp-now').textContent = String(i + 1).padStart(2, '0') + ' / ' + String(s.scenes.length).padStart(2, '0');
+        const cue = s.cues[i] || null;
+        const cueEl = this._panel.querySelector('.dp-cue');
+        if (cue) {
+          cueEl.querySelector('.cue-time').textContent = cue.getAttribute('time') || '';
+          cueEl.querySelector('strong').textContent = cue.getAttribute('title') || '';
+          cueEl.querySelector('p').textContent = cue.textContent.trim();
+        }
+        const next = s.cues[i + 1] || null;
+        this._panel.querySelector('.dp-next-title').textContent = next ? next.getAttribute('title') : '— end —';
+      }, 500);
+    }
+
+    /* ---------- shareable URLs (#scene-id, #scene-id@ms) ---------- */
+    _hashParts() {
+      const raw = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+      const [id, ms] = raw.split('@');
+      return { id, ms: ms ? parseInt(ms, 10) : 0 };
+    }
+    _sceneFromHash() { const { id } = this._hashParts(); return id ? this.scenes.findIndex((s) => s.id === id) : -1; }
+    _hashBeat() { return this._hashParts().ms || 0; }
+    _syncHash() {
       const scene = this.scenes[this.active];
       if (!scene || !scene.id) return;
       const want = '#' + scene.id;
       if (location.hash === want) return;
-      try { history.replaceState(null, '', want); }
-      catch (e) { location.hash = scene.id; }
+      try { history.replaceState(null, '', want); } catch (e) { location.hash = scene.id; }
     }
-    _applyHash(){
+    _applyHash() {
       const i = this._sceneFromHash();
       if (i < 0 || i === this.active) return;
       this.scenes[i].scrollIntoView({ behavior: 'instant' });
       this.update(i);
-    }
-
-    replayActive(){
-      const scene = this.scenes[this.active];
-      const build = scene && scene.querySelector('[data-replay]');
-      if (build) build.click();
-    }
-
-    _toggleCues(){
-      const on = this._cuesPanel.classList.toggle('on');
-      this._nav.querySelector('[data-cues]').textContent = on ? 'HIDE CUES' : 'SPEAKER CUES';
+      const beat = this._hashBeat();
+      if (beat) setTimeout(() => this._fireBuild(this.scenes[i]), beat);
     }
   }
 

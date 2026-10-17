@@ -169,6 +169,32 @@ deck-icon svg{width:100%;height:100%;display:block}
 .fbar{height:44px;background:#fff}
 .frow span{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--g1)}
 
+/* ---------- stage extras: dots, overview, blackout, play, presenter ---------- */
+.deck-dots{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center}
+.deck-dot{width:8px;height:8px;padding:0;border-radius:50%;border:1px solid #3a3a3a;background:transparent;cursor:pointer}
+.deck-dot:hover{background:var(--g2)}.deck-dot.on{background:#fff;border-color:#fff}
+.deck-blank{position:fixed;inset:0;background:#000;z-index:40;display:none}
+.deck-blank.on{display:block}
+.deck-overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.96);backdrop-filter:blur(6px);display:none;padding:clamp(24px,5vw,80px);overflow:auto}
+.deck-overlay.on{display:block}
+.deck-overlay-head{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--g1);display:flex;justify-content:space-between;margin-bottom:22px}
+.deck-overview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.deck-overview-grid button{display:flex;gap:14px;align-items:baseline;text-align:left;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:14px 16px;font-family:var(--sans);font-size:15px;letter-spacing:0}
+.deck-overview-grid button:hover{background:#fff;color:#000;border-color:#fff}
+.deck-overview-grid .n{font-family:var(--mono);font-size:12px;color:var(--g1)}.deck-overview-grid button:hover .n{color:#333}
+.deck-playing{position:fixed;bottom:18px;left:18px;z-index:35;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--g1);border:1px solid #333;border-radius:999px;padding:8px 14px;background:rgba(5,5,5,.9);display:none}
+.deck-playing.on{display:block}
+html.deck-presenter .scene,html.deck-presenter nav,html.deck-presenter .cues,html.deck-presenter .deck-blank{display:none!important}
+.deck-presenter-panel{display:none;flex-direction:column;gap:22px;padding:clamp(20px,4vw,40px);min-height:100svh}
+html.deck-presenter .deck-presenter-panel{display:flex}
+.dp-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:12px;color:var(--g1);letter-spacing:.14em}
+.dp-cue{border:1px solid var(--line);padding:22px}
+.dp-cue .cue-time{font-family:var(--mono);font-size:11px;color:var(--g1);margin-bottom:8px}
+.dp-cue strong{display:block;font-size:20px;margin-bottom:8px}.dp-cue p{font-size:16px;line-height:1.6;color:#ddd;margin:0}
+.dp-next{display:flex;gap:12px;font-family:var(--mono);font-size:12px;color:var(--g1)}.dp-next .dp-next-title{color:var(--ink)}
+.dp-btns{display:flex;gap:10px}.dp-hint{margin-top:auto;font-family:var(--mono);font-size:11px;color:var(--g2)}
+@media(max-width:900px){.deck-dots{display:none}}
+
 /* ---------- responsive + reduced motion ---------- */
 @media(max-width:900px){.layout{grid-template-columns:1fr}.scene{padding-top:96px}.cols,.blocks,.verdict,.loop{grid-template-columns:1fr}.mrow{grid-template-columns:1.6fr 0.8fr 1fr 1fr;gap:8px;font-size:13px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

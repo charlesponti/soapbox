@@ -8,6 +8,33 @@ Legend: **P0** next · **P1** soon · **P2** someday · 🔥 obviously good.
 
 ---
 
+## Shipped (17 Oct 2026)
+
+- ✅ **`<deck-scene>` + `<deck-parts>`** — scene, machine/part, flow/step,
+  stack/node, code, compare/col, chips/chip, grid/cell, verdict/case,
+  cycle/node, counter, tiles/tile, metrics/row, trace, mark. All six decks were
+  migrated onto them; the components render the shared class names, so no build
+  code changed. `src/styles/next-token.css` was deleted — the vocabulary now
+  lives in `components/deck.css`.
+- ✅ **Declarative builds** — `deckBuild.register()` fills `window.deckBuilds`;
+  the stage resolves a scene's build by its `[data-replay]` / `data-build` name.
+  The per-deck `forEach` wiring is gone.
+- ✅ **Stage verbs** — scene dots in the nav · overview (`O`) · blackout (`B`) ·
+  clicker keys (Space / PageUp / PageDown / Home / End) · beat deep-links
+  (`#s3@1200` pauses a build frame).
+- ✅ **Presenter window** (`?present`, opened with `P`) — cue, next scene, clock.
+- ✅ **Autoplay** (`?play` / Space to pause) — the deck advances itself.
+- ✅ **`check-decks`** — accent audit (inline styles may only be greyscale),
+  duplicate-build detection, `lang`/`title`, and a non-fatal word ceiling.
+- ✅ **Index** shows episode numbers.
+
+Still open: **presenter thumbnails** (overview is a list, not picture
+thumbnails), self-hosted Geist, OG images, `npm run new`, visual regression,
+the timeline → TTS → MP4 pipeline, portrait/print cuts, sound design.
+
+---
+
+
 ## Components to generalize (library-first, SYSTEM.md §10)
 
 Building six decks in one sitting showed exactly what repeats. Usage counts are
