@@ -18,6 +18,8 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden}
 
 /* ---------- <deck-stage> chrome (rendered by deck-stage.js) ---------- */
 deck-stage{display:block}
+/* component hosts are block unless they are inline by design */
+deck-scene,deck-counter,deck-machine{display:block}
 nav{position:fixed;z-index:20;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(20px,4vw,64px);background:rgba(0,0,0,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .brand{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--g1)}.brand b{color:var(--ink);font-weight:600}
 .mark{display:inline-block;width:11px;height:11px;background:var(--accent);border-radius:2px;margin-right:10px;vertical-align:-1px}

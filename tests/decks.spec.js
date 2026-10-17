@@ -69,6 +69,19 @@ for (const deck of decks) {
   });
 }
 
+test('deck component hosts are never inline', async ({ page }) => {
+  for (const deck of decks) {
+    await page.goto(route(deck), { waitUntil: 'load' });
+    const inline = await page.evaluate(() => {
+      const skip = new Set(['DECK-ICON', 'DECK-MARK', 'DECK-CUE']);   // inline by design
+      return [...document.querySelectorAll('*')]
+        .filter((el) => el.tagName.startsWith('DECK-') && !skip.has(el.tagName) && getComputedStyle(el).display === 'inline')
+        .map((el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : ''));
+    });
+    expect(inline, `${deck.slug}: inline component hosts — ${inline.join(', ')}`).toEqual([]);
+  }
+});
+
 test('code cards render as blocks and never clip a line', async ({ page }) => {
   for (const deck of decks) {
     await page.setViewportSize({ width: 1600, height: 900 });
