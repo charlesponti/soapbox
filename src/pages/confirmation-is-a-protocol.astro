@@ -7,7 +7,9 @@ const scopeCode = `<span class="kw">function</span> canExecute(state, tool, inpu
        === JSON.stringify(input);
 }`;
 const idemCode = `<span class="kw">const</span> idempotencyKey = \`\${generationId}:\${toolCallId}\`;
-<span class="kw">const</span> prior = <span class="kw">await</span> effectStore.get({ idempotencyKey, toolName });
+<span class="kw">const</span> prior = <span class="kw">await</span> effectStore.get(
+  { idempotencyKey, toolName },
+);
 <span class="kw">if</span> (prior) <span class="kw">return</span> prior;
 
 <span class="kw">const</span> result = <span class="kw">await</span> executeOnce(input);
