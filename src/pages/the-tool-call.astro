@@ -58,12 +58,12 @@ const guardCode = `<span class="kw">if</span> (!definition.readOnly &amp;&amp; !
 
 <deck-scene id="s2" title="FOUR DECISIONS" layout="split"><div>
 <h2 class="rise">Four decisions hide inside <em class="serif">“use a tool.”</em></h2>
-<p class="lede rise">A broad router answers exactly one of them. The plan has to surface the other three.</p></div>
+<p class="lede rise">A broad router answers only the first.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>INSIDE ONE TOOL CALL</span><span>IN ORDER</span></div>
 <deck-grid id="decisionBlocks" style="grid-template-columns:1fr 1fr">
-<deck-cell><b>01 · Capability</b><span>Which domain matters — does this need a tool at all?</span></deck-cell>
-<deck-cell><b>02 · Tool</b><span>The narrowest exact tool for the job.</span></deck-cell>
-<deck-cell><b>03 · Arguments</b><span>Identifiers and dates — never invented.</span></deck-cell>
+<deck-cell><b>01 · Capability</b><span>Does this even need a tool?</span></deck-cell>
+<deck-cell><b>02 · Tool</b><span>The narrowest tool for the job.</span></deck-cell>
+<deck-cell><b>03 · Arguments</b><span>Ids and dates — never invented.</span></deck-cell>
 <deck-cell><b>04 · Authorization</b><span>May it run at all?</span></deck-cell></deck-grid>
 <p class="note">Reorder these and the call still goes out — which is why the router is not enough.</p></div></deck-scene>
 
@@ -87,12 +87,12 @@ const guardCode = `<span class="kw">if</span> (!definition.readOnly &amp;&amp; !
 <p class="lede rise">Rejected before anything runs — in <span style="color:#fff">tool-planner.ts</span>.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>REJECTED</span><span>SCHEMA</span></div>
 <deck-grid id="rejectGrid">
-<deck-cell><b>Unknown tools</b><span>A tool that isn’t in the registry</span></deck-cell>
+<deck-cell><b>Unknown tools</b><span>Not in the registry</span></deck-cell>
 <deck-cell><b>Duplicate steps</b><span>The same work, twice</span></deck-cell>
-<deck-cell><b>Forward dependencies</b><span>A step that needs something later</span></deck-cell>
-<deck-cell><b>Cycles</b><span>Two steps that wait on each other</span></deck-cell>
-<deck-cell><b>Invalid arguments</b><span>The shape doesn’t match the tool</span></deck-cell>
-<deck-cell><b>Write before read</b><span>A write with nothing behind it</span></deck-cell></deck-grid></div></deck-scene>
+<deck-cell><b>Forward dependencies</b><span>Needs something later</span></deck-cell>
+<deck-cell><b>Cycles</b><span>They wait on each other</span></deck-cell>
+<deck-cell><b>Invalid arguments</b><span>The shape is wrong</span></deck-cell>
+<deck-cell><b>Write before read</b><span>Nothing behind it</span></deck-cell></deck-grid></div></deck-scene>
 
 <deck-scene id="s6" title="THE RE-CHECK" layout="split"><div>
 <h2 class="rise">A valid plan can still be <em class="serif">the wrong call.</em></h2>
@@ -113,8 +113,8 @@ const guardCode = `<span class="kw">if</span> (!definition.readOnly &amp;&amp; !
 <h2 class="rise">One exemption, <em class="serif">opt-in per tool.</em></h2>
 <p class="lede rise">A write that depends on no existing record — a task, a note, a remembered fact — may run without a read.</p>
 <deck-compare class="rise" style="margin-top:30px" id="writeCols">
-<deck-col><h3>EVERY OTHER WRITE</h3><p>Needs a preceding read-only lookup.</p><p>Depends on a record that already exists.</p></deck-col>
-<deck-col><h3>STANDALONEWRITE</h3><p>Depends on no existing record.</p><p>Declared per tool. Opt-in. Every other write still needs one.</p></deck-col>
+<deck-col><h3>EVERY OTHER WRITE</h3><p>Needs a preceding read.</p><p>Depends on a record that exists.</p></deck-col>
+<deck-col><h3>STANDALONEWRITE</h3><p>Depends on no existing record.</p><p>Declared per tool. Opt-in.</p></deck-col>
 </deck-compare>
 <p class="note rise">The exemption is per tool — never a blanket rule.</p></deck-scene>
 
