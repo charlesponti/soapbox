@@ -1,0 +1,122 @@
+---
+import Deck from '../layouts/Deck.astro';
+const engineCode = `<span class="kw">class</span> Value:
+  data      <span class="cm"># the forward value</span>
+  grad      <span class="cm"># d(loss) / d(self)</span>
+  _backward <span class="cm"># the local derivative</span>
+
+<span class="kw">def</span> backward(self):
+  <span class="cm"># reverse topo order, chain rule,</span>
+  <span class="cm"># += wherever parents are shared</span>`;
+---
+<Deck title="Train Your Own" brand="TINYEINSTEIN" series="STUDY 01 — FROM ZERO">
+<deck-cue time="COVER" title="The title">Open on the thesis: five small machines, built from zero on a laptop — and one idea underneath them all.</deck-cue>
+<deck-cue time="STEP 1 · THE ENGINE" title="Differentiation is a data structure">Values remember how they were made. Backward walks the graph in reverse, applying the chain rule. Same algorithm PyTorch runs — no new math, just kernels.</deck-cue>
+<deck-cue time="STEP 2 · FIRST WIN" title="Four points learned">A 2-4-1 MLP learns four labelled points: loss 6.37 down to 0.02 in 400 steps. Predictions land within a tenth of target. Backprop works — replay the before and after.</deck-cue>
+<deck-cue time="STEP 3 · VECTORS" title="Why scalars cannot scale">One Python call per multiply means 100k ops per MNIST image. Same math, batched in NumPy: one matmul per layer. Identical gradients, a thousand times less overhead.</deck-cue>
+<deck-cue time="STEP 4 · DIGITS" title="MNIST proves it">The vector MLP trains on 2,000 digits and scores 89.5 percent held out — past 95 on the full run. Replay the counter. Then note the real bug this step caught: an in-place alias that zeroed every accuracy.</deck-cue>
+<deck-cue time="STEP 5 · THE TRANSFORMER" title="Attention from scratch">Embeddings, masked multi-head attention, an MLP block, residuals, repeat. Two details carry it: the causal mask blocks future peeking, and every skip path carries gradients through depth.</deck-cue>
+<deck-cue time="STEP 6 · SHAKESPEARE" title="It writes, sort of">Adam trains the tiny GPT from loss 3.9 to 3.3 and sampling produces readable-ish text. Small, slow, real — the whole mechanism with nowhere to hide.</deck-cue>
+<deck-cue time="STEP 7 · THE HONEST FAILURE" title="New cities break the writer">Fine-tuning teaches tool calls on trained cities fast. On unseen London and Lima: coin-flip noise. Exact character recall from a thousand characters of homework is too hard. Memorising answers is not learning the game.</deck-cue>
+<deck-cue time="STEP 8 · THE JUDGE" title="Score, don't write">A linear judge trained on comparisons — right call versus wrong tool, right call versus wrong city — ranks the correct London answer above all three distractors. Generalisation came from checking a relationship, not recalling a spelling.</deck-cue>
+<deck-cue time="STEP 9 · CLOSE" title="Comparisons are morals">Five machines, one idea: gradients move weights, comparisons move taste. Next: word-level tokens, learned features, and the last dance step this course skipped — PPO.</deck-cue>
+
+<deck-scene id="s0" title="STUDY 01 — FROM ZERO" layout="full" cover>
+<h1 class="rise">Train Your Own</h1>
+<p class="lede rise">Five small machines, built from zero — and one idea underneath them all.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="THE ENGINE" layout="split"><div>
+<h2 class="rise">Differentiation is<br><em class="serif">a data structure.</em></h2>
+<p class="lede rise">Each value remembers how it was made. Backward walks the graph in reverse.</p>
+<button class="replay rise" data-replay="engine"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE ENGINE</button></div>
+<div class="diagram rise"><div class="dlabel"><span>AUTOGRAD</span><span>~100 LINES</span></div>
+<deck-code id="engineCode" set:html={engineCode}></deck-code>
+<p class="note">PyTorch runs this same algorithm. Frameworks add kernels, not new math.</p></div></deck-scene>
+
+<deck-scene id="s2" title="FIRST WIN" layout="split"><div>
+<h2 class="rise">Four points.<br><em class="serif">Learned.</em></h2>
+<p class="lede rise">Loss 6.37 to 0.02 in 400 steps. Backprop works.</p>
+<button class="replay rise" data-replay="learned"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PROOF</button></div>
+<deck-compare class="rise" id="learnCols">
+<deck-col state="dim"><h3>BEFORE</h3><p>Random weights.</p><p>Every guess wrong.</p></deck-col>
+<deck-col><h3>AFTER</h3><p>Outputs within a tenth.</p><p>All four points correct.</p></deck-col>
+</deck-compare></deck-scene>
+
+<deck-scene id="s3" title="VECTORS" layout="split"><div>
+<h2 class="rise">One op per number<br><em class="serif">is too slow.</em></h2>
+<p class="lede rise">Same math, batched. The scalar engine cannot do MNIST.</p>
+<button class="replay rise" data-replay="vectors"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TRADE</button></div>
+<deck-compare class="rise" id="vecCols">
+<deck-col state="dim"><h3>SCALAR</h3><p>100k Python ops per image.</p><p>Correct and hopeless.</p></deck-col>
+<deck-col><h3>VECTOR</h3><p>One matmul per layer.</p><p>Same gradients, far less overhead.</p></deck-col>
+</deck-compare></deck-scene>
+
+<deck-scene id="s4" title="DIGITS" layout="split"><div>
+<h2 class="rise">Digits prove<br><em class="serif">the vectors.</em></h2>
+<p class="lede rise">2,000 training digits. Held-out score:</p>
+<button class="replay rise" data-replay="digits"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SCORE</button></div>
+<div class="diagram rise"><div class="dlabel"><span>MNIST TEST ACCURACY</span><span>SUBSET 2000</span></div>
+<deck-counter num-id="accNum" value="0.0" suffix="%"></deck-counter>
+<p class="note">Full run passes 95. This step also caught a real bug: an in-place alias that zeroed every accuracy readout.</p></div></deck-scene>
+
+<deck-scene id="s5" title="THE TRANSFORMER" layout="split"><div>
+<h2 class="rise">Attention,<br><em class="serif">from scratch.</em></h2>
+<p class="lede rise">Four stages, repeated. The mask blocks peeking; skips carry gradients.</p>
+<button class="replay rise" data-replay="stack"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE STACK</button></div>
+<div class="diagram rise"><div class="dlabel"><span>TINY GPT</span><span>NUMPY ONLY</span></div>
+<deck-stack id="gptStack">
+<deck-node label="Embed" note="Tokens plus positions" tag="01"></deck-node>
+<deck-node label="Attend" note="Masked multi-head" tag="02"></deck-node>
+<deck-node label="Expand" note="MLP, four times wide" tag="03"></deck-node>
+<deck-node label="Predict" note="Next token, cross-entropy" tag="04"></deck-node>
+</deck-stack></div></deck-scene>
+
+<deck-scene id="s6" title="SHAKESPEARE" layout="full">
+<h2 class="rise">Loss 3.9 to 3.3.<br><em class="serif">It writes, sort of.</em></h2>
+<p class="lede rise">Adam, 800 steps, CPU. Sampling gives readable-ish text — small, slow, real, with nowhere to hide.</p>
+<p class="note rise">Every parameter receives a gradient — the test asserts exactly that. Sampling past the trained positions was a real bug, caught and fixed.</p></deck-scene>
+
+<deck-scene id="s7" title="THE HONEST FAILURE" layout="split"><div>
+<h2 class="rise">New cities break<br><em class="serif">the writer.</em></h2>
+<p class="lede rise">Trained cities: rank climbs in 80 steps. Unseen cities: coin flip.</p>
+<button class="replay rise" data-replay="transfer"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE GAP</button></div>
+<deck-compare class="rise" id="cityCols">
+<deck-col><h3>TRAINED</h3><p>Paris, Rome, Madrid.</p><p>Preference learned fast.</p></deck-col>
+<deck-col state="dim"><h3>UNSEEN</h3><p>London, Lima.</p><p>Noise. Generation gibberish.</p></deck-col>
+</deck-compare></deck-scene>
+
+<deck-scene id="s8" title="THE JUDGE" layout="split"><div>
+<h2 class="rise">Score answers.<br><em class="serif">Ship the winner.</em></h2>
+<p class="lede rise">A linear judge on comparisons. Unseen London, four candidates:</p>
+<button class="replay rise" data-replay="judge"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE RANKING</button></div>
+<div class="diagram rise"><div class="dlabel"><span>BEST OF FOUR</span><span>HELD OUT</span></div>
+<deck-metrics id="judgeRows">
+<deck-row head><span>CANDIDATE</span><span class="num">SCORE</span></deck-row>
+<deck-row><b>Correct London call</b><span class="num">-0.112</span></deck-row>
+<deck-row><b>Wrong tool</b><span class="num">-0.178</span></deck-row>
+<deck-row><b>Truncated JSON</b><span class="num">-0.283</span></deck-row>
+<deck-row><b>Right shape, wrong city</b><span class="num">-0.461</span></deck-row>
+</deck-metrics>
+<p class="note">Pairs 0.2 to 0.97 trained, 0.9 held out. Only ordering matters — like golf.</p></div></deck-scene>
+
+<deck-scene id="s9" title="CLOSE" layout="full">
+<div class="finish rise">Gradients move weights.<br><em class="serif">Comparisons move taste.</em></div>
+<p class="lede rise" style="margin-top:28px">Five machines, one idea — and the receipt-check that travelled to London. <deck-mark inline></deck-mark></p>
+<deck-flow class="rise" style="margin-top:34px"><deck-step>NEXT STUDY</deck-step><deck-step hot>REWARD AT SCALE</deck-step></deck-flow></deck-scene>
+</Deck>
+
+<script is:inline slot="script">
+/* Build functions, registered once. The stage resolves them by the scene's
+   [data-replay] name and fires on first view and on R. */
+const { seq, pulse, count, register } = window.deckBuild;
+register({
+  engine: () => pulse('engineCode'),
+  learned: () => seq('#learnCols .col'),
+  vectors: () => seq('#vecCols .col'),
+  digits: () => count('accNum', 89.5),
+  stack: () => seq('#gptStack .node'),
+  transfer: () => seq('#cityCols .col'),
+  judge: () => seq('#judgeRows .mrow')
+});
+</script>

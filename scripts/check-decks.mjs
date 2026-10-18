@@ -65,6 +65,7 @@ for (const file of files) {
   if (cues && cues !== sceneEls) fail.push(`${rel}: ${sceneEls} scenes vs ${cues} <deck-cue>`);
 
   if (/cdn\.jsdelivr\.net\/npm\/motion/.test(markup)) fail.push(`${rel}: Motion must be vendored, not the CDN`);
+  if (/fonts\.googleapis\.com|fonts\.gstatic\.com/.test(markup)) fail.push(`${rel}: fonts must be self-hosted (components/fonts.css)`);
   if (markup.includes('↻')) fail.push(`${rel}: replay must use <deck-icon name="rotate-ccw">, not "↻"`);
 
   // a11y basics

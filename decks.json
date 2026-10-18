@@ -61,6 +61,16 @@
       "accent": "NONE",
       "migrated": true,
       "article": "essays/05-the-personal-agent-is-a-typed-capability-system.md"
+    },
+    {
+      "slug": "train-your-own",
+      "title": "Train Your Own",
+      "brand": "TINYEINSTEIN",
+      "series": "STUDY 01 — FROM ZERO",
+      "episode": 7,
+      "accent": "NONE",
+      "migrated": true,
+      "article": "essays/06-train-your-own-study-notes.md"
     }
   ]
 }
