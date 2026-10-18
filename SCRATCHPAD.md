@@ -38,10 +38,19 @@ Legend: **P0** next · **P1** soon · **P2** someday · 🔥 obviously good.
 - ✅ **`check-decks`** — accent audit (inline styles may only be greyscale),
   duplicate-build detection, `lang`/`title`, and a non-fatal word ceiling.
 - ✅ **Index** shows episode numbers.
+- ✅ **Self-hosted fonts** — Geist + Geist Mono vendored (11 woff2 subsets);
+  `font-display: block`, no font CDN at render time.
+- ✅ **OG share cards** — `npm run og` renders each cover to 1200×630; `og:` /
+  `twitter:` meta with per-deck summaries.
+- ✅ **Visual regression** — `npm run visual` compares a snapshot per scene;
+  baselines in `tests/__screenshots__` are generated and compared inside
+  Playwright's container image (the `visual` CI job), because pixel baselines
+  are platform-specific. `npm run visual:update` refreshes them.
+- ✅ **Reduced-motion race fixed** — the stage settles on `DOMContentLoaded`,
+  not `setTimeout(0)`, so un-built panels can't be captured mid-load.
 
-Still open: **presenter thumbnails** (overview is a list, not picture
-thumbnails), self-hosted Geist, OG images, `npm run new`, visual regression,
-the timeline → TTS → MP4 pipeline, portrait/print cuts, sound design.
+Still open: self-hosted Geist is done; the rest is the parked media pipeline,
+portrait/print cuts, and sound design.
 
 ---
 

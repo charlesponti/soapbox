@@ -58,7 +58,14 @@
       if (beat) setTimeout(() => this._fireBuild(this.scenes[start]), beat);
       if (query.has('play')) this._startPlay();
 
-      if (this.reduced) setTimeout(() => this.scenes.forEach((sc) => this._enter(sc, true)), 0);
+      if (this.reduced) {
+        // settle AFTER every script has run — a setTimeout(0) here can fire
+        // while the parser is still fetching the component scripts, before the
+        // deck has registered its builds (window.deckBuilds).
+        const settle = () => this.scenes.forEach((sc) => this._enter(sc, true));
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', settle, { once: true });
+        else settle();
+      }
     }
 
     /* ---------- chrome ---------- */
