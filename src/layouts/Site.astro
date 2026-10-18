@@ -1,0 +1,104 @@
+---
+/* Site.astro — the shell for the home-page concepts (Cover / Wall / Ledger).
+   Not a deck: same tokens and type as the decks, no <deck-stage>. A switcher
+   lets you flip between the three views. */
+const { title = 'Soapbox', description = 'Full-screen decks.', view = 'cover' } = Astro.props;
+const raw = import.meta.env.BASE_URL;
+const base = raw.endsWith('/') ? raw : raw + '/';
+const manifest = (await import('../../decks.json')).default;
+const decks = manifest.decks;
+const views = [['cover', 'COVER', ''], ['wall', 'WALL', 'wall/'], ['ledger', 'LEDGER', 'ledger/']];
+---
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{title}</title>
+<meta name="description" content={description}>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Soapbox">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+<meta property="og:url" content={Astro.url.href}>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23E4181B'/%3E%3C/svg%3E">
+<link rel="stylesheet" href={`${base}components/fonts.css`}>
+<link rel="stylesheet" href={`${base}components/deck.css`}>
+<script is:inline src={`${base}components/motion-11.11.17.js`}></script>
+<style is:inline>
+/* ---------- site shell (shares deck.css tokens + Geist) ---------- */
+body.site{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100svh;display:flex;flex-direction:column}
+.site-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:22px;padding:15px clamp(20px,4vw,64px);background:rgba(0,0,0,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.site-brand{display:inline-flex;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink);text-decoration:none}
+.site-switch{margin-left:auto;display:flex;gap:4px}
+.site-switch a{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--g2);text-decoration:none;padding:7px 12px;border:1px solid transparent;border-radius:999px}
+.site-switch a:hover{color:var(--ink)}
+.site-switch a.on{color:#000;background:#fff;border-color:#fff}
+.site-count{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--g1)}
+.site-main{flex:1;padding:clamp(30px,5vw,74px) clamp(20px,4vw,64px)}
+.site-foot{padding:20px clamp(20px,4vw,64px);border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--g2);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.wrap{max-width:1360px;margin:0 auto;width:100%}
+h1.site-title{font-size:clamp(42px,5.8vw,92px);line-height:1.02;letter-spacing:-.045em;font-weight:800;margin:16px 0 20px;max-width:1000px}
+h1.site-title em{font-family:var(--serif);font-style:italic;font-weight:500}
+.site-lede{font-size:clamp(16px,1.4vw,20px);line-height:1.55;color:var(--g1);max-width:640px}
+.show-head{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--g1);margin:30px 0 8px}
+
+/* ---------- 1 · THE COVER — editorial index + live preview ---------- */
+.cover{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,540px);gap:clamp(28px,5vw,76px);align-items:start}
+.idx{border-top:1px solid var(--line)}
+.idxrow{display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:baseline;gap:16px;padding:15px 8px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--g2);transition:background .2s,color .2s}
+.idxrow:hover,.idxrow.on{color:var(--ink);background:#0b0b0b}
+.idxrow .n{font-family:var(--mono);font-size:12px;color:var(--g1)}
+.idxrow .t{font-size:clamp(17px,1.7vw,23px);font-weight:600;letter-spacing:-.02em}
+.idxrow .s{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--g2);white-space:nowrap}
+.preview{position:sticky;top:96px;border:1px solid var(--line);background:var(--panel)}
+.preview img{width:100%;display:block;aspect-ratio:1200/630;object-fit:cover}
+.pv-body{padding:18px 18px 20px}
+.pv-meta{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--g2);display:flex;justify-content:space-between;margin-bottom:9px}
+.pv-note{margin:0;font-size:15px;line-height:1.5;color:var(--g1)}
+.idxrow .arrow{font-family:var(--mono);font-size:11px;color:var(--g2)}
+.idxrow:hover .arrow,.idxrow.on .arrow{color:var(--ink)}
+
+/* ---------- 2 · THE WALL — the covers are the index ---------- */
+.wall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px;margin-top:6px}
+.wall-tile{display:block;border:1px solid var(--line);background:var(--panel);text-decoration:none;color:var(--ink);transition:border-color .2s}
+.wall-tile:hover{border-color:#fff}
+.wall-tile img{width:100%;height:auto;display:block;aspect-ratio:1200/630;object-fit:cover}
+.wall-cap{display:flex;justify-content:space-between;gap:12px;padding:13px 15px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--g1)}
+.wall-cap b{font-weight:500;color:var(--ink)}
+
+/* ---------- 3 · THE LEDGER — a data table, keyboard-first ---------- */
+.led-sum{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--g1);margin:26px 0 18px;display:flex;gap:20px;flex-wrap:wrap}
+.ledger{width:100%;border-collapse:collapse;font-size:15px}
+.ledger th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--g2);text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-weight:500;text-transform:uppercase}
+.ledger td{padding:13px 8px;border-bottom:1px solid #191919;vertical-align:baseline}
+.ledger tr.row{cursor:pointer;transition:background .15s,color .15s}
+.ledger tr.row:hover,.ledger tr.row.on{background:#fff;color:#000}
+.ledger td.n{font-family:var(--mono);color:var(--g1);width:54px}
+.ledger td.show{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--g2);white-space:nowrap}
+.ledger td.sc{font-family:var(--mono);text-align:right;width:78px;font-variant-numeric:tabular-nums;color:var(--g1)}
+.ledger tr.row:hover td.n,.ledger tr.row:hover td.show,.ledger tr.row:hover td.sc{color:#333}
+.ledger tr.hide{display:none}
+.hint{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--g2);margin-top:22px}
+.filter{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:10px;min-height:16px}
+.filter b{color:#fff}
+
+@media(max-width:1000px){.cover{grid-template-columns:1fr}.preview{position:static}}
+@media(prefers-reduced-motion:reduce){.idxrow,.wall-tile{transition:none}}
+</style>
+</head>
+<body class="site">
+<header class="site-bar">
+  <a class="site-brand" href={base}><span class="mark"></span>SOAPBOX</a>
+  <div role="navigation" aria-label="home page view" class="site-switch">
+    {views.map(([key, label, href]) => (
+      <a href={`${base}${href}`} class={view === key ? 'on' : ''} aria-current={view === key ? 'page' : undefined}>{label}</a>
+    ))}
+  </div>
+  <span class="site-count">{String(decks.length).padStart(2, '0')} DECKS</span>
+</header>
+<main class="site-main"><slot /></main>
+<footer class="site-foot">
+  <span>SOAPBOX — {manifest.site.subtitle.toUpperCase()}</span>
+  <span>GEIST · NO CDN · EVERY SCENE FITS 1600×900</span>
+</footer>
+<slot name="script" />
+</body></html>
