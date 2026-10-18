@@ -1,5 +1,5 @@
 {
-  "$comment": "The series manifest — single source for the index page, the checks and the video pipeline. `migrated:false` decks still live as static HTML at the repo root. Articles live in essays/.",
+  "$comment": "The series manifest — single source for the index page, the checks, the OG cards and the video pipeline. `migrated:false` decks still live as static HTML at the repo root. Articles live in essays/.",
   "site": { "title": "Soapbox", "subtitle": "Full-screen HTML scenes, talked over" },
   "decks": [
     {
@@ -8,6 +8,7 @@
       "brand": "NEXT TOKEN",
       "series": "EPISODE 01 — THE BUILD",
       "episode": 1,
+      "summary": "Two camps argued about the answer. Nobody asked what the machine was looking at.",
       "accent": "NONE",
       "migrated": true,
       "article": null
@@ -18,6 +19,7 @@
       "brand": "THE TOOL CALL",
       "series": "EPISODE 02 — THE CONTRACT",
       "episode": 2,
+      "summary": "A reliable agent separates capability routing, exact tool planning, and guarded execution.",
       "accent": "REFUSED",
       "migrated": true,
       "article": "essays/01-the-tool-call-is-not-the-plan.md"
@@ -28,6 +30,7 @@
       "brand": "CONFIRMATION",
       "series": "EPISODE 03 — THE PROTOCOL",
       "episode": 3,
+      "summary": "A boolean cannot hold a state machine.",
       "accent": "STOPPED",
       "migrated": true,
       "article": "essays/02-confirmation-is-a-protocol.md"
@@ -38,6 +41,7 @@
       "brand": "EVALS",
       "series": "EPISODE 04 — THE INSTRUMENT",
       "episode": 4,
+      "summary": "An assertion can be deterministic and still measure the wrong behaviour.",
       "accent": "NONE",
       "migrated": true,
       "article": "essays/03-what-your-eval-is-measuring.md"
@@ -48,6 +52,7 @@
       "brand": "MODEL CHOICE",
       "series": "EPISODE 05 — FAILURE SHAPES",
       "episode": 5,
+      "summary": "There is no single best tool-calling model — only models that fail in different ways.",
       "accent": "UNAUTHORIZED",
       "migrated": true,
       "article": "essays/04-models-fail-differently.md"
@@ -58,6 +63,7 @@
       "brand": "CAPABILITIES",
       "series": "EPISODE 06 — THE CONTRACT",
       "episode": 6,
+      "summary": "The durable advantage is the contract, not the prompt.",
       "accent": "NONE",
       "migrated": true,
       "article": "essays/05-the-personal-agent-is-a-typed-capability-system.md"
@@ -68,6 +74,7 @@
       "brand": "TINYEINSTEIN",
       "series": "STUDY 01 — FROM ZERO",
       "episode": 7,
+      "summary": "Five small machines, built from zero — and one idea underneath them all.",
       "accent": "NONE",
       "migrated": true,
       "article": "essays/06-train-your-own-study-notes.md"

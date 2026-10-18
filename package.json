@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "node scripts/check-decks.mjs",
+    "og": "node scripts/og.mjs",
     "test": "playwright test",
     "preview": "astro preview"
   },

@@ -4,14 +4,32 @@
    <deck-stage> wrapper. A deck page supplies only its cues and scenes
    (default slot), any scene-primitive <style slot="head">, and its build
    functions (<script slot="script">). */
+import manifest from '../../decks.json';
 const { title, brand, series, chat = false } = Astro.props;
 const raw = import.meta.env.BASE_URL;            // '/soapbox' in the build, '/' in dev
 const base = raw.endsWith('/') ? raw : raw + '/';
+const slug = Astro.url.pathname.replace(base, '').replace(/\/+$/, '') || 'index';
+const entry = manifest.decks.find((d) => d.slug === slug);
+const description = (entry && entry.summary) || series;
+const ogImage = new URL(`${base}og/${slug}.png`, Astro.site).href;
 ---
 <!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title} — Slides</title>
+<meta name="description" content={series}>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Soapbox">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={series}>
+<meta property="og:url" content={Astro.url.href}>
+<meta property="og:image" content={ogImage}>
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content={title}>
+<meta name="twitter:description" content={series}>
+<meta name="twitter:image" content={ogImage}>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23E4181B'/%3E%3C/svg%3E">
 <link rel="stylesheet" href={`${base}components/fonts.css`}>
 <link rel="stylesheet" href={`${base}components/deck.css`}>
