@@ -1,0 +1,566 @@
+/* src/styles/global.css — Tailwind v4 entry.
+   Dark-only, black & white, Geist sans. Tokens mirror shadcn/ui's
+   "neutral" palette: bg-background / text-muted-foreground behave like a
+   shadcn dark theme. */
+
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/fonts/Geist-Variable.woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Geist";
+  src: url("../assets/fonts/Geist-Italic[wght].woff2") format("woff2-variations");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------- shadcn neutral palette, monochrome ---------- */
+
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-background: #0a0a0a;
+  --color-foreground: #fafafa;
+  --color-card: #0a0a0a;
+  --color-card-foreground: #fafafa;
+  --color-popover: #0a0a0a;
+  --color-popover-foreground: #fafafa;
+  --color-primary: #fafafa;
+  --color-primary-foreground: #171717;
+  --color-secondary: #171717;
+  --color-secondary-foreground: #fafafa;
+  --color-muted: #171717;
+  --color-muted-foreground: #a3a3a3;
+  --color-accent: #262626;
+  --color-accent-foreground: #fafafa;
+  --color-destructive: #7f1d1d;
+  --color-border: #262626;
+  --color-input: #262626;
+  --color-ring: #d4d4d4;
+
+  --radius: 0.5rem;
+
+  /* Motion tokens (kernel-animate): strong ease-out for UI, strong ease-in
+     for exits. Overrides Tailwind's built-in ease-out utility key — the
+     `ease-out` utility class is not used anywhere in this repo. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* ---------- base ---------- */
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Pagefind query-term highlights in result excerpts (monochrome) */
+  mark {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+    border-radius: 2px;
+    padding: 0 0.15em;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background-color: var(--color-foreground);
+    color: var(--color-background);
+  }
+}
+
+/* ---------- components ---------- */
+
+@layer components {
+  .ghost {
+    color: var(--color-muted-foreground);
+  }
+
+  /* reading progress bar (element created by client/progress.ts) */
+  #progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    height: 2px;
+    width: 100%;
+    transform-origin: left;
+    transform: scaleX(0);
+    background-color: var(--color-foreground);
+  }
+
+  /* ---------- essay prose ---------- */
+
+  .prose {
+    font-size: 17px;
+    line-height: 1.75;
+    letter-spacing: -0.005em;
+  }
+  .prose p {
+    margin-bottom: 1.4em;
+  }
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4 {
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    margin: 2em 0 0.7em;
+  }
+  .prose h2 {
+    font-size: 1.45rem;
+  }
+  .prose h3 {
+    font-size: 1.2rem;
+  }
+  .prose a {
+    color: var(--color-foreground);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--color-muted-foreground);
+    transition: text-decoration-color 0.25s;
+  }
+  .prose a:hover {
+    text-decoration-color: var(--color-foreground);
+  }
+  .prose blockquote {
+    margin: 1.8em 0;
+    padding: 0.1em 0 0.1em 1.1em;
+    border-left: 2px solid var(--color-border);
+    color: var(--color-muted-foreground);
+    font-style: italic;
+  }
+  .prose ul,
+  .prose ol {
+    margin-bottom: 1.4em;
+    padding-left: 1.5em;
+  }
+  .prose li {
+    margin-bottom: 0.4em;
+  }
+  .prose code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.875em;
+    background-color: var(--color-muted);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+  }
+  .prose pre {
+    background-color: var(--color-muted);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 1.1em;
+    overflow-x: auto;
+    margin-bottom: 1.4em;
+  }
+  .prose pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    margin-bottom: 1.4em;
+  }
+  .prose th,
+  .prose td {
+    border: 1px solid var(--color-border);
+    padding: 0.5em 0.75em;
+    text-align: left;
+  }
+  .prose th {
+    background-color: var(--color-muted);
+    font-weight: 500;
+  }
+  .prose hr {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: 2.5em 0;
+  }
+  .prose img {
+    max-width: 100%;
+    border-radius: 10px;
+    margin: 1.4em 0;
+  }
+  .prose strong {
+    font-weight: 600;
+  }
+
+  /* Monochrome shiki tokens (shikiConfig theme: "css-variables") */
+  .prose pre,
+  .prose code {
+    --shiki-color-text: #e5e5e5;
+    --shiki-color-background: transparent;
+    --shiki-token-constant: #d4d4d4;
+    --shiki-token-string: #d4d4d4;
+    --shiki-token-comment: #737373;
+    --shiki-token-keyword: #e5e5e5;
+    --shiki-token-function: #fafafa;
+    --shiki-token-number: #d4d4d4;
+    --shiki-token-parameter: #e5e5e5;
+    --shiki-token-string-expression: #d4d4d4;
+    --shiki-token-punctuation: #a3a3a3;
+    --shiki-token-link: #e5e5e5;
+  }
+}
+
+/* ---------- view transitions ---------- */
+
+/* The essay list morphs during same-document filter/pagination changes; the
+   index hero + controls are frozen by the JS freeze (list-transition.ts),
+   which assigns view-transition-names only for the duration of a list
+   transition — they must NOT persist, or cross-document navigation would
+   composite the index header above the incoming essay header. */
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: vt-out 0.22s var(--ease-out) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 0.32s var(--ease-out) both;
+  }
+  ::view-transition-old(essay-list) {
+    animation: list-out 0.16s var(--ease-in-exit) both;
+  }
+  ::view-transition-new(essay-list) {
+    animation: list-in 0.3s var(--ease-out) both;
+  }
+  /* Controls are named (captured separately) but never animate — so a filter
+     change only morphs the list (essay-list). Works without :only-type().
+     Old snapshots are hidden: with `animation: none` a stale old capture
+     lingers at full opacity, and the trigger's semi-transparent background
+     lets the old label read through the new one for the transition's
+     duration ("new text on top of old text"). */
+  ::view-transition-old(search),
+  ::view-transition-old(topics),
+  ::view-transition-old(topics-pop),
+  ::view-transition-old(badges),
+  ::view-transition-old(count),
+  ::view-transition-old(hero) {
+    animation: none;
+    opacity: 0;
+  }
+  ::view-transition-new(search),
+  ::view-transition-new(topics),
+  ::view-transition-new(topics-pop),
+  ::view-transition-new(badges),
+  ::view-transition-new(count),
+  ::view-transition-new(hero) {
+    animation: none;
+  }
+  /* During a list transition ONLY the named essay-list morphs. The logo, the
+     filter frame, pagination, and everything else unnamed live in the root
+     snapshot — silence the root crossfade (list-transition.ts tags <html>
+     with .list-vt) so those stay put too, instead of fading/sliding on every
+     search, topic toggle, and page turn. Old root is hidden outright (named
+     snapshots paint above it); new root renders static beneath them. */
+  html.list-vt::view-transition-old(root) {
+    animation: none;
+    opacity: 0;
+  }
+  html.list-vt::view-transition-new(root) {
+    animation: none;
+  }
+  @keyframes list-out {
+    to {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes list-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  @keyframes vt-out {
+    to {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes vt-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(essay-list),
+  ::view-transition-new(essay-list),
+  ::view-transition-old(search),
+  ::view-transition-old(topics),
+  ::view-transition-old(topics-pop),
+  ::view-transition-old(badges),
+  ::view-transition-old(count),
+  ::view-transition-old(hero),
+  ::view-transition-new(search),
+  ::view-transition-new(topics),
+  ::view-transition-new(topics-pop),
+  ::view-transition-new(badges),
+  ::view-transition-new(count),
+  ::view-transition-new(hero) {
+    animation: none;
+  }
+  ::view-transition-old(search),
+  ::view-transition-old(topics),
+  ::view-transition-old(topics-pop),
+  ::view-transition-old(badges),
+  ::view-transition-old(count),
+  ::view-transition-old(hero) {
+    opacity: 0;
+  }
+}
+
+/* ---------- shadcn-style popover (Dropdown) ---------- */
+
+.dropdown-panel {
+  animation: dropdown-pop-in 0.14s var(--ease-out);
+  transform-origin: top;
+}
+@keyframes dropdown-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-panel {
+    animation: none;
+  }
+}
+
+/* ---------- Dropdown: mobile bottom sheet ---------- */
+
+/* Below the sm breakpoint the dropdown becomes a detached bottom sheet: it
+   floats off the screen edges and home-indicator safe area, with a dim
+   backdrop, a grabber, and a Cancel/Done header. Selections are staged in a
+   draft — Done applies, Cancel discards, and Done disables until the draft
+   differs from the applied value. transform + opacity only; the sheet slides
+   up from the bottom. */
+.dropdown-backdrop {
+  display: none;
+}
+.dropdown-sheet-header {
+  display: none;
+}
+@media (max-width: 640px) {
+  .dropdown-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(0, 0, 0, 0.55);
+    animation: dropdown-backdrop-in 0.2s var(--ease-out);
+  }
+  .dropdown-panel {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+    margin: 0;
+    border-radius: 16px;
+    padding: 0.5rem;
+    transform-origin: bottom;
+    animation: sheet-in 0.28s var(--ease-out);
+  }
+  .dropdown-panel::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-muted-foreground);
+    opacity: 0.5;
+    margin: 0 auto 0.5rem;
+  }
+  .dropdown-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .dropdown-scroll {
+    max-height: min(60vh, 26rem);
+  }
+}
+@keyframes dropdown-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+  .dropdown-panel,
+  .dropdown-backdrop {
+    animation: none;
+  }
+}
+
+/* ---------- topic badge enter / exit ---------- */
+
+@keyframes badge-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.96);
+  }
+}
+@keyframes badge-out {
+  to {
+    opacity: 0;
+    transform: translateY(-2px) scale(0.95);
+  }
+}
+.badge-in {
+  animation: badge-in 0.18s var(--ease-out) both;
+}
+.badge-out {
+  animation: badge-out 0.16s var(--ease-in-exit) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-in,
+  .badge-out {
+    animation: none;
+  }
+}
+
+/* ---------- essay tag pill entry animation ---------- */
+
+/* Native entry transition: @starting-style supplies the hidden "from" state
+   on first render, so no JS (or html.js guard) is needed. The stagger runs
+   off --reveal-delay (40ms steps, per kernel-animate's 30–80ms band) and the
+   duration stays under the skill's 300ms UI cap. Reduced-motion users get
+   the pills immediately. */
+@media (prefers-reduced-motion: no-preference) {
+  .tag-pill {
+    transition:
+      opacity 0.3s var(--ease-out),
+      transform 0.3s var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  @starting-style {
+    .tag-pill {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
+/* ---------- press feedback ---------- */
+
+/* Subtle press on any interactive element: transform-only, quick, custom
+   ease-out. Replaces Tailwind's transition-colors on the elements that carry
+   it, adding a 160ms transform transition alongside the color transitions. */
+.press {
+  transition:
+    transform 160ms var(--ease-out),
+    color 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    text-decoration-color 150ms ease;
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .press,
+  .press:active {
+    transition: none;
+    transform: none;
+  }
+  .logo-nav {
+    transition: none;
+  }
+  .logo-nav:hover {
+    rotate: 0deg;
+  }
+}
+
+/* ---------- header entrance cascade ---------- */
+
+/* Every page header (index hero, essay, data) composes as it enters: title →
+   description → meta. One shared .header-reveal class driven by
+   --reveal-delay (60ms steps), so all three headers read as one motion system
+   and reuse the tag-pill curve/duration. Native entry transition:
+   @starting-style supplies the hidden "from" state on first render, so no JS
+   (or html.js guard) is needed. transform + opacity only, under the 300ms UI
+   cap. The former hero-beam perpetual sweep is gone — endless decorative
+   rotation fails the frequency gate on a header visited on every home load.
+   Reduced-motion users get the header immediately. */
+@media (prefers-reduced-motion: no-preference) {
+  .header-reveal {
+    transition:
+      opacity 0.3s var(--ease-out),
+      transform 0.3s var(--ease-out);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  @starting-style {
+    .header-reveal {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
+/* ---------- essay list row title underline ---------- */
+
+/* The title's underline slides in on row hover instead of snapping: a
+   bottom-aligned currentColor gradient that grows from 0% to 100% width,
+   fading from solid at the left edge to transparent at the right. transform/
+   opacity don't apply here — background-size is the sanctioned way to draw an
+   underline that "comes in". Fast and subtle (hover tier), gated to fine
+   pointers, and reduced-motion users get the instant snap. */
+.row-title {
+  background-image: linear-gradient(to right, currentColor, transparent);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  transition: background-size 0.2s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .row-title {
+    background-size: 100% 1px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row-title {
+    transition: none;
+  }
+}

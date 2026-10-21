@@ -3,17 +3,52 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
+    "stage": "filekit frontmatter stage --root \"$OBSIDIAN/notes\" --output staged --where type=essay status=published --name-field slug",
+    "dev": "portless",
+    "predev:app": "npm run stage",
+    "dev:app": "astro dev",
+    "build": "npm run stage && astro build && pagefind --site dist && node scripts/prune-pagefind.mjs dist/pagefind",
+    "prebuild": "npm run gates",
+    "gates": "npm run check:astro && npm run typecheck",
+    "check:astro": "astro check",
+    "typecheck": "tsc --noEmit",
     "check": "node scripts/check-decks.mjs",
+    "format": "oxfmt --write",
+    "lint": "oxlint --fix",
+    "prepare": "node scripts/install-hooks.mjs",
+    "deploy": "bash scripts/deploy.sh",
     "og": "node scripts/og.mjs",
     "visual": "VISUAL=1 playwright test tests/visual.spec.js",
     "visual:update": "VISUAL=1 playwright test tests/visual.spec.js --update-snapshots",
     "test": "playwright test",
     "preview": "astro preview"
   },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "^0.4.0",
+    "@astrojs/react": "^6.0.5",
+    "astro": "^7.4.0",
+    "gray-matter": "^4.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "satteri": "^0.10.5",
+    "zod": "^4.5.4"
+  },
   "devDependencies": {
+    "@astrojs/check": "^0.9.10",
     "@playwright/test": "^1.64.1",
-    "astro": "^7.4.0"
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.4.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "oxfmt": "^0.65.0",
+    "oxlint": "^1.80.0",
+    "pagefind": "^1.5.2",
+    "portless": "0.15.6",
+    "tailwindcss": "^4.1.0",
+    "typescript": "^6.0.3"
+  },
+  "portless": {
+    "name": "soapbox",
+    "script": "dev:app"
   }
 }

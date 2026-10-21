@@ -1,0 +1,80 @@
+---
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import Logo from "../components/Logo.astro";
+
+interface Props {
+  title?: string;
+  /** Essay description, used for <meta name="description"> + og:description. */
+  description?: string;
+  /** Canonical + og:url. Defaults to the full current URL (site is public). */
+  url?: string;
+  /** JSON-LD @type for this page (Article / WebSite). Default: none. */
+  jsonldType?: string;
+  /** Absolute og:image URL. Defaults to the brand card. */
+  ogImage?: string;
+}
+
+const SITE = "https://web-production-02a47.up.railway.app";
+const { title = "Essays" } = Astro.props;
+const description = Astro.props.description ?? "Longform essays, from the notebook.";
+const path = Astro.url.pathname;
+const url = Astro.props.url ?? `${SITE}${path}`;
+const ogImage = Astro.props.ogImage ?? `${SITE}/og-card.png`;
+const jsonld = Astro.props.jsonldType
+  ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": Astro.props.jsonldType,
+      headline: title,
+      description,
+      url,
+      image: ogImage,
+      inLanguage: "en",
+      publisher: {
+        "@type": "Organization",
+        name: "lexicon",
+        logo: { "@type": "ImageObject", url: `${SITE}/favicon.svg` },
+      },
+    })
+  : null;
+---
+
+<!doctype html>
+<html lang="en" class="dark" data-pagefind-title={title}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content={jsonld ? "article" : "website"} />
+    <meta property="og:site_name" content="lexicon" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {jsonld && <script type="application/ld+json" is:inline set:html={jsonld} />}
+
+    <ClientRouter />
+  </head>
+  <body>
+    <div id="progress" transition:persist></div>
+    <Logo />
+    <slot />
+    <script src="../client/progress.ts"></script>
+  </body>
+</html>

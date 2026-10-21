@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 const { decks } = JSON.parse(readFileSync(new URL('../decks.json', import.meta.url), 'utf8'));
-const route = (d) => (d.migrated ? `/soapbox/${d.slug}/` : `/soapbox/${d.slug}.html`);
+const route = (d) => (d.migrated ? `/decks/${d.slug}/` : `/${d.slug}.html`);
 
 for (const deck of decks) {
   test.describe(deck.slug, () => {
@@ -95,7 +95,7 @@ test('code cards render as blocks and never clip a line', async ({ page }) => {
 });
 
 test('a scene\'s replay control lives with its visual', async ({ page }) => {
-  await page.goto('/soapbox/next-token/', { waitUntil: 'load' });
+  await page.goto('/decks/next-token/', { waitUntil: 'load' });
   await page.waitForTimeout(300);
   const bad = await page.evaluate(() => {
     const s = document.querySelector('deck-stage');
@@ -114,7 +114,7 @@ test('a scene\'s replay control lives with its visual', async ({ page }) => {
 
 test('the Next button morphs into Restart on the last scene', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });   // instant jumps, no scroll race
-  await page.goto('/soapbox/next-token/', { waitUntil: 'load' });
+  await page.goto('/decks/next-token/', { waitUntil: 'load' });
   await page.evaluate(() => {
     const s = document.querySelector('deck-stage');
     s.goto(s.scenes.length - 1);

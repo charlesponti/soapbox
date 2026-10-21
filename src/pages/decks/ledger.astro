@@ -1,9 +1,9 @@
 ---
 /* THE LEDGER — a data table, keyboard-first (concept 3 of 3). */
-import Site from '../layouts/Site.astro';
+import Site from '../../layouts/Site.astro';
 const raw = import.meta.env.BASE_URL;
 const base = raw.endsWith('/') ? raw : raw + '/';
-const decks = (await import('../../decks.json')).default.decks;
+const decks = (await import('../../../decks.json')).default.decks;
 const total = decks.reduce((n, d) => n + (d.scenes || 0), 0);
 ---
 <Site title="Soapbox — Ledger" description="Every deck, as a table." view="ledger">
@@ -18,7 +18,7 @@ const total = decks.reduce((n, d) => n + (d.scenes || 0), 0);
     <thead><tr><th>#</th><th>Show</th><th>Title</th><th style="text-align:right">Scenes</th></tr></thead>
     <tbody>
       {decks.map((d) => (
-        <tr class="row" data-href={`${base}${d.slug}/`} data-search={`${d.title} ${d.show} ${d.series} episode ${d.episode}`.toLowerCase()}>
+        <tr class="row" data-href={`${base}decks/${d.slug}/`} data-search={`${d.title} ${d.show} ${d.series} episode ${d.episode}`.toLowerCase()}>
           <td class="n">{String(d.episode).padStart(2, '0')}</td>
           <td class="show">{d.show.toUpperCase()}</td>
           <td>{d.title}</td>

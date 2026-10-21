@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Not found — Essays">
+  <main class="flex min-h-dvh flex-col items-center justify-center px-6 py-16">
+    <p class="header-reveal text-center text-[12px] font-medium uppercase tracking-[0.18em] text-muted-foreground" style="--reveal-delay: 0ms">404</p>
+    <h1 class="header-reveal mt-4 text-center text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]" style="--reveal-delay: 60ms">Nothing here.</h1>
+    <a
+      href="/"
+      class="header-reveal press mt-8 inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-sm text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+      style="--reveal-delay: 120ms"
+    >
+      ← back to essays
+    </a>
+  </main>
+</BaseLayout>

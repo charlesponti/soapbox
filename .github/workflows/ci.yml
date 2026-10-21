@@ -1,6 +1,6 @@
 name: CI
 
-# Build the site, lint the decks against SYSTEM.md (§11), run the deck suite,
+# Build the site (decks only — essays come from the local vault, never CI), lint the decks against SYSTEM.md (§11), run the deck suite,
 # and run visual regression.
 #
 # The `visual` job runs inside Playwright's own container image so the image that
@@ -22,7 +22,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run build
+      - run: npx astro build # no staged/ essays in CI; the loader builds with zero
       - run: npm run check
       - run: npx playwright install --with-deps chromium
       - run: npm test
@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm ci
-      - run: npm run build
+      - run: npx astro build
       - run: npm run visual
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

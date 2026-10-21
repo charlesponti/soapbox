@@ -1,0 +1,9 @@
+# railway up file exclusions. dist/ must stay INCLUDED (Dockerfile COPYs it).
+# node_modules and .git are ignored by the CLI regardless.
+node_modules/
+.git/
+.astro/
+staged/
+.playwright-mcp/
+probe.bak
+tests/search-state.png

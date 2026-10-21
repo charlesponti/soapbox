@@ -1,0 +1,89 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { relatedTo, type EssayEntry } from "../../lib/related-essays";
+
+export async function getStaticPaths() {
+  const essays = await getCollection("essays");
+  return essays.map((entry: EssayEntry) => ({
+    params: { slug: entry.data.slug },
+    props: { entry, related: relatedTo(entry, essays) },
+  }));
+}
+
+interface Props {
+  entry: EssayEntry;
+  related: EssayEntry[];
+}
+
+const { entry, related } = Astro.props;
+const { Content } = await render(entry);
+const { title, description, tags, category } = entry.data;
+const site = "https://web-production-02a47.up.railway.app";
+const url = `${site}/essays/${entry.data.slug}/`;
+---
+
+<BaseLayout
+  title={`${title} — Essays`}
+  description={description || undefined}
+  url={url}
+  jsonldType="Article"
+>
+  <main
+    class="mx-auto max-w-2xl px-6 pb-28 pt-20"
+    data-pagefind-body
+    data-pagefind-filter={`category:${category}`}
+  >
+    <a
+      href="/"
+      data-pagefind-ignore
+      class="press fixed left-5 top-5 z-30 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground"
+    >
+      ← Back
+    </a>
+
+    <header class="mb-14">
+      <h1 class="header-reveal text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]" style="--reveal-delay: 0ms">{title}</h1>
+      {description && <p class="header-reveal mt-4 text-lg leading-relaxed text-muted-foreground" style="--reveal-delay: 60ms">{description}</p>}
+      {tags.length > 0 && (
+        <ul class="mt-5 flex flex-wrap gap-2">
+          {tags.map((t: string, i: number) => (
+            <li
+              class="tag-pill rounded-full border border-border px-3 py-0.5 text-xs text-muted-foreground"
+              style={`--reveal-delay: ${80 + Math.min(i, 8) * 40}ms`}
+            >
+              {t}
+            </li>
+          ))}
+        </ul>
+      )}
+    </header>
+
+    <article class="prose">
+      <Content />
+    </article>
+
+    {related.length > 0 && (
+      <aside class="mt-20 border-t border-border pt-10" aria-label="Related essays">
+        <h2 class="mb-6 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          Related
+        </h2>
+        <ul class="space-y-1">
+          {related.map((r: EssayEntry) => (
+            <li>
+              <a
+                href={`/essays/${r.data.slug}/`}
+                class="group -mx-3 flex items-baseline justify-between gap-6 rounded-md px-3 py-3 transition-colors hover:bg-muted/70"
+              >
+                <span class="block text-[16px] font-medium leading-snug tracking-[-0.01em] group-hover:underline group-hover:underline-offset-4">
+                  {r.data.title}
+                </span>
+                <span class="shrink-0 text-[13px] text-muted-foreground">{r.data.category}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    )}
+  </main>
+</BaseLayout>

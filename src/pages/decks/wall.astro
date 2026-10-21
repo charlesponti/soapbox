@@ -1,9 +1,9 @@
 ---
 /* THE WALL — the covers are the index (concept 2 of 3). */
-import Site from '../layouts/Site.astro';
+import Site from '../../layouts/Site.astro';
 const raw = import.meta.env.BASE_URL;
 const base = raw.endsWith('/') ? raw : raw + '/';
-const decks = (await import('../../decks.json')).default.decks;
+const decks = (await import('../../../decks.json')).default.decks;
 const shows = [...new Set(decks.map((d) => d.show))].map((show) => ({ show, decks: decks.filter((d) => d.show === show) }));
 ---
 <Site title="Soapbox — Decks" description="Full-screen decks for a series of talks." view="wall">
@@ -16,7 +16,7 @@ const shows = [...new Set(decks.map((d) => d.show))].map((show) => ({ show, deck
       <div class="show-head">{show.toUpperCase()}</div>
       <div class="wall-grid">
         {decks.map((d) => (
-          <a class="wall-tile" href={`${base}${d.slug}/`} data-rise>
+          <a class="wall-tile" href={`${base}decks/${d.slug}/`} data-rise>
             <img src={`${base}og/${d.slug}.png`} alt="" loading="lazy" width="1200" height="630" />
             <span class="wall-cap"><b>{String(d.episode).padStart(2, '0')} · {d.title}</b><span>{d.scenes} SCENES</span></span>
           </a>
