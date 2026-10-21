@@ -11,7 +11,7 @@
  */
 import { chromium } from "playwright";
 
-const URL = process.env.URL ?? "http://localhost:4321/";
+const URL = process.env.URL ?? "http://localhost:4321/essays/";
 let failures = 0;
 const check = (name, ok, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`);

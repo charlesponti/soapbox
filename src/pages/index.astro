@@ -1,41 +1,134 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import EssayList from "../components/EssayList";
+import manifest from "../../decks.json";
 
-const essays = await getCollection("essays");
 const byNewest = (a: CollectionEntry<"essays">, b: CollectionEntry<"essays">) => {
   if (!a.data.pubDate && !b.data.pubDate) return a.data.title.localeCompare(b.data.title);
   if (!a.data.pubDate) return 1;
   if (!b.data.pubDate) return -1;
   return b.data.pubDate.localeCompare(a.data.pubDate);
 };
-const sorted = essays.sort(byNewest);
-
-const meta = sorted.map((e: CollectionEntry<"essays">) => ({
-  slug: e.data.slug,
-  title: e.data.title,
-  description: e.data.description,
-  category: e.data.category,
-  tags: e.data.tags,
-  pubDate: e.data.pubDate,
-  words: e.data.words,
-}));
+const all = (await getCollection("essays")).sort(byNewest);
+const essays = all.slice(0, 3);
+const decks = [...manifest.decks].sort((a, b) => b.episode - a.episode).slice(0, 3);
 ---
 
-<BaseLayout>
-  <main class="mx-auto max-w-2xl px-6 pb-24 pt-20" data-pagefind-ignore>
-    <header class="index-hero mb-10" id="hero">
-      <h1 class="header-reveal text-[42px] font-medium leading-[1.05] tracking-[-0.02em]" style="--reveal-delay: 0ms">Essays</h1>
-      <p class="header-reveal mt-3 text-[15px] text-muted-foreground" style="--reveal-delay: 60ms">
-        {sorted.length} longform pieces, from the notebook. The studio's knowledge site — published on the public web.
-      </p>
-      <p class="header-reveal mt-2 text-[13px] text-muted-foreground/70" style="--reveal-delay: 120ms">
-        <a href="/data/" class="press underline decoration-border underline-offset-4 hover:decoration-foreground">
-          Corpus data →
-        </a>
+<BaseLayout title="Soapbox" description="Essays and full-screen decks.">
+  <canvas id="universe" aria-hidden="true"></canvas>
+  <main class="home mx-auto max-w-4xl px-6 pb-24 pt-28" data-pagefind-ignore>
+    <header class="mb-16">
+      <h1 class="text-[52px] font-medium leading-[1.02] tracking-[-0.025em]">Soapbox</h1>
+      <p class="mt-4 max-w-xl text-[17px] text-muted-foreground">
+        Essays from the notebook, and full-screen decks talked over. Same head, two formats.
       </p>
     </header>
-    <EssayList essays={meta} client:load />
+
+    <section class="mb-16">
+      <div class="mb-5 flex items-baseline justify-between">
+        <h2 class="text-[13px] uppercase tracking-[0.14em] text-muted-foreground">Latest essays</h2>
+        <a href="/essays/" class="press text-sm text-muted-foreground hover:text-foreground">All {all.length} essays →</a>
+      </div>
+      <ul class="grid gap-3">
+        {essays.map((e: CollectionEntry<"essays">) => (
+          <li>
+            <a href={`/essays/${e.data.slug}/`} class="card press block rounded-xl border border-border p-5">
+              <div class="text-[19px] font-medium leading-snug">{e.data.title}</div>
+              {e.data.description && <p class="mt-1.5 text-[14px] text-muted-foreground">{e.data.description}</p>}
+              <div class="mt-3 text-[12px] text-muted-foreground/70">
+                {[e.data.category, e.data.pubDate?.slice(0, 10)].filter(Boolean).join(" · ")}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section>
+      <div class="mb-5 flex items-baseline justify-between">
+        <h2 class="text-[13px] uppercase tracking-[0.14em] text-muted-foreground">Latest decks</h2>
+        <a href="/decks/" class="press text-sm text-muted-foreground hover:text-foreground">All decks →</a>
+      </div>
+      <ul class="grid gap-4 sm:grid-cols-3">
+        {decks.map((d) => (
+          <li>
+            <a href={`/decks/${d.slug}/`} class="card press block overflow-hidden rounded-xl border border-border">
+              <img src={`/og/${d.slug}.png`} alt="" width="1200" height="630" loading="lazy" class="aspect-[1200/630] w-full object-cover" />
+              <div class="p-4">
+                <div class="text-[11px] tracking-[0.12em] text-muted-foreground/70">{d.series}</div>
+                <div class="mt-1 text-[16px] font-medium leading-snug">{d.title}</div>
+                <p class="mt-1.5 text-[13px] text-muted-foreground">{d.summary}</p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   </main>
 </BaseLayout>
+
+<style>
+  #universe {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: radial-gradient(ellipse at 50% 120%, #14141f 0%, #0a0a0a 60%);
+  }
+  .home { position: relative; }
+  .card { background: rgb(10 10 10 / 0.6); backdrop-filter: blur(6px); transition: border-color 0.2s; }
+  .card:hover { border-color: rgb(250 250 250 / 0.4); }
+</style>
+
+<script>
+  // Drifting starfield with depth: stars fly slowly toward the viewer, a few tint blue/warm.
+  function start() {
+    const canvas = document.getElementById("universe") as HTMLCanvasElement | null;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const tints = ["250,250,250", "170,190,255", "255,220,180"];
+    type Star = { x: number; y: number; z: number; t: string };
+    let w = 0, h = 0, stars: Star[] = [], raf = 0;
+    const spawn = (z = Math.random()): Star => ({
+      x: (Math.random() - 0.5) * 2,
+      y: (Math.random() - 0.5) * 2,
+      z,
+      t: tints[Math.floor(Math.random() * tints.length)]!,
+    });
+    const resize = () => {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      w = canvas.width = innerWidth * dpr;
+      h = canvas.height = innerHeight * dpr;
+      stars = Array.from({ length: Math.round((innerWidth * innerHeight) / 5000) }, () => spawn());
+    };
+    const draw = (move: boolean) => {
+      ctx.clearRect(0, 0, w, h);
+      const s = Math.max(w, h) / 2;
+      for (const st of stars) {
+        if (move) {
+          st.z -= 0.0008;
+          if (st.z <= 0.02) Object.assign(st, spawn(1));
+        }
+        const k = 1 / st.z;
+        const px = w / 2 + st.x * s * 0.35 * k;
+        const py = h / 2 + st.y * s * 0.35 * k;
+        if (px < 0 || px > w || py < 0 || py > h) { if (move) Object.assign(st, spawn(1)); continue; }
+        const r = Math.min(2.2, 0.7 + k * 0.18) * (w / innerWidth);
+        ctx.fillStyle = `rgba(${st.t},${Math.min(1, 1.1 - st.z * 0.5)})`;
+        ctx.beginPath();
+        ctx.arc(px, py, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+    const loop = () => { draw(true); raf = requestAnimationFrame(loop); };
+    resize();
+    addEventListener("resize", resize);
+    if (reduced) draw(false);
+    else loop();
+    // ClientRouter swaps pages without a reload, so stop when leaving home.
+    document.addEventListener("astro:before-swap", () => { cancelAnimationFrame(raf); removeEventListener("resize", resize); }, { once: true });
+  }
+  start();
+</script>

@@ -93,7 +93,7 @@ h1.site-title em{font-family:var(--serif);font-style:italic;font-weight:500}
       <a href={`${base}${href}`} class={view === key ? 'on' : ''} aria-current={view === key ? 'page' : undefined}>{label}</a>
     ))}
   </div>
-  <a class="site-brand" href={base}>ESSAYS</a>
+  <a class="site-brand" href={`${base}essays/`}>ESSAYS</a>
   <span class="site-count">{String(decks.length).padStart(2, '0')} DECKS</span>
 </header>
 <main class="site-main"><slot /></main>
