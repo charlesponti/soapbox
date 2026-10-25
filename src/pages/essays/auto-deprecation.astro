@@ -1,30 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Essay: Auto-Deprecation — Decay Classes & Staleness Detection</title>
-  <link rel="stylesheet" href="../shared.css">
-  <style>
-    .essay { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
-    .essay h1 { font-size: 36px; font-weight: 700; letter-spacing: -1px; margin-bottom: 8px; }
-    .essay h2 { font-size: 24px; font-weight: 600; margin: 32px 0 12px; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
-    .essay h3 { font-size: 18px; font-weight: 600; margin: 24px 0 8px; }
-    .essay p { font-size: 16px; line-height: 1.7; color: #24292f; margin-bottom: 16px; }
-    .essay ul, .essay ol { margin: 0 0 16px 24px; }
-    .essay li { font-size: 16px; line-height: 1.7; color: #24292f; margin-bottom: 8px; }
-    .essay .callout { background: #f6f8fa; border-left: 3px solid #0969da; padding: 16px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
-    .essay .callout p { margin: 0; font-size: 14px; }
-    .essay code { font-family: var(--font-mono); font-size: 13px; background: #f6f8fa; padding: 2px 6px; border-radius: 4px; }
-    .essay pre { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 16px 0; }
-    .essay .meta { font-size: 14px; color: #6e7781; margin-bottom: 24px; }
-    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
-    .back-link:hover { text-decoration: underline; }
-  </style>
-</head>
-<body>
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const htmlContent = `
   <div class="essay">
-    <a href="../index.html" class="back-link">← Back to Seme</a>
+    <a href="/essays/" class="back-link">← Back to Seme</a>
     <h1>Auto-Deprecation: Decay Classes & Staleness Detection</h1>
     <p class="meta">How Seme detects and archives stale facts using configurable decay thresholds</p>
 
@@ -58,7 +37,7 @@
   const lastDate = new Date(memory.last_reinforced_at || memory.observed_at);
   const daysSince = (now - lastDate) / (1000 * 60 * 60 * 24);
   if (daysSince > threshold) {
-    archive(memory, `Not reinforced in ${daysSince} days`);
+    archive(memory, \`Not reinforced in \${daysSince} days\`);
   }
 }</pre>
 
@@ -95,5 +74,31 @@ POST /deprecation/run
       <p><strong>Trade-off:</strong> Auto-deprecation uses a simple time-based threshold. It doesn't consider whether the fact is still relevant (e.g., "I live in London" might be stale even if recently reinforced, if the user moved). A more sophisticated approach would use semantic contradiction detection, but that requires an LLM call per memory, which is expensive.</p>
     </div>
   </div>
-</body>
-</html>
+`;
+const cssContent = `
+    .essay { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+    .essay h1 { font-size: 36px; font-weight: 700; letter-spacing: -1px; margin-bottom: 8px; }
+    .essay h2 { font-size: 24px; font-weight: 600; margin: 32px 0 12px; border-bottom: 1px solid #d0d7de; padding-bottom: 8px; }
+    .essay h3 { font-size: 18px; font-weight: 600; margin: 24px 0 8px; }
+    .essay p { font-size: 16px; line-height: 1.7; color: #24292f; margin-bottom: 16px; }
+    .essay ul, .essay ol { margin: 0 0 16px 24px; }
+    .essay li { font-size: 16px; line-height: 1.7; color: #24292f; margin-bottom: 8px; }
+    .essay .callout { background: #f6f8fa; border-left: 3px solid #0969da; padding: 16px 20px; margin: 20px 0; border-radius: 0 6px 6px 0; }
+    .essay .callout p { margin: 0; font-size: 14px; }
+    .essay code { font-family: var(--font-mono); font-size: 13px; background: #f6f8fa; padding: 2px 6px; border-radius: 4px; }
+    .essay pre { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 16px 0; }
+    .essay .meta { font-size: 14px; color: #6e7781; margin-bottom: 24px; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+  `;
+---
+
+<BaseLayout title="Essay: Auto-Deprecation — Decay Classes & Staleness Detection" description="Long-form technical essay on Seme memory system architecture" jsonldType="Article">
+  <main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body>
+    <a href="/essays/" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">
+      ← Back
+    </a>
+    <style is:inline set:html={cssContent} />
+    <div set:html={htmlContent} />
+  </main>
+</BaseLayout>
