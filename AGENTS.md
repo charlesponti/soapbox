@@ -92,7 +92,7 @@ and (with a preview server up) `node tests/search-check.mjs`.
 - `astro preview` serves stale `dist/`; restart it after every rebuild. Under an
   agent it daemonizes, so Playwright's `webServer` exits early: run
   `npx astro preview --port 4321` first, then `npm test`.
-- `npm run stage` needs `$OBSIDIAN` set (vault root); unset, it stages 0 files.
+- `npm run stage` needs `$STUDIO_PRESS_ROOT` set (publishing workspace root); unset, it stages 0 files. Staged from `$STUDIO_PRESS_ROOT/charlesponti/essays`.
 - `astro check` requires TypeScript ≤ 6 (TS 6.0.3 is deliberate).
 - Pagefind facets: inline `data-pagefind-filter="key:value"`; the old `-value`
   attribute is gone. Its runtime is pure-ESM — import with `@vite-ignore`.

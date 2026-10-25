@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "stage": "filekit frontmatter stage --root \"$OBSIDIAN/notes\" --output staged --where type=essay status=published --name-field slug",
+    "stage": "filekit frontmatter stage --root \"$STUDIO_PRESS_ROOT/charlesponti/essays\" --output staged --where type=essay status=published --name-field slug",
     "dev": "portless",
     "predev:app": "npm run stage",
     "dev:app": "astro dev",
