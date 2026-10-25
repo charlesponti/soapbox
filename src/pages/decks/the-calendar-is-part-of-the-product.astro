@@ -1,0 +1,313 @@
+---
+import Deck from '../../layouts/Deck.astro';
+---
+<!--
+  THE CALENDAR IS PART OF THE PRODUCT — Field Note 01, ~20 minutes.
+  Source: essays/07-the-calendar-is-part-of-the-product.md
+  SEMANTIC ACCENT (chosen in advance, one only): EARLY — a puzzle served before
+  its local day has arrived. Monotone Red marks that state and nothing else
+  (the leaked card, its arrow and its label). Everything else is black, white
+  and greys.
+-->
+<Deck title="The Calendar Is Part of the Product" brand="THE CALENDAR" series="FIELD NOTE 01 — THE BOUNDARY">
+<deck-cue time="COVER · 00:00–00:45" title="The title">Open on the story, not the lesson. A player in Los Angeles was handed London’s tomorrow before Los Angeles reached midnight. Everything after this is how one small sentence — “one puzzle per local day” — broke across five systems.</deck-cue>
+<deck-cue time="STEP 1 · 00:45–02:00" title="Each part was reasonable">Walk the stack top to bottom. The server stores a puzzle per calendar date. The generator builds tomorrow ahead of time. The browser only learns its timezone after the first render. The player was promised one puzzle per local day. Nobody wrote a bad line. The bug lives between the boxes.</deck-cue>
+<deck-cue time="STEP 2 · 02:00–04:00" title="One instant, two dates">Slow down here, this is the whole talk. Watch the cursor: 00:30 UTC. London already rolled over an hour and a half ago, so it is May 21. Los Angeles is at half past five in the afternoon, still May 20. An instant is global. A calendar date is local. This is not an edge case, it happens every single day.</deck-cue>
+<deck-cue time="STEP 3 · 04:00–05:30" title="Today decides four things">“Today” is not a label on the screen. It picks which puzzle you see, which date owns your attempt, which guesses count, and what ops calls missing or late. If those use different clocks, you see one puzzle and save progress against another. Streaks vanish. Solved boards reset.</deck-cue>
+<deck-cue time="STEP 4 · 05:30–07:00" title="UTC was a default">The first helper defaulted to UTC. Deterministic, which feels safe, and wrong for a local game. The fix is small: take a timezone argument. But the real move is naming the two days. Canonical day for generation and inventory, UTC on purpose. Player day for everything the player touches, and the zone is passed in.</deck-cue>
+<deck-cue time="STEP 5 · 07:00–09:00" title="The first request is provisional">The server cannot run Intl for your browser. So the first response is allowed to be wrong, with a safe fallback. After mount the browser reads its zone, stores a cookie, and if the date differs it revalidates. The first request may be provisional. The browser may not stay provisional once it knows better.</deck-cue>
+<deck-cue time="STEP 6 · 09:00–10:30" title="A cookie is input">The cookie is client-supplied: missing, malformed, or forged. Decode it, ask Intl whether it is a real IANA zone, and fall back to UTC if not. No IP geolocation. VPNs and mobile networks make it worse, and the browser already knows the exact zone it is using.</deck-cue>
+<deck-cue time="STEP 7 · 10:30–13:00" title="The leak">The production bug. RealiTea pre-generates future puzzles on purpose. The resolver tried today’s exact date, found nothing ready, and fell back to the most recently created row. At 00:30 UTC that row was May 21. Los Angeles asked for May 20 and got ERIKA, tomorrow’s answer. Red is the only colour in the deck, and it only ever means early.</deck-cue>
+<deck-cue time="STEP 8 · 13:00–14:30" title="Eligible, not newest">The query answered “which puzzle was created most recently?” The product needed “which eligible puzzle, on or before this local date, was created most recently?” One bound. Date keys sort as strings, so less-or-equal is correct; keep that visible so nobody replaces it with timestamp math later.</deck-cue>
+<deck-cue time="STEP 9 · 14:30–16:00" title="Decide once">Loading the puzzle and loading the attempt must not compute “today” separately. One resolver takes the instant and the zone and returns the puzzle that was actually served. The attempt is looked up against that served date, including in the grace period when yesterday is the fallback.</deck-cue>
+<deck-cue time="STEP 10 · 16:00–17:30" title="A day is not 24 hours">Once you have a date key, adding twenty-four hours to a local timestamp is wrong twice a year. Spring forward is a 23 hour day, fall back is 25. So: instant to date uses the zone. Date to adjacent date uses calendar arithmetic, parsed at UTC midnight as a stable space.</deck-cue>
+<deck-cue time="STEP 11 · 17:30–18:45" title="The test that told the truth">Tests must fix the instant, name the zone, and have data on both sides of the boundary. A test using the current time passes or fails depending on where CI runs. Also assert what was passed to the repository, so a refactor cannot sneak the unbounded query back behind a lucky mock.</deck-cue>
+<deck-cue time="STEP 12 · 18:45–19:30" title="Six rules">Read them fast, the shape matters more than the wording: date keys as identity, zone makes the date, cookie is input, UTC on purpose, bound every fallback, resolve once.</deck-cue>
+<deck-cue time="STEP 13 · 19:30–20:00" title="The question">“Most recent” was not enough. “Today” was not enough. The system became correct when both words got a boundary. Leave them with the question to ask in every scheduler: whose today is it?</deck-cue>
+
+<deck-scene id="s0" title="FIELD NOTE 01 — THE BOUNDARY" layout="full" cover>
+<h1 class="rise">The Calendar Is Part of the Product</h1>
+<p class="lede rise">A player in Los Angeles was handed London’s tomorrow.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="THE SETUP" layout="split"><div>
+<h2 class="rise">Each part was <em class="serif">reasonable.</em></h2>
+<p class="lede rise">Together, they leaked.</p>
+<button class="replay rise" data-replay="parts"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE STACK</button></div>
+<div class="diagram rise"><div class="dlabel"><span>REALITEA</span><span>FOUR LOCAL TRUTHS</span></div>
+<deck-stack id="partStack">
+<deck-node label="Server" note="Stores puzzles by calendar date" tag="01"></deck-node>
+<deck-node label="Generator" note="Builds tomorrow ahead of time" tag="02"></deck-node>
+<deck-node label="Browser" note="Learns its zone after first render" tag="03"></deck-node>
+<deck-node label="Player" note="One puzzle per local day" tag="04"></deck-node>
+</deck-stack></div></deck-scene>
+
+<deck-scene id="s2" title="ONE INSTANT" layout="split"><div>
+<h2 class="rise">An instant is global.<br><em class="serif">A date is local.</em></h2>
+<p class="lede rise">Same moment. Different day.</p>
+<button class="replay rise" data-replay="instant"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CLOCK</button></div>
+<div class="diagram rise"><div class="dlabel"><span>2026-05-21 · 00:30Z</span><span>TWO CALENDARS</span></div>
+<svg class="tz" viewBox="0 0 600 320" role="img" aria-label="At 00:30 UTC London is on May 21 while Los Angeles is still on May 20">
+  <g class="axis">
+    <line x1="60" y1="44" x2="60" y2="262"/><line x1="160" y1="44" x2="160" y2="262"/><line x1="260" y1="44" x2="260" y2="262"/>
+    <line x1="360" y1="44" x2="360" y2="262"/><line x1="460" y1="44" x2="460" y2="262"/><line x1="560" y1="44" x2="560" y2="262"/>
+    <text x="60" y="30" text-anchor="middle">22Z</text><text x="160" y="30" text-anchor="middle">00Z</text><text x="260" y="30" text-anchor="middle">02Z</text>
+    <text x="360" y="30" text-anchor="middle">04Z</text><text x="460" y="30" text-anchor="middle">06Z</text><text x="560" y="30" text-anchor="middle">08Z</text>
+  </g>
+  <text class="lane" x="60" y="76">LONDON</text>
+  <rect class="hair" x="60" y="86" width="50" height="56"/><rect class="hair" x="110" y="86" width="450" height="56"/>
+  <text class="dim" x="85" y="120" text-anchor="middle">20</text><text class="dim" x="335" y="121" text-anchor="middle">MAY 21</text>
+  <text class="lane" x="60" y="182">LOS ANGELES</text>
+  <rect class="hair" x="60" y="192" width="450" height="56"/><rect class="hair" x="510" y="192" width="50" height="56"/>
+  <text class="dim" x="285" y="227" text-anchor="middle">MAY 20</text><text class="dim" x="535" y="226" text-anchor="middle">21</text>
+  <g id="tzHit">
+    <rect class="hit" x="110" y="86" width="450" height="56"/><text class="bright" x="335" y="121" text-anchor="middle">MAY 21</text>
+    <rect class="hit" x="60" y="192" width="450" height="56"/><text class="bright" x="285" y="227" text-anchor="middle">MAY 20</text>
+  </g>
+  <g id="tzCursor"><line class="cursor" x1="185" y1="40" x2="185" y2="266"/><text class="bright" x="185" y="292" text-anchor="middle">00:30Z</text></g>
+</svg></div></deck-scene>
+
+<deck-scene id="s3" title="THE PROMISE" layout="split"><div>
+<h2 class="rise">“Today” decides <em class="serif">four things.</em></h2>
+<p class="lede rise">Give them two clocks and they disagree.</p>
+<button class="replay rise" data-replay="four"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE FOUR</button></div>
+<div class="diagram rise"><div class="dlabel"><span>WHAT “TODAY” OWNS</span><span>EVERY REQUEST</span></div>
+<deck-grid id="fourGrid" style="grid-template-columns:1fr 1fr">
+<deck-cell><b>01 · Shown</b><span>Which puzzle the player sees</span></deck-cell>
+<deck-cell><b>02 · Owned</b><span>Which date holds the attempt</span></deck-cell>
+<deck-cell><b>03 · Accepted</b><span>Which guesses are saved</span></deck-cell>
+<deck-cell><b>04 · Healthy</b><span>What ops calls late</span></deck-cell>
+</deck-grid></div></deck-scene>
+
+<deck-scene id="s4" title="UTC WAS A DEFAULT" layout="split"><div>
+<h2 class="rise">UTC was a default, <em class="serif">not a contract.</em></h2>
+<p class="lede rise">Name which day you mean.</p>
+<button class="replay rise" data-replay="days"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TWO DAYS</button></div>
+<deck-compare class="rise" id="dayCols">
+<deck-col state="dim"><h3>CANONICAL DAY</h3><p class="m">getDateKey(now, “UTC”)</p><p>Generation. Inventory. Health.</p></deck-col>
+<deck-col><h3>PLAYER’S DAY</h3><p class="m">getDateKey(now, playerZone)</p><p>Everything the player touches.</p></deck-col>
+</deck-compare></deck-scene>
+
+<deck-scene id="s5" title="THE HANDSHAKE" layout="split"><div>
+<h2 class="rise">The first request is <em class="serif">provisional.</em></h2>
+<p class="lede rise">The browser may not stay that way.</p>
+<button class="replay rise" data-replay="handshake"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE HANDSHAKE</button></div>
+<div class="diagram rise"><div class="dlabel"><span>FIRST LOAD</span><span>ZONE UNKNOWN</span></div>
+<svg class="tz" viewBox="0 0 600 350" role="img" aria-label="Browser requests the page, server answers with a UTC fallback, browser reads its zone and sets a cookie, then revalidates and gets the right puzzle">
+  <defs>
+    <marker id="tzArrW" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#fff"/></marker>
+    <marker id="tzArrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#666"/></marker>
+  </defs>
+  <rect class="hair" x="40" y="8" width="160" height="40"/><text class="lane" x="120" y="34" text-anchor="middle">BROWSER</text>
+  <rect class="hair" x="400" y="8" width="160" height="40"/><text class="lane" x="480" y="34" text-anchor="middle">SERVER</text>
+  <line class="life" x1="120" y1="48" x2="120" y2="342"/><line class="life" x1="480" y1="48" x2="480" y2="342"/>
+  <g id="hs1"><line class="msg" x1="124" y1="92" x2="474" y2="92" marker-end="url(#tzArrG)"/><text class="bright" x="300" y="82" text-anchor="middle">GET /</text></g>
+  <g id="hs2"><line class="msg dash" x1="476" y1="140" x2="126" y2="140" marker-end="url(#tzArrG)"/><text class="dim" x="300" y="130" text-anchor="middle">page · fallback zone: UTC</text></g>
+  <g id="hs3"><rect class="note-box" x="2" y="170" width="236" height="46"/><text class="bright" x="120" y="198" text-anchor="middle">Intl → zone → cookie</text></g>
+  <g id="hs4"><line class="msg" x1="124" y1="262" x2="474" y2="262" marker-end="url(#tzArrG)"/><text class="bright" x="300" y="252" text-anchor="middle">revalidate · tz cookie</text></g>
+  <g id="hs5"><line class="msg strong" x1="476" y1="314" x2="126" y2="314" marker-end="url(#tzArrW)"/><text class="bright" x="300" y="304" text-anchor="middle">the right puzzle</text></g>
+</svg></div></deck-scene>
+
+<deck-scene id="s6" title="A COOKIE IS INPUT" layout="split"><div>
+<h2 class="rise">A cookie is input,<br><em class="serif">not truth.</em></h2>
+<p class="lede rise">Validate it. Never guess from the IP.</p>
+<button class="replay rise" data-replay="cookie"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CHECK</button></div>
+<div class="diagram rise"><div class="dlabel"><span>tz COOKIE</span><span>PARSED ON THE SERVER</span></div>
+<deck-metrics id="cookieRows">
+<deck-row head><span>COOKIE SAYS</span><span class="num">SERVER USES</span></deck-row>
+<deck-row><b>Europe/London</b><span class="num">Europe/London</span></deck-row>
+<deck-row><b>America/Los_Angeles</b><span class="num">America/Los_Angeles</span></deck-row>
+<deck-row><b>Mars/Olympus</b><span class="num">UTC · Intl throws</span></deck-row>
+<deck-row><b>(no cookie)</b><span class="num">UTC</span></deck-row>
+</deck-metrics></div></deck-scene>
+
+<deck-scene id="s7" title="THE LEAK" layout="split"><div>
+<h2 class="rise">“Most recent”<br>served <em class="serif">tomorrow.</em></h2>
+<p class="lede rise">Los Angeles asked for May 20.</p>
+<button class="replay rise" data-replay="leak"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE LEAK</button></div>
+<div class="diagram rise"><div class="dlabel"><span>00:30Z · LOS ANGELES</span><span>NEWEST ROW WINS</span></div>
+<svg class="tz" viewBox="0 0 600 300" role="img" aria-label="Los Angeles is on May 20 but the newest pre-generated row, May 21, is served early">
+  <g id="lkCards">
+    <rect class="hair" x="30" y="140" width="120" height="100"/><text class="dim" x="90" y="170" text-anchor="middle">MAY 18</text><text class="dim" x="90" y="218" text-anchor="middle">· · ·</text>
+    <rect class="hair" x="170" y="140" width="120" height="100"/><text class="dim" x="230" y="170" text-anchor="middle">MAY 19</text><text class="dim" x="230" y="218" text-anchor="middle">· · ·</text>
+    <rect class="hair solid" x="310" y="140" width="120" height="100"/><text class="dim" x="370" y="170" text-anchor="middle">MAY 20</text><text class="big" x="370" y="218" text-anchor="middle">DORIT</text>
+    <rect class="hair dash" x="450" y="140" width="120" height="100"/><text class="dim" x="510" y="170" text-anchor="middle">MAY 21</text><text class="big dimbig" x="510" y="218" text-anchor="middle">ERIKA</text>
+  </g>
+  <g id="lkMark"><line class="msg strong" x1="370" y1="74" x2="370" y2="132" marker-end="url(#tzArrW)"/><text class="bright" x="358" y="100" text-anchor="end">LA · MAY 20</text></g>
+  <g id="lkEarly">
+    <rect class="early" x="450" y="140" width="120" height="100"/><text class="big early" x="510" y="218" text-anchor="middle">ERIKA</text>
+    <path class="early arc" d="M 392 96 Q 510 30 510 128" marker-end="url(#tzArrE)"/>
+    <text class="early tag" x="510" y="268" text-anchor="middle">EARLY</text><text class="dim" x="510" y="290" text-anchor="middle">newest row</text>
+  </g>
+  <defs><marker id="tzArrE" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="earlyfill"/></marker></defs>
+</svg></div></deck-scene>
+
+<deck-scene id="s8" title="THE BOUND" layout="split"><div>
+<h2 class="rise">Ask for the <em class="serif">eligible</em> one.</h2>
+<p class="lede rise">Not newest. On or before today.</p>
+<p class="lede rise m">dateUtc ≤ dateKey</p>
+<button class="replay rise" data-replay="bound"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE BOUND</button></div>
+<div class="diagram rise"><div class="dlabel"><span>BOUNDED FALLBACK</span><span>LOCAL DATE CAPS IT</span></div>
+<svg class="tz" viewBox="0 0 600 300" role="img" aria-label="A wall after May 20 stops the fallback from reaching the pre-generated May 21 puzzle">
+  <g id="bdCards">
+    <rect class="hair" x="30" y="140" width="120" height="100"/><text class="dim" x="90" y="170" text-anchor="middle">MAY 18</text><text class="dim" x="90" y="218" text-anchor="middle">· · ·</text>
+    <rect class="hair" x="170" y="140" width="120" height="100"/><text class="dim" x="230" y="170" text-anchor="middle">MAY 19</text><text class="dim" x="230" y="218" text-anchor="middle">· · ·</text>
+    <rect class="hair solid" x="310" y="140" width="120" height="100"/><text class="dim" x="370" y="170" text-anchor="middle">MAY 20</text><text class="big" x="370" y="218" text-anchor="middle">DORIT</text>
+  </g>
+  <g id="bdFar" opacity=".3"><rect class="hair dash" x="450" y="140" width="120" height="100"/><text class="dim" x="510" y="170" text-anchor="middle">MAY 21</text><text class="big dimbig" x="510" y="218" text-anchor="middle">ERIKA</text></g>
+  <g id="bdWall"><line class="wall" x1="440" y1="110" x2="440" y2="256"/><text class="bright" x="452" y="282">≤ MAY 20</text></g>
+  <g id="bdPick"><line class="msg strong" x1="370" y1="74" x2="370" y2="132" marker-end="url(#tzArrW)"/><text class="bright" x="370" y="62" text-anchor="middle">LA · MAY 20</text><text class="bright tag" x="370" y="268" text-anchor="middle">SERVED</text></g>
+</svg></div></deck-scene>
+
+<deck-scene id="s9" title="DECIDE ONCE" layout="split"><div>
+<h2 class="rise">Decide once.<br><em class="serif">Reuse the answer.</em></h2>
+<p class="lede rise">Puzzle and attempt share one date.</p>
+<button class="replay rise" data-replay="resolver"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CHAIN</button></div>
+<div class="diagram rise"><div class="dlabel"><span>ONE RESOLVER</span><span>NO SECOND CLOCK</span></div>
+<deck-stack id="resolveStack">
+<deck-node label="Instant + zone" note="The request, as it arrived" tag="01"></deck-node>
+<deck-node label="Local date key" note="getDateKey(now, zone)" tag="02"></deck-node>
+<deck-node label="Exact puzzle, or bounded fallback" note="Never past the key" tag="03"></deck-node>
+<deck-node label="Served puzzle date" note="The identity downstream" tag="04"></deck-node>
+<deck-node label="Board + attempt" note="Both read from that date" tag="05"></deck-node>
+</deck-stack></div></deck-scene>
+
+<deck-scene id="s10" title="DAYS ARE NOT 24 HOURS" layout="split"><div>
+<h2 class="rise">A day is not<br><em class="serif">24 hours.</em></h2>
+<p class="lede rise">Zone for instants. Calendar for dates.</p>
+<button class="replay rise" data-replay="dst"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE DAYS</button></div>
+<div class="diagram rise"><div class="dlabel"><span>LOCAL DAYS</span><span>PLUS 24 HOURS</span></div>
+<svg class="tz" viewBox="0 0 600 290" role="img" aria-label="A normal day is 24 hours, spring forward is 23, fall back is 25, so adding 24 hours lands on the wrong date">
+  <text class="lane" x="60" y="52">NORMAL · 24H</text>
+  <rect class="bar" x="60" y="62" width="480" height="28"/>
+  <text class="lane" x="60" y="132">SPRING FORWARD · 23H</text>
+  <rect class="bar" x="60" y="142" width="460" height="28"/>
+  <text class="lane" x="60" y="212">FALL BACK · 25H</text>
+  <rect class="bar" x="60" y="222" width="500" height="28"/>
+  <g id="dstMark"><line class="wall" x1="540" y1="40" x2="540" y2="262"/><text class="bright" x="540" y="28" text-anchor="middle">+24H</text></g>
+</svg></div></deck-scene>
+
+<deck-scene id="s11" title="THE TEST" layout="split"><div>
+<h2 class="rise">Fix the instant.<br><em class="serif">Name the zone.</em></h2>
+<p class="lede rise">Data on both sides of the line.</p>
+<button class="replay rise" data-replay="test"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TEST</button></div>
+<deck-compare class="rise" id="testCols">
+<deck-col state="dim"><h3>THE BAD TEST</h3><p class="m">loadActivePublicPuzzle(new Date())</p><p>Passes or fails by where CI runs.</p></deck-col>
+<deck-col><h3>THE REGRESSION</h3><p class="m">2026-05-21T00:30Z</p><p class="m">America/Los_Angeles</p><p>Assert the bound, not just the answer.</p></deck-col>
+</deck-compare></deck-scene>
+
+<deck-scene id="s12" title="SIX RULES" layout="full">
+<h2 class="rise">Six rules, <em class="serif">one shape.</em></h2>
+<deck-grid class="rise" id="ruleGrid" style="margin-top:28px">
+<deck-cell><b>1 · Store a date key</b><span>Not a timestamp</span></deck-cell>
+<deck-cell><b>2 · The zone makes the date</b><span>IANA, from the browser</span></deck-cell>
+<deck-cell><b>3 · Cookie is input</b><span>Validate it</span></deck-cell>
+<deck-cell><b>4 · UTC on purpose</b><span>Generation and inventory</span></deck-cell>
+<deck-cell><b>5 · Bound the fallback</b><span>Never past the key</span></deck-cell>
+<deck-cell><b>6 · Resolve once</b><span>Attempt uses the served date</span></deck-cell>
+</deck-grid></deck-scene>
+
+<deck-scene id="s13" title="CLOSE" layout="full">
+<div class="finish rise">“Most recent.” “Today.”<br>Neither was enough.</div>
+<p class="finish rise" style="margin-top:22px"><em class="serif">Whose today is it?</em><deck-mark inline></deck-mark></p>
+</deck-scene>
+<!--
+  ACCENT AUDIT — Monotone Red (#E4181B) appears in exactly these components:
+  · #lkEarly — the leaked May 21 card outline, its answer, the arrow and the
+    "EARLY" tag on scene 7 (the one semantic state: a puzzle served early)
+  · the stage's own Monotone square (deck-mark / nav mark) on cover and close
+  No other component carries a hue.
+-->
+</Deck>
+
+<style is:inline slot="head">
+.m{font-family:var(--mono);font-size:.85em;color:#fff;letter-spacing:0}
+.lede.m{font-size:clamp(18px,1.7vw,26px)}
+.tz{display:block;width:100%;height:auto}
+.tz text{font-family:var(--mono);font-size:16px;fill:var(--g1);letter-spacing:.04em}
+.tz text.lane{font-size:15px;letter-spacing:.14em;fill:var(--g1)}
+.tz text.dim{fill:var(--g2)}
+.tz text.bright{fill:#fff}
+.tz text.big{font-family:var(--sans);font-size:26px;font-weight:800;letter-spacing:-.02em;fill:#fff}
+.tz text.big.dimbig{fill:var(--g2)}
+.tz text.tag{font-size:18px;font-weight:600;letter-spacing:.16em}
+.tz .axis line{stroke:#1e1e1e}
+.tz .axis text{font-size:14px}
+.tz .hair,.tz .bar{fill:none;stroke:#3a3a3a;stroke-width:1.5}
+.tz .bar{fill:#fff;stroke:#fff}
+.tz .hair.solid{stroke:#fff}
+.tz .hair.dash{stroke-dasharray:6 6}
+.tz .hit{fill:none;stroke:#fff;stroke-width:2}
+.tz .cursor{stroke:#fff;stroke-width:2}
+.tz .life{stroke:#3a3a3a;stroke-dasharray:5 6}
+.tz .msg{stroke:#666;stroke-width:2}
+.tz .msg.strong{stroke:#fff;stroke-width:2.5}
+.tz .msg.dash{stroke-dasharray:7 6}
+.tz .note-box{fill:#0a0a0a;stroke:#fff;stroke-width:1.5}
+.tz .wall{stroke:#fff;stroke-width:2.5;stroke-dasharray:7 6}
+/* the deck's one semantic accent — a puzzle served EARLY */
+.tz .early{stroke:var(--accent);stroke-width:2.5;fill:none}
+.tz .early.arc{stroke-width:2.5}
+.tz text.early{fill:var(--accent);stroke:none}
+.tz .earlyfill{fill:var(--accent)}
+#dayCols .col p.m,#testCols .col p.m{font-size:15px}
+</style>
+
+<script is:inline slot="script">
+/* Build functions, registered once. The stage resolves them by the scene's
+   [data-replay] name and fires on first view and on R. The markup is the
+   final state; each build hides its pieces and brings them back on the beat,
+   so reduced motion (which skips the build) renders the finished diagram. */
+const { seq, register, Motion, reduced } = window.deckBuild;
+const beat = () => (window.DECK_BEAT || 900) / 1000;
+const ease = [0.22, 1, 0.36, 1];
+const rise = 'translateY(12px)';
+
+/* bring SVG groups in, one per beat; each entry is [selector, from?, at?] */
+function reveal(steps) {
+  if (reduced || !Motion) return;
+  steps.forEach(([sel, from, at], i) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    el.style.opacity = 0;
+    const a = Motion.animate(el, { opacity: [0, 1], transform: [from || rise, 'translate(0px, 0px)'] },
+      { delay: (at ?? i) * beat(), duration: 0.6, ease });
+    (a.finished || a).then(() => { el.style.opacity = ''; el.style.transform = ''; });
+  });
+}
+
+register({
+  parts: () => seq('#partStack .node'),
+  instant: () => {
+    if (reduced || !Motion) return;
+    const hit = document.getElementById('tzHit');
+    hit.style.opacity = 0;
+    Motion.animate('#tzCursor', { transform: ['translateX(-125px)', 'translateX(0px)'] }, { duration: 2.2, ease: 'easeInOut' });
+    const a = Motion.animate(hit, { opacity: [0, 1] }, { delay: 2.2, duration: 0.6 });
+    (a.finished || a).then(() => { hit.style.opacity = ''; });
+  },
+  four: () => seq('#fourGrid .block'),
+  days: () => seq('#dayCols .col'),
+  handshake: () => reveal([['#hs1', 'translateX(-24px)'], ['#hs2', 'translateX(24px)'], ['#hs3', 'scale(.96)'], ['#hs4', 'translateX(-24px)'], ['#hs5', 'translateX(24px)']]),
+  cookie: () => seq('#cookieRows .mrow:not(.head)'),
+  leak: () => reveal([['#lkCards'], ['#lkMark', 'translateY(-14px)'], ['#lkEarly', 'translateY(-14px)']]),
+  bound: () => {
+    reveal([['#bdCards'], ['#bdWall', 'scaleY(.2)'], ['#bdPick', 'translateY(-14px)', 3]]);
+    if (reduced || !Motion) return;
+    const far = document.getElementById('bdFar');
+    far.setAttribute('opacity', 1);
+    Motion.animate(far, { opacity: [1, 0.3] }, { delay: 2 * beat(), duration: 0.8 }).then?.(() => far.setAttribute('opacity', 0.3));
+  },
+  resolver: () => seq('#resolveStack .node'),
+  dst: () => {
+    if (reduced || !Motion) return;
+    document.querySelectorAll('#s10 .bar').forEach((bar, i) => {
+      bar.style.transformBox = 'fill-box';
+      bar.style.transformOrigin = '0 50%';
+      Motion.animate(bar, { transform: ['scaleX(0)', 'scaleX(1)'] }, { delay: i * 0.5 * beat(), duration: 0.9, ease });
+    });
+    reveal([['#dstMark', rise, 3.2]]);
+  },
+  test: () => seq('#testCols .col')
+});
+</script>

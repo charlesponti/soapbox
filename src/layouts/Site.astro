@@ -7,7 +7,7 @@ const raw = import.meta.env.BASE_URL;
 const base = raw.endsWith('/') ? raw : raw + '/';
 const manifest = (await import('../../decks.json')).default;
 const decks = manifest.decks;
-const views = [['cover', 'COVER', ''], ['wall', 'WALL', 'wall/'], ['ledger', 'LEDGER', 'ledger/']];
+const views = [['cover', 'COVER', 'decks/'], ['wall', 'WALL', 'decks/wall/'], ['ledger', 'LEDGER', 'decks/ledger/']];
 ---
 <!doctype html>
 <html lang="en"><head>
@@ -87,12 +87,13 @@ h1.site-title em{font-family:var(--serif);font-style:italic;font-weight:500}
 </head>
 <body class="site">
 <header class="site-bar">
-  <a class="site-brand" href={base}><span class="mark"></span>SOAPBOX</a>
+  <a class="site-brand" href={`${base}decks/`}><span class="mark"></span>SOAPBOX</a>
   <div role="navigation" aria-label="home page view" class="site-switch">
     {views.map(([key, label, href]) => (
       <a href={`${base}${href}`} class={view === key ? 'on' : ''} aria-current={view === key ? 'page' : undefined}>{label}</a>
     ))}
   </div>
+  <a class="site-brand" href={`${base}essays/`}>ESSAYS</a>
   <span class="site-count">{String(decks.length).padStart(2, '0')} DECKS</span>
 </header>
 <main class="site-main"><slot /></main>

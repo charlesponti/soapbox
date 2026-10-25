@@ -1,0 +1,8 @@
+#!/bin/sh
+# Pre-commit gate for soapbox. Runs the fast, non-runtime checks so the
+# suite can't drift: astro check (types + diagnostics) and tsc --noEmit.
+# The heavy integration gate (build + pagefind + search-check) needs a
+# preview server, so it stays manual — see AGENTS.md.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+npm run gates

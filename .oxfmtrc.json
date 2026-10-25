@@ -1,0 +1,25 @@
+{
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/staged/**",
+    "./playwright-mcp/**",
+    "components/**",
+    "poc/**",
+    "essays/**",
+    "public/**",
+    "*.html",
+    "SYSTEM.md",
+    "SCRATCHPAD.md",
+    "decks.json",
+    "playwright.config.js",
+    "tests/decks.spec.js",
+    "tests/fit.spec.js",
+    "tests/visual.spec.js",
+    "scripts/check-decks.mjs",
+    "scripts/og.mjs",
+    "src/pages/decks/**",
+    "src/layouts/Deck.astro",
+    "src/layouts/Site.astro"
+  ]
+}

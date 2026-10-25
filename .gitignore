@@ -20,3 +20,11 @@ public/components/
 # Playwright
 playwright-report/
 test-results/
+
+# Essays (lexicon) — vault content is local-only and must never be committed
+staged/
+site/
+src/content/essays/
+src/lib/slug-map.json
+public/pagefind/
+.playwright-mcp

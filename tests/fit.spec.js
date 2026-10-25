@@ -11,7 +11,7 @@ const { decks } = JSON.parse(readFileSync(new URL('../decks.json', import.meta.u
 const FIT_DEBT = new Set([
   // cleared 17 Oct 2026 — every deck now fits. Add nothing here; fix the scene.
 ]);
-const route = (d) => (d.migrated ? `/soapbox/${d.slug}/` : `/soapbox/${d.slug}.html`);
+const route = (d) => (d.migrated ? `/decks/${d.slug}/` : `/${d.slug}.html`);
 const PAD = 190; // .scene top+bottom padding at 1600×900
 
 for (const deck of decks) {

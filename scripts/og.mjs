@@ -23,7 +23,7 @@ const page = await browser.newPage({
 });
 
 for (const d of decks) {
-  const url = `${base}/soapbox/${d.slug}/`;
+  const url = `${base}/decks/${d.slug}/`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForTimeout(350);
   // cover only: no presenter chrome, no scroll cue

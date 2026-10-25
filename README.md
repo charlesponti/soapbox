@@ -10,13 +10,17 @@ HTML scenes the presenter talks over. Black & white, Geist, Motion, Lucide.
 
 ## The site
 
+One Astro site: **essays** (from the local vault, built with `npm run build`,
+see `docs/` and `AGENTS.md`) at `/`, and **decks** under `/decks/`.
+Deploy with `npm run deploy` (local build, pushed to Railway).
+
 Each presentation is its own page, built with Astro. A deck is a `<deck-page>`
 that supplies only its cues and scenes; the shared shell lives in
 `src/layouts/Deck.astro`.
 
 ```
 npm install
-npm run dev        # local dev server (http://localhost:4321/soapbox/)
+npm run dev        # local dev server (http://localhost:4321/decks/)
 npm run build      # static build → dist/
 npm run preview    # serve dist/ at the configured base
 ```
@@ -38,7 +42,7 @@ npm run preview    # serve dist/ at the configured base
   `streamchat-offline.html`) predate the Astro layer and are copied into the
   build output, so the published site is a superset while decks migrate.
 
-Published site: https://charlesponti.github.io/soapbox/
-The flagship deck: https://charlesponti.github.io/soapbox/next-token/
+Published site (Railway): https://web-production-02a47.up.railway.app/
+The flagship deck: https://web-production-02a47.up.railway.app/decks/next-token/
 Scroll it; `C` toggles speaker cues, `R` replays the active scene, and every
 scene is a shareable `#hash` link.

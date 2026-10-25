@@ -23,7 +23,7 @@ export default defineConfig({
   use: { baseURL: 'http://localhost:4321' },
   webServer: {
     command: 'npm run preview -- --port 4321',
-    url: 'http://localhost:4321/soapbox/',
+    url: 'http://localhost:4321/decks/',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000
   },

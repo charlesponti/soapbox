@@ -92,6 +92,19 @@
       "accent": "NONE",
       "migrated": true,
       "article": "essays/06-train-your-own-study-notes.md"
+    },
+    {
+      "slug": "the-calendar-is-part-of-the-product",
+      "show": "Field Notes",
+      "title": "The Calendar Is Part of the Product",
+      "brand": "THE CALENDAR",
+      "series": "FIELD NOTE 01 — THE BOUNDARY",
+      "episode": 8,
+      "scenes": 14,
+      "summary": "A player in Los Angeles got London's tomorrow. Today and most recent both needed a boundary.",
+      "accent": "EARLY",
+      "migrated": true,
+      "article": "essays/07-the-calendar-is-part-of-the-product.md"
     }
   ]
 }

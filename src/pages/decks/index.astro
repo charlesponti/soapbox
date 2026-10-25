@@ -1,0 +1,70 @@
+---
+/* THE COVER — an editorial index with a live preview (concept 1 of 3). */
+import Site from '../../layouts/Site.astro';
+const raw = import.meta.env.BASE_URL;
+const base = raw.endsWith('/') ? raw : raw + '/';
+const decks = (await import('../../../decks.json')).default.decks;
+const shows = [...new Set(decks.map((d) => d.show))].map((show) => ({ show, decks: decks.filter((d) => d.show === show) }));
+const first = decks[0]!;
+---
+<Site title="Soapbox — Decks" description={first.summary} view="cover">
+<div class="wrap cover">
+  <div>
+    <div class="eyebrow">SOAPBOX — FULL-SCREEN DECKS</div>
+    <h1 class="site-title">Eight decks. <em>One idea at a time.</em></h1>
+    <p class="site-lede">Black and white, self-hosted Geist, and one rule the whole system is built on: every scene fits the frame. Pick an episode.</p>
+    {shows.map(({ show, decks }) => (
+      <section>
+        <div class="show-head">{show.toUpperCase()}</div>
+        <div class="idx">
+          {decks.map((d) => (
+            <a class="idxrow" href={`${base}decks/${d.slug}/`} data-slug={d.slug} data-ep={String(d.episode).padStart(2, '0')} data-show={d.show} data-sum={d.summary} data-og={`${base}og/${d.slug}.png`}>
+              <span class="n">{String(d.episode).padStart(2, '0')}</span>
+              <span class="t">{d.title}</span>
+              <span class="s">{d.series} <span class="arrow">→</span></span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+  </div>
+  <aside class="preview">
+    <img id="pvImg" src={`${base}og/${first.slug}.png`} alt="" />
+    <div class="pv-body">
+      <div class="pv-meta"><span id="pvEp">EP {String(first.episode).padStart(2, '0')}</span><span id="pvShow">{first.show.toUpperCase()}</span></div>
+      <p class="pv-note" id="pvNote">{first.summary}</p>
+    </div>
+  </aside>
+</div>
+</Site>
+<script is:inline slot="script">
+(() => {
+  const rows = [...document.querySelectorAll('.idxrow')];
+  const img = document.getElementById('pvImg');
+  const ep = document.getElementById('pvEp');
+  const show = document.getElementById('pvShow');
+  const note = document.getElementById('pvNote');
+  const M = window.Motion, reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const seen = new Set();
+  const select = (row) => {
+    rows.forEach((r) => r.classList.toggle('on', r === row));
+    if (!seen.has(row.dataset.slug)) { seen.add(row.dataset.slug); const i = new Image(); i.src = row.dataset.og; }
+    img.src = row.dataset.og;
+    ep.textContent = 'EP ' + row.dataset.ep;
+    show.textContent = row.dataset.show.toUpperCase();
+    note.textContent = row.dataset.sum;
+    if (M && !reduced) M.animate(img, { opacity: [0.15, 1] }, { duration: 0.3, ease: 'easeOut' });
+  };
+  rows.forEach((row) => {
+    row.addEventListener('mouseenter', () => select(row));
+    row.addEventListener('focus', () => select(row));
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const i = rows.indexOf(document.activeElement);
+    const next = Math.max(0, Math.min(rows.length - 1, (i < 0 ? (e.key === 'ArrowDown' ? -1 : rows.length) : i) + (e.key === 'ArrowDown' ? 1 : -1)));
+    rows[next].focus();
+  });
+})();
+</script>

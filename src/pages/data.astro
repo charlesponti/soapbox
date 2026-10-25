@@ -1,0 +1,176 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const essays = await getCollection("essays");
+
+/* ---------- 1. essays per category ---------- */
+const byCategory = new Map<string, number>();
+for (const e of essays) byCategory.set(e.data.category, (byCategory.get(e.data.category) ?? 0) + 1);
+const categories = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
+
+/* ---------- 2. essay length histogram (words) ---------- */
+const BINS = [0, 1000, 2000, 3000, 5000, 8000, Infinity];
+const LABELS = ["<1k", "1–2k", "2–3k", "3–5k", "5–8k", "8k+"];
+const hist = BINS.map(() => 0);
+for (const e of essays) {
+  const w = e.data.words;
+  let bin = BINS.findIndex((b, j) => w < b && (j === 0 || w >= BINS[j - 1]!));
+  if (bin < 0) bin = BINS.length - 1;
+  hist[bin]!++;
+}
+
+/* ---------- 3. top repeated phrases (bigrams, stopword-filtered) ---------- */
+const STOP = new Set(
+  "the a an and or but if then else for of in on at by to from with without as is are was were be been being it its this that these those i you we they he she them their our your not no so very more most also just like about into over under between through during after before while because when where how what who which".split(" "),
+);
+const bigrams = new Map<string, number>();
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s'-]/g, " ");
+for (const e of essays) {
+  const words = norm(e.body).split(/\s+/).filter((w) => w && !STOP.has(w));
+  for (let i = 0; i < words.length - 1; i++) {
+    const phrase = `${words[i]} ${words[i + 1]}`;
+    if (words[i]!.length > 2 && words[i + 1]!.length > 2) {
+      bigrams.set(phrase, (bigrams.get(phrase) ?? 0) + 1);
+    }
+  }
+}
+const phrases = [...bigrams.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+
+/* ---------- 4. tag frequency ---------- */
+const byTag = new Map<string, number>();
+for (const e of essays) for (const t of e.data.tags) byTag.set(t, (byTag.get(t) ?? 0) + 1);
+const tags = [...byTag.entries()].sort((a, b) => b[1] - a[1]).slice(0, 14);
+
+const total = essays.length;
+const totalWords = essays.reduce((s: number, e: (typeof essays)[number]) => s + e.data.words, 0);
+const maxCat = categories[0]?.[1] ?? 1;
+const maxHist = Math.max(...hist, 1);
+const maxPhrase = phrases[0]?.[1] ?? 1;
+const maxTag = tags[0]?.[1] ?? 1;
+
+const barW = 16;
+const gap = 10;
+
+/* Chart geometry */
+const chartH = 220;
+const barMaxH = 180;
+const padBottom = 34;
+
+const labelMax = 140;
+const chartW = (n: number) => labelMax + Math.max(n, 2) * (barW + gap) + 12;
+
+/* B/W chart palette — bars alternate foreground / border grey. */
+const swatches = (n: number) =>
+  Array.from({ length: n }, (_, i) => (i % 2 === 0 ? "#fafafa" : "#a3a3a3"));
+---
+
+<BaseLayout title="Data — Essays" description="Corpus statistics for the essays.">
+  <main class="mx-auto max-w-3xl px-6 pb-28 pt-20" data-pagefind-ignore>
+    <a
+      href="/"
+      class="press fixed left-5 top-5 z-30 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground"
+    >
+      ← Back
+    </a>
+
+    <header class="mb-14">
+      <h1 class="header-reveal text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]" style="--reveal-delay: 0ms">Data</h1>
+      <p class="header-reveal mt-4 text-lg leading-relaxed text-muted-foreground" style="--reveal-delay: 60ms">
+        {total} essays · {totalWords.toLocaleString()} words, generated at build time from the
+        published corpus.
+      </p>
+    </header>
+
+    <section class="mb-14" aria-label="Essays by category">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Essays by category
+      </h2>
+      <svg viewBox={`0 0 ${chartW(categories.length)} ${chartH}`} role="img" aria-label="Bar chart of essays per category" class="mt-6 w-full">
+        {categories.map(([cat, n], i) => {
+          const h = Math.max(2, (n / maxCat) * barMaxH);
+          const x = labelMax + i * (barW + gap);
+          const y = chartH - padBottom - h;
+          const sw = swatches(categories.length)[i];
+          return (
+            <>
+              <text x={labelMax - 8} y={chartH - padBottom + 16} text-anchor="end" font-size="12" fill="#a3a3a3">{cat}</text>
+              <rect x={x} y={y} width={barW} height={h} fill={sw} rx="2">
+                <title>{cat}: {n}</title>
+              </rect>
+              <text x={x + barW / 2} y={y - 6} text-anchor="middle" font-size="12" fill="#fafafa">{n}</text>
+            </>
+          );
+        })}
+      </svg>
+    </section>
+
+    <section class="mb-14" aria-label="Essay length distribution">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Length distribution (words)
+      </h2>
+      <svg viewBox={`0 0 ${chartW(LABELS.length)} ${chartH}`} role="img" aria-label="Histogram of essay word counts" class="mt-6 w-full">
+        {hist.map((n, i) => {
+          const h = Math.max(2, (n / maxHist) * barMaxH);
+          const x = labelMax + i * (barW + gap);
+          const y = chartH - padBottom - h;
+          const sw = swatches(LABELS.length)[i];
+          return (
+            <>
+              <text x={x + barW / 2} y={chartH - padBottom + 16} text-anchor="middle" font-size="11" fill="#a3a3a3">{LABELS[i]}</text>
+              <rect x={x} y={y} width={barW} height={h} fill={sw} rx="2">
+                <title>{LABELS[i]} words: {n} essays</title>
+              </rect>
+              <text x={x + barW / 2} y={y - 6} text-anchor="middle" font-size="12" fill="#fafafa">{n}</text>
+            </>
+          );
+        })}
+      </svg>
+    </section>
+
+    <section class="mb-14" aria-label="Most repeated phrases">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Most repeated phrases
+      </h2>
+      <ol class="mt-6 space-y-2.5">
+        {phrases.map(([phrase, n], i) => {
+          const pct = (n / maxPhrase) * 100;
+          return (
+            <li class="flex items-baseline justify-between gap-6">
+              <span class="relative min-w-0 flex-1">
+                <span
+                  class="absolute inset-y-0 left-0 rounded-sm bg-border/70"
+                  style={`width:${pct}%`}
+                ></span>
+                <span class="relative z-10 block truncate pl-2 text-sm text-foreground">
+                  {i + 1}. {phrase}
+                </span>
+              </span>
+              <span class="shrink-0 text-[13px] tabular-nums text-muted-foreground">{n}×</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+
+    <section aria-label="Tag frequency">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Most used tags
+      </h2>
+      <div class="mt-6 flex flex-wrap gap-2">
+        {tags.map(([tag, n], i) => {
+          const size = 0.78 + (n / maxTag) * 0.55;
+          return (
+            <span
+              class="tag-pill inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-0.5 text-sm text-muted-foreground"
+              style={`--reveal-delay: ${i * 30}ms; transform:scale(${size.toFixed(2)}); transform-origin:center`}
+            >
+              {tag}
+              <span class="text-xs tabular-nums text-muted-foreground/70">{n}</span>
+            </span>
+          );
+        })}
+      </div>
+    </section>
+  </main>
+</BaseLayout>

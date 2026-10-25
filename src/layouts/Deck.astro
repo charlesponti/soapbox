@@ -6,9 +6,9 @@
    functions (<script slot="script">). */
 import manifest from '../../decks.json';
 const { title, brand, series, chat = false } = Astro.props;
-const raw = import.meta.env.BASE_URL;            // '/soapbox' in the build, '/' in dev
+const raw = import.meta.env.BASE_URL;            // '/' (decks live under /decks/)
 const base = raw.endsWith('/') ? raw : raw + '/';
-const slug = Astro.url.pathname.replace(base, '').replace(/\/+$/, '') || 'index';
+const slug = Astro.url.pathname.replace(`${base}decks/`, '').replace(/\/+$/, '') || 'index';
 const entry = manifest.decks.find((d) => d.slug === slug);
 const description = (entry && entry.summary) || series;
 const ogImage = new URL(`${base}og/${slug}.png`, Astro.site).href;
