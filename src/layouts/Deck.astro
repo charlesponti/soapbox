@@ -5,7 +5,7 @@
    (default slot), any scene-primitive <style slot="head">, and its build
    functions (<script slot="script">). */
 import manifest from '../../decks.json';
-const { title, brand, series, chat = false } = Astro.props;
+const { title, brand, series, chat = false, replayHint = false } = Astro.props;
 const raw = import.meta.env.BASE_URL;            // '/' (decks live under /decks/)
 const base = raw.endsWith('/') ? raw : raw + '/';
 const slug = Astro.url.pathname.replace(`${base}decks/`, '').replace(/\/+$/, '') || 'index';
@@ -37,7 +37,7 @@ const ogImage = new URL(`${base}og/${slug}.png`, Astro.site).href;
 <slot name="head" />
 </head>
 <body>
-<deck-stage brand={brand} series={series}>
+<deck-stage brand={brand} series={series} replay-hint={replayHint ? '' : undefined}>
 <slot />
 </deck-stage>
 <script is:inline src={`${base}components/deck-scene.js`}></script>

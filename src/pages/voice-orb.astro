@@ -1,0 +1,17 @@
+---
+import Site from "../layouts/Site.astro";
+
+const title = "The Voice Orb — Soapbox";
+const description = "An interactive explainer of a voice-reactive orb of dots, with a reusable voice-orb web component.";
+---
+
+<Site title={title} description={description} view="orb">
+  <link
+    slot="head"
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap"
+  />
+  <link slot="head" rel="stylesheet" href="/voice-orb/assets/index-DS3surRi.css" />
+  <script slot="head" type="module" src="/voice-orb/assets/index-CIk3Q4rE.js"></script>
+  <div id="root"></div>
+</Site>

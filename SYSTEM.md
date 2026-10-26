@@ -74,7 +74,8 @@ Sanctioned motion patterns — these four, nothing decorative:
    enters; tabular mono so nothing jitters.
 4. **Replayable simulations** — a scene whose point is a process (the loop
    cycling, a message lifecycle) gets a Replay control; `R` replays the
-   active scene. Simulations loop their highlight, never their layout.
+   active scene. A deck may use a visible `R` hint and `data-build` instead of
+   per-scene buttons. Simulations loop their highlight, never their layout.
 
 Rules: nothing moves while Chase is mid-sentence unless he triggered it;
 `prefers-reduced-motion` disables all of it (entrances render final-state);
@@ -306,13 +307,16 @@ headline is over-abstraction; a component per diagram that recurs is not.
 
 1. Light DOM; inherit tokens and Geist stacks (§9) — a component cannot drift.
 2. One `BEAT`, owned by the stage, read everywhere (§4).
-3. Every animated piece exposes a `[data-replay]` button; the stage wires `R`.
+3. Every animated piece exposes a replay action. By default this is a
+   `[data-replay]` button; a keyboard-only deck uses `data-build` and displays
+   an `R` hint. The stage wires `R` for both.
 4. Reduced motion renders every scene's final state, from one place.
 5. Colour lives only in accent-sanctioned components (§2) and the stage's mark —
    enforced by the component boundary, not by the audit comment alone.
-6. A scene's **replay control lives with its visual** — inside its `.diagram`
+6. A scene's **replay button lives with its visual** — inside its `.diagram`
    card, or stacked directly under the visual. Never in the text column
-   (`deck-stage` places it there; `tests/decks.spec.js` asserts it).
+   (`deck-stage` places it there; `tests/decks.spec.js` asserts it). Keyboard-
+   only decks show their `R` hint in the stage navigation.
 
 ## 11. Repo layout and build (added 17 Oct 2026)
 

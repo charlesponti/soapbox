@@ -24,6 +24,8 @@
       section.className = 'scene';
       const id = this.getAttribute('id');
       if (id) section.id = id;
+      const build = this.getAttribute('data-build');
+      if (build) section.dataset.build = build;
 
       const inner = document.createElement('div');
       inner.className = 'scene-inner' + (layout === 'full' ? '' : ' layout');

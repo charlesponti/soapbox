@@ -112,6 +112,34 @@ test('a scene\'s replay control lives with its visual', async ({ page }) => {
   expect(bad, `replay control not with its visual: ${bad.join(', ')}`).toEqual([]);
 });
 
+test('a replay button invokes its registered scene build', async ({ page }) => {
+  await page.goto('/decks/next-token/#s1', { waitUntil: 'load' });
+  await page.waitForFunction(() => typeof window.deckBuilds?.chat === 'function');
+  await page.evaluate(() => {
+    window.__chatReplayCalls = 0;
+    window.deckBuilds.chat = () => { window.__chatReplayCalls += 1; };
+  });
+  await page.locator('#s1 [data-replay="chat"]').click();
+  await expect.poll(() => page.evaluate(() => window.__chatReplayCalls)).toBe(1);
+});
+
+test('Train Your Own uses R to replay its scene builds without replay buttons', async ({ page }) => {
+  await page.goto('/decks/train-your-own/#s3', { waitUntil: 'load' });
+  await page.waitForFunction(() => typeof window.deckBuilds?.vectors === 'function');
+  await expect(page.locator('[data-replay]')).toHaveCount(0);
+  await expect(page.locator('.deck-replay-key')).toHaveText('R REPLAY');
+  const missingBuilds = await page.locator('.scene[data-build]').evaluateAll((scenes) =>
+    scenes.filter((scene) => typeof window.deckBuilds?.[scene.dataset.build] !== 'function')
+      .map((scene) => `${scene.id}:${scene.dataset.build}`));
+  expect(missingBuilds).toEqual([]);
+  await page.evaluate(() => {
+    window.__vectorReplayCalls = 0;
+    window.deckBuilds.vectors = () => { window.__vectorReplayCalls += 1; };
+  });
+  await page.keyboard.press('r');
+  await expect.poll(() => page.evaluate(() => window.__vectorReplayCalls)).toBe(1);
+});
+
 test('the Next button morphs into Restart on the last scene', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });   // instant jumps, no scroll race
   await page.goto('/decks/next-token/', { waitUntil: 'load' });
