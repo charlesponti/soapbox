@@ -9,9 +9,9 @@
      </deck-stage>
 
    Scenes are any `.scene` (a <deck-scene> renders one). Their build animation
-   is declared by the scene's own [data-replay] button and/or a `data-build`
-   name resolved against window.deckBuilds — the stage fires it on first view
-   and on R.
+   is declared by the scene's own [data-replay] button or a `data-build` name
+   resolved against window.deckBuilds — the stage fires it on first view and
+   on R. A deck may use a visible R hint without replay buttons.
 
    Modes / keys: ↑↓ ←→ or Space advance · C cues · R replay · O overview ·
    B blackout · P presenter window. ?play auto-advances · ?present is the
@@ -78,6 +78,7 @@
         '<div class="deck-dots" data-dots></div>' +
         '<div class="navright">' +
           '<span class="count" data-counter></span>' +
+          (this.hasAttribute('replay-hint') ? '<span class="deck-replay-key"><kbd>R</kbd> REPLAY</span>' : '') +
           '<button data-cues>SPEAKER CUES</button>' +
           '<button data-prev aria-label="Previous slide"><deck-icon name="arrow-up">↑</deck-icon></button>' +
           '<button data-next class="deck-next" aria-label="Next slide">' +
@@ -143,6 +144,16 @@
     /* ---------- behaviour ---------- */
     _wire() {
       this._placeReplays();
+      /* Replay buttons are moved into their visual cards above. Keep their
+         action declarative in data-replay and resolve it through the same
+         registry used for scene entry and the R key. */
+      this.addEventListener('click', (event) => {
+        const button = event.composedPath().find((node) => node instanceof Element && node.matches('[data-replay]'));
+        if (!button || !this.contains(button)) return;
+        const name = button.dataset.replay;
+        const build = (window.deckBuilds || {})[name];
+        if (typeof build === 'function') build();
+      });
       const io = new IntersectionObserver((es) => {
         const best = es.filter((e) => e.isIntersecting).sort((a, c) => c.intersectionRatio - a.intersectionRatio)[0];
         if (best) this.update(this.scenes.indexOf(best.target));

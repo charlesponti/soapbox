@@ -9,8 +9,8 @@
      document.querySelectorAll('[data-replay]').forEach(b =>
        b.onclick = () => builders[b.dataset.replay]?.());
 
-   The stage clicks each scene's [data-replay] button on first view and on R, so
-   nothing else is needed to wire up navigation, replay or the beat. */
+   The stage invokes each scene's `data-build` / `[data-replay]` builder on
+   entry and on R, so nothing else is needed to wire up navigation or replay. */
 (function () {
   const reduced = !!window.DECK_REDUCED;
   const beat = () => window.DECK_BEAT || 900;

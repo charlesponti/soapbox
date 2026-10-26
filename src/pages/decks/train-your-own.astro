@@ -9,7 +9,7 @@ const engineCode = `<span class="kw">class</span> Value:
   <span class="cm"># reverse topo order, chain rule,</span>
   <span class="cm"># += wherever parents are shared</span>`;
 ---
-<Deck title="Train Your Own" brand="TINYEINSTEIN" series="STUDY 01 — FROM ZERO">
+<Deck title="Train Your Own" brand="TINYEINSTEIN" series="STUDY 01 — FROM ZERO" replayHint={true}>
 <deck-cue time="COVER" title="The title">Open on the thesis: five small machines, built from zero on a laptop — and one idea underneath them all.</deck-cue>
 <deck-cue time="STEP 1 · THE ENGINE" title="Differentiation is a data structure">Values remember how they were made. Backward walks the graph in reverse, applying the chain rule. Same algorithm PyTorch runs — no new math, just kernels.</deck-cue>
 <deck-cue time="STEP 2 · FIRST WIN" title="Four points learned">A 2-4-1 MLP learns four labelled points: loss 6.37 down to 0.02 in 400 steps. Predictions land within a tenth of target. Backprop works — replay the before and after.</deck-cue>
@@ -26,44 +26,40 @@ const engineCode = `<span class="kw">class</span> Value:
 <p class="lede rise">Five small machines, built from zero — and one idea underneath them all.</p>
 </deck-scene>
 
-<deck-scene id="s1" title="THE ENGINE" layout="split"><div>
+<deck-scene id="s1" title="THE ENGINE" layout="split" data-build="engine"><div>
 <h2 class="rise">Differentiation is<br><em class="serif">a data structure.</em></h2>
 <p class="lede rise">Each value remembers how it was made. Backward walks the graph in reverse.</p>
-<button class="replay rise" data-replay="engine"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE ENGINE</button></div>
+</div>
 <div class="diagram rise"><div class="dlabel"><span>AUTOGRAD</span><span>~100 LINES</span></div>
 <deck-code id="engineCode" set:html={engineCode}></deck-code>
 <p class="note">PyTorch runs this same algorithm. Frameworks add kernels, not new math.</p></div></deck-scene>
 
-<deck-scene id="s2" title="FIRST WIN" layout="split"><div>
+<deck-scene id="s2" title="FIRST WIN" layout="split" data-build="learned"><div>
 <h2 class="rise">Four points.<br><em class="serif">Learned.</em></h2>
-<p class="lede rise">Loss 6.37 to 0.02 in 400 steps. Backprop works.</p>
-<button class="replay rise" data-replay="learned"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PROOF</button></div>
+<p class="lede rise">Loss 6.37 to 0.02 in 400 steps. Backprop works.</p></div>
 <deck-compare class="rise" id="learnCols">
 <deck-col state="dim"><h3>BEFORE</h3><p>Random weights.</p><p>Every guess wrong.</p></deck-col>
 <deck-col><h3>AFTER</h3><p>Outputs within a tenth.</p><p>All four points correct.</p></deck-col>
 </deck-compare></deck-scene>
 
-<deck-scene id="s3" title="VECTORS" layout="split"><div>
+<deck-scene id="s3" title="VECTORS" layout="split" data-build="vectors"><div>
 <h2 class="rise">One op per number<br><em class="serif">is too slow.</em></h2>
-<p class="lede rise">Same math, batched. The scalar engine cannot do MNIST.</p>
-<button class="replay rise" data-replay="vectors"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TRADE</button></div>
+<p class="lede rise">Same math, batched. The scalar engine cannot do MNIST.</p></div>
 <deck-compare class="rise" id="vecCols">
 <deck-col state="dim"><h3>SCALAR</h3><p>100k Python ops per image.</p><p>Correct and hopeless.</p></deck-col>
 <deck-col><h3>VECTOR</h3><p>One matmul per layer.</p><p>Same gradients, far less overhead.</p></deck-col>
 </deck-compare></deck-scene>
 
-<deck-scene id="s4" title="DIGITS" layout="split"><div>
+<deck-scene id="s4" title="DIGITS" layout="split" data-build="digits"><div>
 <h2 class="rise">Digits prove<br><em class="serif">the vectors.</em></h2>
-<p class="lede rise">2,000 training digits. Held-out score:</p>
-<button class="replay rise" data-replay="digits"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SCORE</button></div>
+<p class="lede rise">2,000 training digits. Held-out score:</p></div>
 <div class="diagram rise"><div class="dlabel"><span>MNIST TEST ACCURACY</span><span>SUBSET 2000</span></div>
 <deck-counter num-id="accNum" value="0.0" suffix="%"></deck-counter>
 <p class="note">Full run passes 95. This step also caught a real bug: an in-place alias that zeroed every accuracy readout.</p></div></deck-scene>
 
-<deck-scene id="s5" title="THE TRANSFORMER" layout="split"><div>
+<deck-scene id="s5" title="THE TRANSFORMER" layout="split" data-build="stack"><div>
 <h2 class="rise">Attention,<br><em class="serif">from scratch.</em></h2>
-<p class="lede rise">Four stages, repeated. The mask blocks peeking; skips carry gradients.</p>
-<button class="replay rise" data-replay="stack"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE STACK</button></div>
+<p class="lede rise">Four stages, repeated. The mask blocks peeking; skips carry gradients.</p></div>
 <div class="diagram rise"><div class="dlabel"><span>TINY GPT</span><span>NUMPY ONLY</span></div>
 <deck-stack id="gptStack">
 <deck-node label="Embed" note="Tokens plus positions" tag="01"></deck-node>
@@ -77,19 +73,17 @@ const engineCode = `<span class="kw">class</span> Value:
 <p class="lede rise">Adam, 800 steps, CPU. Sampling gives readable-ish text — small, slow, real, with nowhere to hide.</p>
 <p class="note rise">Every parameter receives a gradient — the test asserts exactly that. Sampling past the trained positions was a real bug, caught and fixed.</p></deck-scene>
 
-<deck-scene id="s7" title="THE HONEST FAILURE" layout="split"><div>
+<deck-scene id="s7" title="THE HONEST FAILURE" layout="split" data-build="transfer"><div>
 <h2 class="rise">New cities break<br><em class="serif">the writer.</em></h2>
-<p class="lede rise">Trained cities: rank climbs in 80 steps. Unseen cities: coin flip.</p>
-<button class="replay rise" data-replay="transfer"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE GAP</button></div>
+<p class="lede rise">Trained cities: rank climbs in 80 steps. Unseen cities: coin flip.</p></div>
 <deck-compare class="rise" id="cityCols">
 <deck-col><h3>TRAINED</h3><p>Paris, Rome, Madrid.</p><p>Preference learned fast.</p></deck-col>
 <deck-col state="dim"><h3>UNSEEN</h3><p>London, Lima.</p><p>Noise. Generation gibberish.</p></deck-col>
 </deck-compare></deck-scene>
 
-<deck-scene id="s8" title="THE JUDGE" layout="split"><div>
+<deck-scene id="s8" title="THE JUDGE" layout="split" data-build="judge"><div>
 <h2 class="rise">Score answers.<br><em class="serif">Ship the winner.</em></h2>
-<p class="lede rise">A linear judge on comparisons. Unseen London, four candidates:</p>
-<button class="replay rise" data-replay="judge"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE RANKING</button></div>
+<p class="lede rise">A linear judge on comparisons. Unseen London, four candidates:</p></div>
 <div class="diagram rise"><div class="dlabel"><span>BEST OF FOUR</span><span>HELD OUT</span></div>
 <deck-metrics id="judgeRows">
 <deck-row head><span>CANDIDATE</span><span class="num">SCORE</span></deck-row>
@@ -107,8 +101,8 @@ const engineCode = `<span class="kw">class</span> Value:
 </Deck>
 
 <script is:inline slot="script">
-/* Build functions, registered once. The stage resolves them by the scene's
-   [data-replay] name and fires on first view and on R. */
+/* Build functions, registered once. The stage resolves each scene's
+   data-build name and fires it on first view and on R. */
 const { seq, pulse, count, register } = window.deckBuild;
 register({
   engine: () => pulse('engineCode'),
