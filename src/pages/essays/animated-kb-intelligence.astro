@@ -1,0 +1,202 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const htmlContent = `
+  <div class="anim-container">
+    <a href="/essays/" class="back-link">← Back</a>
+    <h1>Animated: KB Intelligence</h1>
+    <p class="subtitle">Contradictions get caught, resolved, and patterns surface across many memories.</p>
+
+    <div class="controls">
+      <button onclick="reset()">Reset</button>
+      <button onclick="run()">Run analysis</button>
+    </div>
+
+    <div class="step-info" id="step-info">Press "Run analysis".</div>
+
+    <h3 class="stage-h">Claims</h3>
+    <div id="claims"></div>
+
+    <h3 class="stage-h">Emergent pattern</h3>
+    <div class="pattern" id="pattern">
+      <h4>Pattern surfaced</h4>
+      <div>Across 4 separate memories, retrieval quality is the recurring concern.
+      Bridging entity: <strong>hybrid search</strong> — mentioned in three unrelated topics.</div>
+    </div>
+
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>Claim verification</strong> compares new statements against existing ones that share a slot. Same slot + different value + both user-stated means a genuine conflict rather than an addition.</li>
+      <li><strong>Contradiction detection</strong> does not silently overwrite. The newer claim supersedes the older, and the old row is kept with <code>valid_to</code> set — so the history of belief is auditable.</li>
+      <li><strong>Pattern surfacing</strong> counts co-occurrence across unrelated memories and entities. When a bridge entity appears in several otherwise unconnected topics, it is promoted as a pattern.</li>
+      <li><strong>Linting</strong> runs five passive checks — low confidence, missing slots, duplicates, orphaned entities, deprecated pages — and reports a health score. It never mutates; it tells you where to look.</li>
+    </ol>
+    <p>The distinction that matters: linting observes, resolution acts, and both keep the supersession trail intact.</p>
+  </div>
+
+  <script>
+    const CLAIMS = [
+      { text: 'The API rate limit is 1000 requests/min', src: 'user · 3 weeks ago' },
+      { text: 'The API rate limit is now 5000 requests/min', src: 'user · today' },
+      { text: 'The Q2 launch is April 15', src: 'meeting notes · March' },
+      { text: 'The Q2 launch slipped to May 8 after legal review', src: 'email · today' }
+    ];
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const info = document.getElementById('step-info');
+
+    function reset() {
+      document.getElementById('claims').innerHTML = '';
+      document.getElementById('pattern').classList.remove('on');
+      info.textContent = 'Press "Run analysis".';
+      CLAIMS.forEach((c) => {
+        const el = document.createElement('div');
+        el.className = 'claim';
+        el.innerHTML = \`<div>\${c.text}</div><div class="src">\${c.src}</div><span class="tag">—</span>\`;
+        document.getElementById('claims').appendChild(el);
+      });
+    }
+
+    async function run() {
+      reset();
+      const rows = [...document.querySelectorAll('.claim')];
+
+      info.textContent = 'Scanning for conflicts: same slot, different value, both user-stated.';
+      await sleep(700);
+
+      // flag the two pairs
+      const pairs = [[0, 1], [2, 3]];
+      for (const [a, b] of pairs) {
+        rows[a].classList.add('conflict');
+        rows[b].classList.add('conflict');
+        for (const i of [a, b]) {
+          const t = rows[i].querySelector('.tag');
+          t.textContent = 'conflict'; t.className = 'tag bad on';
+        }
+        info.textContent = \`Conflict found: "\${CLAIMS[a].text.slice(0, 40)}…" vs newer claim.\`;
+        await sleep(900);
+      }
+
+      info.textContent = 'Resolving: newer claim supersedes the older; the old row keeps valid_to.';
+      await sleep(700);
+      for (const [a, b] of pairs) {
+        rows[a].classList.remove('conflict');
+        rows[a].classList.add('resolved');
+        let t = rows[a].querySelector('.tag');
+        t.textContent = 'superseded'; t.className = 'tag good on';
+        rows[a].style.opacity = '.55';
+        t = rows[b].querySelector('.tag');
+        t.textContent = 'current'; t.className = 'tag good on';
+        await sleep(800);
+      }
+
+      info.textContent = 'Counting co-occurrence across memories to surface a pattern…';
+      await sleep(900);
+      document.getElementById('pattern').classList.add('on');
+      info.textContent = 'Done: 2 conflicts resolved with full history, 1 pattern surfaced.';
+    }
+
+    reset();
+  </script>
+`;
+const cssContent = `
+    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
+    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
+    .controls button:hover { background: #eaeef2; }
+    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 44px; }
+    .claim { border: 1px solid #d0d7de; border-radius: 8px; padding: 12px 14px; margin: 8px 0; background: #fff; font-size: 14px; transition: all .4s; position: relative; }
+    .claim .src { font-size: 11px; color: #6e7781; margin-top: 4px; }
+    .claim.conflict { border-color: #cf222e; background: #ffebe9; }
+    .claim.resolved { border-color: #1a7f37; background: #dafbe1; }
+    .tag { position: absolute; right: 10px; top: 10px; font-size: 10px; padding: 2px 8px; border-radius: 999px; background: #f6f8fa; color: #57606a; opacity: 0; transition: opacity .3s; }
+    .tag.on { opacity: 1; }
+    .tag.bad { background: #cf222e; color: #fff; }
+    .tag.good { background: #1a7f37; color: #fff; }
+    .pattern { border: 1px dashed #8250df; border-radius: 10px; padding: 14px; background: #fbefff; margin-top: 12px; opacity: 0; transform: translateY(8px); transition: all .5s; font-size: 14px; }
+    .pattern.on { opacity: 1; transform: translateY(0); }
+    .pattern h4 { margin: 0 0 6px; font-size: 13px; color: #8250df; text-transform: uppercase; letter-spacing: .08em; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; }
+    li { margin-bottom: 8px; line-height: 1.65; }
+    h3.stage-h { font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: #57606a; margin: 22px 0 6px; }
+  `;
+const jsContent = `
+    const CLAIMS = [
+      { text: 'The API rate limit is 1000 requests/min', src: 'user · 3 weeks ago' },
+      { text: 'The API rate limit is now 5000 requests/min', src: 'user · today' },
+      { text: 'The Q2 launch is April 15', src: 'meeting notes · March' },
+      { text: 'The Q2 launch slipped to May 8 after legal review', src: 'email · today' }
+    ];
+
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const info = document.getElementById('step-info');
+
+    function reset() {
+      document.getElementById('claims').innerHTML = '';
+      document.getElementById('pattern').classList.remove('on');
+      info.textContent = 'Press "Run analysis".';
+      CLAIMS.forEach((c) => {
+        const el = document.createElement('div');
+        el.className = 'claim';
+        el.innerHTML = \`<div>\${c.text}</div><div class="src">\${c.src}</div><span class="tag">—</span>\`;
+        document.getElementById('claims').appendChild(el);
+      });
+    }
+
+    async function run() {
+      reset();
+      const rows = [...document.querySelectorAll('.claim')];
+
+      info.textContent = 'Scanning for conflicts: same slot, different value, both user-stated.';
+      await sleep(700);
+
+      // flag the two pairs
+      const pairs = [[0, 1], [2, 3]];
+      for (const [a, b] of pairs) {
+        rows[a].classList.add('conflict');
+        rows[b].classList.add('conflict');
+        for (const i of [a, b]) {
+          const t = rows[i].querySelector('.tag');
+          t.textContent = 'conflict'; t.className = 'tag bad on';
+        }
+        info.textContent = \`Conflict found: "\${CLAIMS[a].text.slice(0, 40)}…" vs newer claim.\`;
+        await sleep(900);
+      }
+
+      info.textContent = 'Resolving: newer claim supersedes the older; the old row keeps valid_to.';
+      await sleep(700);
+      for (const [a, b] of pairs) {
+        rows[a].classList.remove('conflict');
+        rows[a].classList.add('resolved');
+        let t = rows[a].querySelector('.tag');
+        t.textContent = 'superseded'; t.className = 'tag good on';
+        rows[a].style.opacity = '.55';
+        t = rows[b].querySelector('.tag');
+        t.textContent = 'current'; t.className = 'tag good on';
+        await sleep(800);
+      }
+
+      info.textContent = 'Counting co-occurrence across memories to surface a pattern…';
+      await sleep(900);
+      document.getElementById('pattern').classList.add('on');
+      info.textContent = 'Done: 2 conflicts resolved with full history, 1 pattern surfaced.';
+    }
+
+    reset();
+  `;
+---
+
+<BaseLayout title="Animated: KB Intelligence" description="Interactive animated diagram for the Seme memory system" jsonldType="Article">
+  <main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body>
+    <a href="/essays/" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">
+      ← Back
+    </a>
+    <style is:inline set:html={cssContent} />
+    <div set:html={htmlContent} />
+    <script is:inline set:html={jsContent} />
+  </main>
+</BaseLayout>

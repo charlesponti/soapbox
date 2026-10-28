@@ -1,0 +1,97 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const byNewest = (a: CollectionEntry<"essays">, b: CollectionEntry<"essays">) => {
+  if (!a.data.pubDate && !b.data.pubDate) return a.data.title.localeCompare(b.data.title);
+  if (!a.data.pubDate) return 1;
+  if (!b.data.pubDate) return -1;
+  return b.data.pubDate.localeCompare(a.data.pubDate);
+};
+const essays = (await getCollection("essays")).sort(byNewest);
+
+const diagrams = [
+  { slug: "animated-knowledge-graph", title: "Animated: Knowledge Graph", blurb: "Entity creation, N-hop traversal, and shortest-path finding, live on a canvas." },
+  { slug: "animated-hybrid-search", title: "Animated: Hybrid Search", blurb: "FTS5, keyword, vector, and graph layers combining into one ranked result set." },
+  { slug: "animated-entity-extraction", title: "Animated: Entity Extraction", blurb: "Raw text → chunks → JSON → resolved entities → graph, step by step." },
+  { slug: "animated-auto-deprecation", title: "Animated: Auto-Deprecation", blurb: "Decay curves per memory class, and the moment each fact crosses the archive threshold." },
+  { slug: "animated-source-ingestion", title: "Animated: Source Ingestion", blurb: "Four entry points — URL, PDF, YouTube, pasted text — converging on one pipeline." },
+  { slug: "animated-kb-intelligence", title: "Animated: KB Intelligence", blurb: "Conflicts detected, superseded with history intact, and a pattern surfaced." },
+];
+
+const deepDives = [
+  { slug: "knowledge-graph", title: "Knowledge Graph", blurb: "Entity resolution, recursive-CTE traversal, and graph-augmented retrieval." },
+  { slug: "hybrid-search", title: "Hybrid Search", blurb: "Cross-layer retrieval, scoring, temporal filtering, and abstention." },
+  { slug: "entity-extraction", title: "Entity Extraction", blurb: "LLM-based NER, chunking, free-form types, and fence stripping." },
+  { slug: "auto-deprecation", title: "Auto-Deprecation", blurb: "Decay classes, reinforcement, and threshold archival." },
+  { slug: "source-ingestion", title: "Source Ingestion", blurb: "Content extraction, paragraph chunking, and provenance." },
+  { slug: "kb-intelligence", title: "KB Intelligence", blurb: "Claim verification, contradiction detection, and pattern surfacing." },
+  { slug: "temporal-queries", title: "Temporal Queries", blurb: "Bi-temporal memory and as-of snapshots." },
+];
+---
+
+<BaseLayout title="Essays" description="Essays and deep dives from the notebook." jsonldType="CollectionPage">
+  <main class="mx-auto max-w-5xl px-6 pb-32 pt-20" data-pagefind-body>
+    <header class="mb-14">
+      <h1 class="text-[clamp(38px,6vw,64px)] font-bold leading-[1] tracking-[-0.035em]">
+        <span class="gradient-text">Essays</span>
+      </h1>
+      <p class="mt-4 max-w-2xl text-[17px] text-muted-foreground">
+        Long-form thinking, plus animated deep dives into the machinery behind Seme.
+      </p>
+    </header>
+
+    <section class="mb-16">
+      <h2 class="mb-5 text-[13px] uppercase tracking-[0.14em] text-muted-foreground">Animated diagrams</h2>
+      <ul class="grid gap-4 sm:grid-cols-2">
+        {diagrams.map((d) => (
+          <li>
+            <a href={`/essays/${d.slug}/`} class="group block h-full rounded-2xl border border-border bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/30">
+              <div class="flex items-start justify-between gap-3">
+                <div class="text-[17px] font-semibold leading-snug group-hover:text-white">{d.title}</div>
+                <span class="shrink-0 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground">▶</span>
+              </div>
+              <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">{d.blurb}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="mb-16">
+      <h2 class="mb-5 text-[13px] uppercase tracking-[0.14em] text-muted-foreground">Deep dives</h2>
+      <ul class="grid gap-4 sm:grid-cols-2">
+        {deepDives.map((d) => (
+          <li>
+            <a href={`/essays/${d.slug}/`} class="group block h-full rounded-2xl border border-border bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/30">
+              <div class="flex items-start justify-between gap-3">
+                <div class="text-[17px] font-semibold leading-snug group-hover:text-white">{d.title}</div>
+                <span class="shrink-0 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground">→</span>
+              </div>
+              <p class="mt-2 text-[13px] leading-relaxed text-muted-foreground">{d.blurb}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section>
+      <h2 class="mb-5 text-[13px] uppercase tracking-[0.14em] text-muted-foreground">
+        From the notebook · {essays.length}
+      </h2>
+      <ul class="grid gap-3">
+        {essays.map((e: CollectionEntry<"essays">) => (
+          <li>
+            <a href={`/essays/${e.data.slug}/`} class="group block rounded-xl border border-border bg-card/50 p-5 backdrop-blur transition-colors hover:border-foreground/30">
+              <div class="text-[18px] font-medium leading-snug group-hover:text-white">{e.data.title}</div>
+              {e.data.description && <p class="mt-1.5 text-[14px] text-muted-foreground">{e.data.description}</p>}
+              <div class="mt-3 text-[12px] text-muted-foreground/70">
+                {[e.data.category, e.data.pubDate?.slice(0, 10)].filter(Boolean).join(" · ")}
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </main>
+</BaseLayout>

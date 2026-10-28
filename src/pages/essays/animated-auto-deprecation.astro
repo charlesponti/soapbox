@@ -1,0 +1,284 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const htmlContent = `
+  <div class="anim-container">
+    <a href="/essays/" class="back-link">← Back</a>
+    <h1>Animated: Auto-Deprecation</h1>
+    <p class="subtitle">Facts decay at different rates. When a class falls under the threshold, it gets archived.</p>
+
+    <div class="controls">
+      <button onclick="reset()">Reset</button>
+      <button onclick="run()">Simulate 180 days</button>
+    </div>
+
+    <div class="step-info" id="step-info">Click "Simulate 180 days".</div>
+
+    <div class="chart">
+      <svg id="svg" viewBox="0 0 820 300" width="100%" height="300" role="img" aria-label="Decay curves per class">
+        <!-- axes -->
+        <line x1="60" y1="260" x2="790" y2="260" stroke="#d0d7de" />
+        <line x1="60" y1="30" x2="60" y2="260" stroke="#d0d7de" />
+        <text x="60" y="278" font-size="11" fill="#6e7781">0</text>
+        <text x="420" y="278" font-size="11" fill="#6e7781" text-anchor="middle">90 days</text>
+        <text x="780" y="278" font-size="11" fill="#6e7781" text-anchor="end">180 days</text>
+        <text x="20" y="40" font-size="11" fill="#6e7781">1.0</text>
+        <text x="20" y="150" font-size="11" fill="#6e7781">0.5</text>
+        <!-- threshold -->
+        <line id="threshold" x1="60" y1="190" x2="790" y2="190" stroke="#cf222e" stroke-dasharray="5 4" stroke-width="1.5" />
+        <text x="700" y="184" font-size="11" fill="#cf222e">archive threshold 0.25</text>
+        <g id="curves"></g>
+      </svg>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>Decay class</strong> is assigned at write time from the slot kind. Identity facts (<code>name</code>) are <em>exempt</em>; preferences fade at medium speed; passing observations fade fast.</li>
+      <li><strong>Effective confidence</strong> is a function of the stored confidence, reinforcement count, and elapsed time since <code>last_reinforced_at</code>.</li>
+      <li><strong>Reinforcement</strong> resets the clock: every time a memory is retrieved or restated, its decay restarts and confidence rises.</li>
+      <li><strong>Archival</strong> happens in the sleep job: anything below the threshold moves to <code>archived</code>, leaving history intact rather than deleting it.</li>
+    </ol>
+    <p>The point is not to forget — it is to stop stale facts from outranking fresh ones at retrieval time.</p>
+  </div>
+
+  <script>
+    const CLASSES = [
+      { id: 'exempt', label: 'exempt (name)',      color: '#0969da', halfLife: Infinity },
+      { id: 'slow',   label: 'slow (relationships)', color: '#1a7f37', halfLife: 240 },
+      { id: 'medium', label: 'medium (preferences)', color: '#9a6700', halfLife: 90 },
+      { id: 'fast',   label: 'fast (observations)',  color: '#cf222e', halfLife: 30 }
+    ];
+
+    const MEMS = [
+      { text: "The user's name is Charles", cls: 'exempt' },
+      { text: 'The user lives in London', cls: 'slow' },
+      { text: 'The user prefers dark mode', cls: 'medium' },
+      { text: 'The user is tired today', cls: 'fast' }
+    ];
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const X0 = 60, X1 = 790, Y0 = 260, Y_TOP = 35, DAYS = 180, THRESH = 0.25;
+    const xFor = (d) => X0 + (d / DAYS) * (X1 - X0);
+    const yFor = (v) => Y0 - v * (Y0 - Y_TOP);
+
+    function effective(cls, days) {
+      if (!isFinite(cls.halfLife)) return 1;
+      return Math.pow(0.5, days / cls.halfLife);
+    }
+
+    function reset() {
+      document.getElementById('curves').innerHTML = '';
+      document.getElementById('legend').innerHTML = '';
+      document.getElementById('cards').innerHTML = '';
+      document.getElementById('step-info').textContent = 'Click "Simulate 180 days".';
+
+      for (const c of CLASSES) {
+        const path = document.createElementNS(NS, 'path');
+        let d = '';
+        for (let day = 0; day <= DAYS; day += 2) {
+          d += (day === 0 ? 'M' : 'L') + xFor(day).toFixed(1) + ' ' + yFor(effective(c, day)).toFixed(1) + ' ';
+        }
+        path.setAttribute('d', d.trim());
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', c.color);
+        path.setAttribute('stroke-width', '2.5');
+        path.setAttribute('stroke-linecap', 'round');
+        path.dataset.id = c.id;
+        const len = path.getTotalLength ? 0 : 0;
+        path.style.strokeDasharray = '1200';
+        path.style.strokeDashoffset = '1200';
+        path.style.transition = 'stroke-dashoffset 1.6s linear';
+        document.getElementById('curves').appendChild(path);
+
+        const li = document.createElement('div');
+        li.className = 'legend-item';
+        li.innerHTML = \`<span class="swatch" style="background:\${c.color}"></span>\${c.label}\`;
+        document.getElementById('legend').appendChild(li);
+      }
+
+      for (const m of MEMS) {
+        const cls = CLASSES.find(c => c.id === m.cls);
+        const el = document.createElement('div');
+        el.className = 'mem';
+        el.dataset.cls = m.cls;
+        el.innerHTML = \`<span class="cls">\${m.cls}</span><span>\${m.text}</span>
+          <span class="age">day 0 · conf 1.00</span><span class="st active">active</span>\`;
+        el.style.borderLeft = \`3px solid \${cls.color}\`;
+        document.getElementById('cards').appendChild(el);
+      }
+    }
+
+    async function run() {
+      reset();
+      const info = document.getElementById('step-info');
+      info.textContent = 'Drawing decay curves — confidence falls exponentially with a per-class half-life.';
+      await new Promise(r => setTimeout(r, 60));
+      document.querySelectorAll('#curves path').forEach(p => { p.style.strokeDashoffset = '0'; });
+      await new Promise(r => setTimeout(r, 1700));
+
+      info.textContent = 'Advancing the clock; watching each memory cross the threshold…';
+      const stepMs = 90;
+      for (let day = 0; day <= DAYS; day += 6) {
+        for (const m of MEMS) {
+          const cls = CLASSES.find(c => c.id === m.cls);
+          const conf = effective(cls, day);
+          const row = document.querySelector(\`.mem[data-cls="\${m.cls}"]\`);
+          if (!row) continue;
+          row.querySelector('.age').textContent = \`day \${day} · conf \${conf.toFixed(2)}\`;
+          if (conf < THRESH && !row.classList.contains('archived')) {
+            row.classList.add('archived');
+            const st = row.querySelector('.st');
+            st.className = 'st archived';
+            st.textContent = 'archived';
+            info.textContent = \`Day \${day}: "\${m.text}" fell to \${conf.toFixed(2)} — moved to archived by the sleep job.\`;
+          }
+        }
+        await new Promise(r => setTimeout(r, stepMs));
+      }
+
+      info.textContent = 'Done. Exempt never fades; fast observations archive first; history is preserved either way.';
+    }
+
+    reset();
+  </script>
+`;
+const cssContent = `
+    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
+    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
+    .controls button:hover { background: #eaeef2; }
+    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 44px; }
+    .chart { border: 1px solid #d0d7de; border-radius: 10px; background: #fff; padding: 12px; }
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0 0; font-size: 12px; color: #57606a; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .swatch { width: 10px; height: 10px; border-radius: 2px; }
+    .cards { display: grid; gap: 8px; margin-top: 16px; }
+    .mem { display: flex; align-items: center; gap: 10px; border: 1px solid #d0d7de; border-radius: 8px; padding: 10px 12px; background: #fff; font-size: 13px; transition: all .4s; }
+    .mem.archived { opacity: .45; border-style: dashed; background: #fafafa; }
+    .mem .cls { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #f6f8fa; color: #57606a; font-weight: 600; }
+    .mem .age { margin-left: auto; font-variant-numeric: tabular-nums; color: #6e7781; font-size: 12px; }
+    .mem .st { font-size: 11px; padding: 2px 8px; border-radius: 999px; }
+    .st.active { background: #dafbe1; color: #1a7f37; }
+    .st.archived { background: #ffebe9; color: #cf222e; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; }
+    li { margin-bottom: 8px; line-height: 1.65; }
+  `;
+const jsContent = `
+    const CLASSES = [
+      { id: 'exempt', label: 'exempt (name)',      color: '#0969da', halfLife: Infinity },
+      { id: 'slow',   label: 'slow (relationships)', color: '#1a7f37', halfLife: 240 },
+      { id: 'medium', label: 'medium (preferences)', color: '#9a6700', halfLife: 90 },
+      { id: 'fast',   label: 'fast (observations)',  color: '#cf222e', halfLife: 30 }
+    ];
+
+    const MEMS = [
+      { text: "The user's name is Charles", cls: 'exempt' },
+      { text: 'The user lives in London', cls: 'slow' },
+      { text: 'The user prefers dark mode', cls: 'medium' },
+      { text: 'The user is tired today', cls: 'fast' }
+    ];
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const X0 = 60, X1 = 790, Y0 = 260, Y_TOP = 35, DAYS = 180, THRESH = 0.25;
+    const xFor = (d) => X0 + (d / DAYS) * (X1 - X0);
+    const yFor = (v) => Y0 - v * (Y0 - Y_TOP);
+
+    function effective(cls, days) {
+      if (!isFinite(cls.halfLife)) return 1;
+      return Math.pow(0.5, days / cls.halfLife);
+    }
+
+    function reset() {
+      document.getElementById('curves').innerHTML = '';
+      document.getElementById('legend').innerHTML = '';
+      document.getElementById('cards').innerHTML = '';
+      document.getElementById('step-info').textContent = 'Click "Simulate 180 days".';
+
+      for (const c of CLASSES) {
+        const path = document.createElementNS(NS, 'path');
+        let d = '';
+        for (let day = 0; day <= DAYS; day += 2) {
+          d += (day === 0 ? 'M' : 'L') + xFor(day).toFixed(1) + ' ' + yFor(effective(c, day)).toFixed(1) + ' ';
+        }
+        path.setAttribute('d', d.trim());
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', c.color);
+        path.setAttribute('stroke-width', '2.5');
+        path.setAttribute('stroke-linecap', 'round');
+        path.dataset.id = c.id;
+        const len = path.getTotalLength ? 0 : 0;
+        path.style.strokeDasharray = '1200';
+        path.style.strokeDashoffset = '1200';
+        path.style.transition = 'stroke-dashoffset 1.6s linear';
+        document.getElementById('curves').appendChild(path);
+
+        const li = document.createElement('div');
+        li.className = 'legend-item';
+        li.innerHTML = \`<span class="swatch" style="background:\${c.color}"></span>\${c.label}\`;
+        document.getElementById('legend').appendChild(li);
+      }
+
+      for (const m of MEMS) {
+        const cls = CLASSES.find(c => c.id === m.cls);
+        const el = document.createElement('div');
+        el.className = 'mem';
+        el.dataset.cls = m.cls;
+        el.innerHTML = \`<span class="cls">\${m.cls}</span><span>\${m.text}</span>
+          <span class="age">day 0 · conf 1.00</span><span class="st active">active</span>\`;
+        el.style.borderLeft = \`3px solid \${cls.color}\`;
+        document.getElementById('cards').appendChild(el);
+      }
+    }
+
+    async function run() {
+      reset();
+      const info = document.getElementById('step-info');
+      info.textContent = 'Drawing decay curves — confidence falls exponentially with a per-class half-life.';
+      await new Promise(r => setTimeout(r, 60));
+      document.querySelectorAll('#curves path').forEach(p => { p.style.strokeDashoffset = '0'; });
+      await new Promise(r => setTimeout(r, 1700));
+
+      info.textContent = 'Advancing the clock; watching each memory cross the threshold…';
+      const stepMs = 90;
+      for (let day = 0; day <= DAYS; day += 6) {
+        for (const m of MEMS) {
+          const cls = CLASSES.find(c => c.id === m.cls);
+          const conf = effective(cls, day);
+          const row = document.querySelector(\`.mem[data-cls="\${m.cls}"]\`);
+          if (!row) continue;
+          row.querySelector('.age').textContent = \`day \${day} · conf \${conf.toFixed(2)}\`;
+          if (conf < THRESH && !row.classList.contains('archived')) {
+            row.classList.add('archived');
+            const st = row.querySelector('.st');
+            st.className = 'st archived';
+            st.textContent = 'archived';
+            info.textContent = \`Day \${day}: "\${m.text}" fell to \${conf.toFixed(2)} — moved to archived by the sleep job.\`;
+          }
+        }
+        await new Promise(r => setTimeout(r, stepMs));
+      }
+
+      info.textContent = 'Done. Exempt never fades; fast observations archive first; history is preserved either way.';
+    }
+
+    reset();
+  `;
+---
+
+<BaseLayout title="Animated: Auto-Deprecation" description="Interactive animated diagram for the Seme memory system" jsonldType="Article">
+  <main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body>
+    <a href="/essays/" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">
+      ← Back
+    </a>
+    <style is:inline set:html={cssContent} />
+    <div set:html={htmlContent} />
+    <script is:inline set:html={jsContent} />
+  </main>
+</BaseLayout>

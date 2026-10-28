@@ -1,0 +1,338 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const htmlContent = `
+  <div class="anim-container">
+    <a href="/essays/" class="back-link">← Back</a>
+    <h1>Animated: Entity Extraction</h1>
+    <p class="subtitle">Watch raw text become typed entities, resolved duplicates, and a knowledge graph.</p>
+
+    <div class="controls">
+      <button onclick="reset()">Reset</button>
+      <button onclick="run()">Run pipeline</button>
+    </div>
+
+    <div class="step-info" id="step-info">Click "Run pipeline" to start.</div>
+
+    <div class="stage" id="s1">
+      <h3>1. Raw text <span class="badge">input</span></h3>
+      <div class="text-block" id="raw"></div>
+    </div>
+
+    <div class="stage" id="s2">
+      <h3>2. Chunked <span class="badge">6 turns / batch</span></h3>
+      <div id="chunks"></div>
+    </div>
+
+    <div class="stage" id="s3">
+      <h3>3. LLM extraction <span class="badge">JSON</span></h3>
+      <pre id="json">waiting…</pre>
+    </div>
+
+    <div class="stage" id="s4">
+      <h3>4. Entity resolution <span class="badge">merge duplicates</span></h3>
+      <div class="pill-row" id="ents"></div>
+    </div>
+
+    <div class="stage" id="s5">
+      <h3>5. Graph written <span class="badge">nodes + edges</span></h3>
+      <pre id="graph">waiting…</pre>
+    </div>
+
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>Chunking</strong> splits long input into batches of ~6 turns so each LLM call stays inside a reliable context window. Extraction that spans more text gets parallelised and merged.</li>
+      <li><strong>Extraction</strong> asks the model for a strict JSON schema: entities with a free-form <code>type</code>, relationships with <code>source → relation → target</code>, and memories with evidence quotes.</li>
+      <li><strong>Resolution</strong> normalises names (case, punctuation, aliases) and merges entities that resolve to the same node, summing mention counts instead of creating duplicates.</li>
+      <li><strong>Graph write</strong> persists nodes and edges in SQLite; recursive CTEs later answer "what is within N hops of X" without a graph database.</li>
+    </ol>
+    <p>Free-form types mean the system never needs a hardcoded entity dictionary — a new domain introduces new types automatically.</p>
+  </div>
+
+  <script>
+    const RAW = 'My name is Charles and I live in London. I work at Ponti Studios building iOS apps. I have a dog named Cyndi.';
+    const CHUNKS = [
+      'My name is Charles and I live in London.',
+      'I work at Ponti Studios building iOS apps.',
+      'I have a dog named Cyndi.'
+    ];
+    const ENTITIES = [
+      { name: 'Charles', type: 'person' },
+      { name: 'London', type: 'place' },
+      { name: 'Ponti Studios', type: 'org' },
+      { name: 'iOS app development', type: 'topic' },
+      { name: 'Cyndi', type: 'animal' },
+      { name: 'Charles', type: 'person', merge: true }
+    ];
+    const JSON_OUT = \`{
+  "entities": [
+    { "name": "Charles",       "type": "person" },
+    { "name": "London",        "type": "place"  },
+    { "name": "Ponti Studios", "type": "org"    },
+    { "name": "iOS app development", "type": "topic" },
+    { "name": "Cyndi",         "type": "animal" }
+  ],
+  "relationships": [
+    { "source": "Charles", "relation": "lives_in",  "target": "London" },
+    { "source": "Charles", "relation": "works_at",  "target": "Ponti Studios" },
+    { "source": "Charles", "relation": "owns",      "target": "Cyndi" }
+  ]
+}\`;
+    const GRAPH_OUT = \`nodes: 5   edges: 3
+
+Charles ──lives_in──▶ London
+        ──works_at──▶ Ponti Studios
+        ──owns──────▶ Cyndi\`;
+
+    const info = document.getElementById('step-info');
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    function reset() {
+      ['s1','s2','s3','s4','s5'].forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById('raw').textContent = '';
+      document.getElementById('chunks').innerHTML = '';
+      document.getElementById('json').textContent = 'waiting…';
+      document.getElementById('ents').innerHTML = '';
+      document.getElementById('graph').textContent = 'waiting…';
+      info.textContent = 'Click "Run pipeline" to start.';
+    }
+
+    async function typeText(el, text) {
+      for (let i = 0; i < text.length; i++) {
+        el.textContent = text.slice(0, i + 1);
+        if (i % 3 === 0) await sleep(6);
+      }
+    }
+
+    async function run() {
+      reset();
+      await sleep(200);
+
+      // 1 raw
+      document.getElementById('s1').classList.add('active');
+      info.textContent = 'Step 1 — reading raw input.';
+      await typeText(document.getElementById('raw'), RAW);
+      await sleep(500);
+
+      // 2 chunks
+      document.getElementById('s2').classList.add('active');
+      info.textContent = 'Step 2 — splitting into chunks (one batch per LLM call).';
+      const cw = document.getElementById('chunks');
+      for (const c of CHUNKS) {
+        const s = document.createElement('span');
+        s.className = 'chunk';
+        s.textContent = c;
+        cw.appendChild(s);
+        await sleep(120);
+        s.classList.add('on');
+        await sleep(320);
+      }
+      await sleep(500);
+
+      // 3 json
+      document.getElementById('s3').classList.add('active');
+      info.textContent = 'Step 3 — the model returns strict JSON. Markdown fences are stripped before parsing.';
+      document.getElementById('json').textContent = '';
+      await sleep(700);
+      document.getElementById('json').textContent = JSON_OUT;
+      await sleep(900);
+
+      // 4 entities + merge
+      document.getElementById('s4').classList.add('active');
+      info.textContent = 'Step 4 — entities typed, then duplicates merged into a single node.';
+      const ew = document.getElementById('ents');
+      for (const e of ENTITIES) {
+        const p = document.createElement('span');
+        p.className = \`ent \${e.type}\`;
+        p.textContent = e.name;
+        ew.appendChild(p);
+        await sleep(80);
+        p.classList.add('on');
+        await sleep(260);
+        if (e.merge) {
+          p.classList.add('merge');
+          info.textContent = 'Duplicate "Charles" detected — merged into the existing node, mention_count += 1.';
+          await sleep(700);
+          p.style.opacity = 0;
+          p.style.transform = 'scale(.6)';
+          await sleep(400);
+          p.remove();
+        }
+      }
+      await sleep(400);
+
+      // 5 graph
+      document.getElementById('s5').classList.add('active');
+      info.textContent = 'Step 5 — nodes and edges committed to SQLite.';
+      await sleep(400);
+      document.getElementById('graph').textContent = GRAPH_OUT;
+      await sleep(300);
+      info.textContent = 'Done: 5 entities, 3 relationships. No hardcoded type dictionary was involved.';
+    }
+
+    reset();
+  </script>
+`;
+const cssContent = `
+    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
+    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
+    .controls button:hover { background: #eaeef2; }
+    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 44px; }
+    .stage { border: 1px solid #d0d7de; border-radius: 10px; padding: 16px; margin: 12px 0; background: #fff; transition: opacity .4s, border-color .4s, box-shadow .4s; opacity: .35; }
+    .stage.active { opacity: 1; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.08); }
+    .stage h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: #ddf4ff; color: #0969da; font-weight: 500; }
+    .text-block { font-family: var(--font-mono); font-size: 13px; line-height: 1.6; color: #24292f; }
+    .chunk { display: inline-block; padding: 4px 6px; border-radius: 4px; background: #f6f8fa; border: 1px solid #d0d7de; margin: 2px; opacity: 0; transform: translateY(6px); transition: all .35s; }
+    .chunk.on { opacity: 1; transform: translateY(0); background: #ddf4ff; border-color: #54aeff; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .ent { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; opacity: 0; transform: scale(.85); transition: all .35s; }
+    .ent.on { opacity: 1; transform: scale(1); }
+    .ent.person { background:#ddf4ff; color:#0969da; } .ent.org { background:#dafbe1; color:#1a7f37; }
+    .ent.place { background:#fff8c5; color:#9a6700; } .ent.tool { background:#fbefff; color:#8250df; }
+    .ent.animal { background:#ffebe9; color:#cf222e; } .ent.topic { background:#ddf4ff; color:#0a3069; }
+    .ent.merge { outline: 2px dashed #cf222e; }
+    pre { background:#f6f8fa; border:1px solid #d0d7de; border-radius:6px; padding:12px; font-size:12px; line-height:1.5; overflow-x:auto; margin:0; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; }
+    li { margin-bottom: 8px; line-height: 1.65; }
+  `;
+const jsContent = `
+    const RAW = 'My name is Charles and I live in London. I work at Ponti Studios building iOS apps. I have a dog named Cyndi.';
+    const CHUNKS = [
+      'My name is Charles and I live in London.',
+      'I work at Ponti Studios building iOS apps.',
+      'I have a dog named Cyndi.'
+    ];
+    const ENTITIES = [
+      { name: 'Charles', type: 'person' },
+      { name: 'London', type: 'place' },
+      { name: 'Ponti Studios', type: 'org' },
+      { name: 'iOS app development', type: 'topic' },
+      { name: 'Cyndi', type: 'animal' },
+      { name: 'Charles', type: 'person', merge: true }
+    ];
+    const JSON_OUT = \`{
+  "entities": [
+    { "name": "Charles",       "type": "person" },
+    { "name": "London",        "type": "place"  },
+    { "name": "Ponti Studios", "type": "org"    },
+    { "name": "iOS app development", "type": "topic" },
+    { "name": "Cyndi",         "type": "animal" }
+  ],
+  "relationships": [
+    { "source": "Charles", "relation": "lives_in",  "target": "London" },
+    { "source": "Charles", "relation": "works_at",  "target": "Ponti Studios" },
+    { "source": "Charles", "relation": "owns",      "target": "Cyndi" }
+  ]
+}\`;
+    const GRAPH_OUT = \`nodes: 5   edges: 3
+
+Charles ──lives_in──▶ London
+        ──works_at──▶ Ponti Studios
+        ──owns──────▶ Cyndi\`;
+
+    const info = document.getElementById('step-info');
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+    function reset() {
+      ['s1','s2','s3','s4','s5'].forEach(id => document.getElementById(id).classList.remove('active'));
+      document.getElementById('raw').textContent = '';
+      document.getElementById('chunks').innerHTML = '';
+      document.getElementById('json').textContent = 'waiting…';
+      document.getElementById('ents').innerHTML = '';
+      document.getElementById('graph').textContent = 'waiting…';
+      info.textContent = 'Click "Run pipeline" to start.';
+    }
+
+    async function typeText(el, text) {
+      for (let i = 0; i < text.length; i++) {
+        el.textContent = text.slice(0, i + 1);
+        if (i % 3 === 0) await sleep(6);
+      }
+    }
+
+    async function run() {
+      reset();
+      await sleep(200);
+
+      // 1 raw
+      document.getElementById('s1').classList.add('active');
+      info.textContent = 'Step 1 — reading raw input.';
+      await typeText(document.getElementById('raw'), RAW);
+      await sleep(500);
+
+      // 2 chunks
+      document.getElementById('s2').classList.add('active');
+      info.textContent = 'Step 2 — splitting into chunks (one batch per LLM call).';
+      const cw = document.getElementById('chunks');
+      for (const c of CHUNKS) {
+        const s = document.createElement('span');
+        s.className = 'chunk';
+        s.textContent = c;
+        cw.appendChild(s);
+        await sleep(120);
+        s.classList.add('on');
+        await sleep(320);
+      }
+      await sleep(500);
+
+      // 3 json
+      document.getElementById('s3').classList.add('active');
+      info.textContent = 'Step 3 — the model returns strict JSON. Markdown fences are stripped before parsing.';
+      document.getElementById('json').textContent = '';
+      await sleep(700);
+      document.getElementById('json').textContent = JSON_OUT;
+      await sleep(900);
+
+      // 4 entities + merge
+      document.getElementById('s4').classList.add('active');
+      info.textContent = 'Step 4 — entities typed, then duplicates merged into a single node.';
+      const ew = document.getElementById('ents');
+      for (const e of ENTITIES) {
+        const p = document.createElement('span');
+        p.className = \`ent \${e.type}\`;
+        p.textContent = e.name;
+        ew.appendChild(p);
+        await sleep(80);
+        p.classList.add('on');
+        await sleep(260);
+        if (e.merge) {
+          p.classList.add('merge');
+          info.textContent = 'Duplicate "Charles" detected — merged into the existing node, mention_count += 1.';
+          await sleep(700);
+          p.style.opacity = 0;
+          p.style.transform = 'scale(.6)';
+          await sleep(400);
+          p.remove();
+        }
+      }
+      await sleep(400);
+
+      // 5 graph
+      document.getElementById('s5').classList.add('active');
+      info.textContent = 'Step 5 — nodes and edges committed to SQLite.';
+      await sleep(400);
+      document.getElementById('graph').textContent = GRAPH_OUT;
+      await sleep(300);
+      info.textContent = 'Done: 5 entities, 3 relationships. No hardcoded type dictionary was involved.';
+    }
+
+    reset();
+  `;
+---
+
+<BaseLayout title="Animated: Entity Extraction" description="Interactive animated diagram for the Seme memory system" jsonldType="Article">
+  <main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body>
+    <a href="/essays/" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">
+      ← Back
+    </a>
+    <style is:inline set:html={cssContent} />
+    <div set:html={htmlContent} />
+    <script is:inline set:html={jsContent} />
+  </main>
+</BaseLayout>

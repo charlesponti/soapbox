@@ -564,3 +564,12 @@
     transition: none;
   }
 }
+
+/* ---------- gradient text ---------- */
+.gradient-text {
+  background-image: linear-gradient(to right, #fafafa, #a1a1aa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}

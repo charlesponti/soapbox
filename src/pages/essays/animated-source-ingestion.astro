@@ -1,0 +1,251 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const htmlContent = `
+  <div class="anim-container">
+    <a href="/essays/" class="back-link">← Back</a>
+    <h1>Animated: Source Ingestion</h1>
+    <p class="subtitle">URLs, PDFs, YouTube transcripts and pasted text all converge on the same pipeline.</p>
+
+    <div class="src-tabs" id="src-tabs"></div>
+
+    <div class="controls">
+      <button onclick="reset()">Reset</button>
+      <button onclick="run()">Ingest</button>
+    </div>
+
+    <div class="step-info" id="step-info">Pick a source type, then press Ingest.</div>
+
+    <div class="flow">
+      <div class="node" id="n1"><h4>1. Fetch</h4><div class="body" id="b1">—</div></div>
+      <div class="node" id="n2"><h4>2. Extract text</h4><div class="body" id="b2">—</div></div>
+      <div class="node" id="n3"><h4>3. Chunk</h4><div class="body" id="b3">—</div></div>
+      <div class="node" id="n4"><h4>4. Turns</h4><div class="body" id="b4">—</div></div>
+      <div class="node" id="n5"><h4>5. Extract</h4><div class="body" id="b5">—</div></div>
+    </div>
+
+    <div id="detail" style="border:1px solid #d0d7de;border-radius:10px;padding:14px;background:#fff;min-height:110px;font-size:13px;"></div>
+
+    <h2>How it works</h2>
+    <ol>
+      <li><strong>One entry point.</strong> A single <code>/ingest/source</code> call branches on the payload: <code>url</code>, <code>pdf_path</code>, or <code>text</code>. YouTube URLs are detected by hostname and routed to the transcript fetcher.</li>
+      <li><strong>Text extraction.</strong> HTML is stripped to readable text, PDFs are read page by page, transcripts are cleaned of timing artefacts.</li>
+      <li><strong>Paragraph chunking.</strong> Splitting on blank lines keeps each chunk semantically whole — far better for extraction than fixed-width windows that cut sentences in half.</li>
+      <li><strong>Provenance.</strong> Every chunk becomes a turn with <code>source_type</code> and a source row, so each extracted memory can be traced back to the exact document and paragraph that produced it.</li>
+      <li><strong>Extraction</strong> then runs exactly as it does for conversation: the same entity, relationship and memory pipeline handles both.</li>
+    </ol>
+  </div>
+
+  <script>
+    const SOURCES = {
+      url: {
+        label: 'URL',
+        fetch: 'GET https://example.com/post\\n200 OK · text/html',
+        extract: 'strip tags → 1,842 words\\nremoved 14 script/style blocks',
+        chunk: '6 paragraphs\\n(max 900 chars each)',
+        turns: '6 turns\\nuser role, source_type=url',
+        extract: '2 entities · 1 relationship\\n3 memories'
+      },
+      pdf: {
+        label: 'PDF',
+        fetch: 'open paper.pdf\\n12 pages · text layer present',
+        extract: 'page-by-page read\\n4,310 words',
+        chunk: '9 paragraphs',
+        turns: '9 turns\\nsource_type=pdf',
+        extract: '7 entities · 5 relationships\\n11 memories'
+      },
+      youtube: {
+        label: 'YouTube',
+        fetch: 'youtube.com/watch?v=…\\ncaptions available',
+        extract: 'transcript 3,120 words\\ntimestamps stripped',
+        chunk: '8 paragraphs',
+        turns: '8 turns\\nsource_type=youtube',
+        extract: '5 entities · 3 relationships\\n9 memories'
+      },
+      text: {
+        label: 'Pasted text',
+        fetch: 'inline payload\\nno network call',
+        extract: 'as-provided\\nraw string',
+        chunk: '3 paragraphs',
+        turns: '3 turns\\nsource_type=text',
+        extract: '4 entities · 2 relationships\\n6 memories'
+      }
+    };
+
+    let current = 'url';
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const info = document.getElementById('step-info');
+
+    function renderTabs() {
+      const wrap = document.getElementById('src-tabs');
+      wrap.innerHTML = '';
+      for (const key of Object.keys(SOURCES)) {
+        const b = document.createElement('button');
+        b.textContent = SOURCES[key].label;
+        b.className = key === current ? 'on' : '';
+        b.onclick = () => { current = key; renderTabs(); reset(); };
+        wrap.appendChild(b);
+      }
+    }
+
+    function reset() {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('n' + i).classList.remove('active');
+        document.getElementById('b' + i).textContent = '—';
+      }
+      document.getElementById('detail').innerHTML = '';
+      info.textContent = \`Source: \${SOURCES[current].label}. Press Ingest.\`;
+    }
+
+    async function run() {
+      reset();
+      const src = SOURCES[current];
+      const steps = ['fetch', 'extract', 'chunk', 'turns', 'extract'];
+      const labels = ['Fetching source…', 'Extracting readable text…', 'Chunking by paragraph…', 'Creating turns with provenance…', 'Running extraction…'];
+
+      for (let i = 0; i < steps.length; i++) {
+        const node = document.getElementById('n' + (i + 1));
+        node.classList.add('active');
+        info.textContent = labels[i];
+        const body = document.getElementById('b' + (i + 1));
+        for (const line of src[steps[i]].split('\\n')) {
+          body.innerHTML += line + '<br>';
+          await sleep(140);
+        }
+        await sleep(320);
+      }
+
+      const d = document.getElementById('detail');
+      d.innerHTML = \`<strong>Result</strong><br><span style="color:#57606a">\${src.extract.replace('\\n', ' · ')}</span>
+        <div style="margin-top:8px;font-size:12px;color:#6e7781">All extracted memories carry a source pointer back to the original \${src.label.toLowerCase()} and paragraph.</div>\`;
+      info.textContent = 'Done. Same pipeline, four different entry points.';
+    }
+
+    renderTabs();
+    reset();
+  </script>
+`;
+const cssContent = `
+    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
+    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
+    .controls button:hover { background: #eaeef2; }
+    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 44px; }
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; align-items: stretch; margin: 18px 0; }
+    @media (max-width: 760px) { .flow { grid-template-columns: 1fr; } }
+    .node { border: 1px solid #d0d7de; border-radius: 10px; background: #fff; padding: 12px; font-size: 12px; transition: all .4s; opacity: .4; min-height: 96px; }
+    .node.active { opacity: 1; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.08); transform: translateY(-2px); }
+    .node h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #57606a; margin: 0 0 8px; }
+    .node .body { font-family: var(--font-mono); font-size: 11px; line-height: 1.5; color: #24292f; word-break: break-word; }
+    .src-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .src-tabs button { padding: 6px 12px; border-radius: 999px; border: 1px solid #d0d7de; background: #fff; font-size: 12px; cursor: pointer; }
+    .src-tabs button.on { background: #0969da; border-color: #0969da; color: #fff; }
+    .para { opacity: 0; transform: translateY(4px); transition: all .3s; padding: 6px 8px; border-left: 2px solid #54aeff; background: #f6f8fa; margin: 4px 0; border-radius: 0 4px 4px 0; font-size: 11px; }
+    .para.on { opacity: 1; transform: translateY(0); }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; }
+    li { margin-bottom: 8px; line-height: 1.65; }
+  `;
+const jsContent = `
+    const SOURCES = {
+      url: {
+        label: 'URL',
+        fetch: 'GET https://example.com/post\\n200 OK · text/html',
+        extract: 'strip tags → 1,842 words\\nremoved 14 script/style blocks',
+        chunk: '6 paragraphs\\n(max 900 chars each)',
+        turns: '6 turns\\nuser role, source_type=url',
+        extract: '2 entities · 1 relationship\\n3 memories'
+      },
+      pdf: {
+        label: 'PDF',
+        fetch: 'open paper.pdf\\n12 pages · text layer present',
+        extract: 'page-by-page read\\n4,310 words',
+        chunk: '9 paragraphs',
+        turns: '9 turns\\nsource_type=pdf',
+        extract: '7 entities · 5 relationships\\n11 memories'
+      },
+      youtube: {
+        label: 'YouTube',
+        fetch: 'youtube.com/watch?v=…\\ncaptions available',
+        extract: 'transcript 3,120 words\\ntimestamps stripped',
+        chunk: '8 paragraphs',
+        turns: '8 turns\\nsource_type=youtube',
+        extract: '5 entities · 3 relationships\\n9 memories'
+      },
+      text: {
+        label: 'Pasted text',
+        fetch: 'inline payload\\nno network call',
+        extract: 'as-provided\\nraw string',
+        chunk: '3 paragraphs',
+        turns: '3 turns\\nsource_type=text',
+        extract: '4 entities · 2 relationships\\n6 memories'
+      }
+    };
+
+    let current = 'url';
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const info = document.getElementById('step-info');
+
+    function renderTabs() {
+      const wrap = document.getElementById('src-tabs');
+      wrap.innerHTML = '';
+      for (const key of Object.keys(SOURCES)) {
+        const b = document.createElement('button');
+        b.textContent = SOURCES[key].label;
+        b.className = key === current ? 'on' : '';
+        b.onclick = () => { current = key; renderTabs(); reset(); };
+        wrap.appendChild(b);
+      }
+    }
+
+    function reset() {
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById('n' + i).classList.remove('active');
+        document.getElementById('b' + i).textContent = '—';
+      }
+      document.getElementById('detail').innerHTML = '';
+      info.textContent = \`Source: \${SOURCES[current].label}. Press Ingest.\`;
+    }
+
+    async function run() {
+      reset();
+      const src = SOURCES[current];
+      const steps = ['fetch', 'extract', 'chunk', 'turns', 'extract'];
+      const labels = ['Fetching source…', 'Extracting readable text…', 'Chunking by paragraph…', 'Creating turns with provenance…', 'Running extraction…'];
+
+      for (let i = 0; i < steps.length; i++) {
+        const node = document.getElementById('n' + (i + 1));
+        node.classList.add('active');
+        info.textContent = labels[i];
+        const body = document.getElementById('b' + (i + 1));
+        for (const line of src[steps[i]].split('\\n')) {
+          body.innerHTML += line + '<br>';
+          await sleep(140);
+        }
+        await sleep(320);
+      }
+
+      const d = document.getElementById('detail');
+      d.innerHTML = \`<strong>Result</strong><br><span style="color:#57606a">\${src.extract.replace('\\n', ' · ')}</span>
+        <div style="margin-top:8px;font-size:12px;color:#6e7781">All extracted memories carry a source pointer back to the original \${src.label.toLowerCase()} and paragraph.</div>\`;
+      info.textContent = 'Done. Same pipeline, four different entry points.';
+    }
+
+    renderTabs();
+    reset();
+  `;
+---
+
+<BaseLayout title="Animated: Source Ingestion" description="Interactive animated diagram for the Seme memory system" jsonldType="Article">
+  <main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body>
+    <a href="/essays/" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">
+      ← Back
+    </a>
+    <style is:inline set:html={cssContent} />
+    <div set:html={htmlContent} />
+    <script is:inline set:html={jsContent} />
+  </main>
+</BaseLayout>
