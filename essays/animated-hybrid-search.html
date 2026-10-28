@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated: Hybrid Search</title>
+  <link rel="stylesheet" href="../shared.css">
+  <style>
+    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
+    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
+    .search-box { background: #f6f8fa; border: 2px solid #d0d7de; border-radius: 8px; padding: 12px 16px; font-size: 16px; width: 100%; margin: 16px 0; font-family: var(--font-mono); }
+    .layer { border: 1px solid #d0d7de; border-radius: 8px; padding: 16px; margin: 12px 0; background: #ffffff; transition: all 0.5s ease; opacity: 0.3; }
+    .layer.active { opacity: 1; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,0.1); }
+    .layer h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .layer .badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: #ddf4ff; color: #0969da; }
+    .result-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 4px; margin: 4px 0; background: #f6f8fa; font-size: 13px; transition: all 0.3s ease; opacity: 0; transform: translateX(-20px); }
+    .result-item.visible { opacity: 1; transform: translateX(0); }
+    .result-item .score { font-family: var(--font-mono); font-size: 11px; color: #6e7781; margin-left: auto; }
+    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
+    .controls button:hover { background: #eaeef2; }
+    .controls button.active { background: #0969da; color: #ffffff; border-color: #0969da; }
+    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 40px; }
+    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    .score-bar { height: 4px; background: #d0d7de; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .score-fill { height: 100%; background: #0969da; border-radius: 2px; transition: width 0.5s ease; }
+  </style>
+</head>
+<body>
+  <div class="anim-container">
+    <a href="../index.html" class="back-link">← Back to Seme</a>
+    <h1>Animated: Hybrid Search</h1>
+    <p class="subtitle">Watch FTS5, vector search, keyword matching, and graph traversal combine into one result set.</p>
+
+    <div class="controls">
+      <button onclick="resetSearch()">Reset</button>
+      <button onclick="runSearch()">Run Search</button>
+    </div>
+
+    <input class="search-box" value="What CSS framework does the user use?" readonly />
+
+    <div class="step-info" id="step-info">Click "Run Search" to see hybrid retrieval in action.</div>
+
+    <div class="layer" id="layer-fts">
+      <h3>1. FTS5 Keyword Search <span class="badge">exact match</span></h3>
+      <div id="fts-results"></div>
+    </div>
+
+    <div class="layer" id="layer-keyword">
+      <h3>2. Exact Keyword Match <span class="badge">substring</span></h3>
+      <div id="keyword-results"></div>
+    </div>
+
+    <div class="layer" id="layer-vector">
+      <h3>3. Vector Search (sqlite-vec) <span class="badge">semantic</span></h3>
+      <div id="vector-results"></div>
+    </div>
+
+    <div class="layer" id="layer-graph">
+      <h3>4. Graph-Aware Search <span class="badge">entity traversal</span></h3>
+      <div id="graph-results"></div>
+    </div>
+
+    <div class="layer" id="layer-final">
+      <h3>Final Results <span class="badge">scored & ranked</span></h3>
+      <div id="final-results"></div>
+    </div>
+
+    <div class="section" style="margin-top:40px;">
+      <h2>How Hybrid Search Works</h2>
+      <p>The animation above shows how four retrieval strategies combine:</p>
+      <ol>
+        <li><strong>FTS5</strong>: SQLite full-text search finds memories containing query terms ("CSS", "framework", "use").</li>
+        <li><strong>Exact keyword</strong>: Substring matching catches memories that FTS5 might miss due to tokenization.</li>
+        <li><strong>Vector search</strong>: sqlite-vec cosine similarity finds semantically related memories even when keywords don't match. "CSS framework" matches "Tailwind CSS" via embedding similarity.</li>
+        <li><strong>Graph traversal</strong>: Entity lookup finds memories connected to entities mentioned in the query.</li>
+      </ol>
+      <p>All candidate IDs are unioned, then scored by confidence × importance × recency, and the top results are returned with an abstention check (if max score < 0.15, return empty).</p>
+    </div>
+  </div>
+
+  <script>
+    const stepInfo = document.getElementById('step-info');
+
+    const ftsData = [
+      { text: "User uses Tailwind CSS for styling.", score: 0.92 },
+      { text: "User uses shadcn/ui for styling.", score: 0.85 },
+    ];
+    const keywordData = [
+      { text: "User's favorite editor is VS Code.", score: 0.78 },
+    ];
+    const vectorData = [
+      { text: "User uses Tailwind CSS for styling.", score: 0.94 },
+      { text: "User uses shadcn/ui for styling.", score: 0.88 },
+      { text: "User prefers dark mode in all of their apps.", score: 0.62 },
+    ];
+    const graphData = [
+      { text: "User works at Ponti Studios.", score: 0.70 },
+    ];
+    const finalData = [
+      { text: "User uses Tailwind CSS for styling.", score: 0.94 },
+      { text: "User uses shadcn/ui for styling.", score: 0.88 },
+      { text: "User's favorite editor is VS Code.", score: 0.78 },
+      { text: "User prefers dark mode in all of their apps.", score: 0.62 },
+    ];
+
+    function resetSearch() {
+      ['layer-fts', 'layer-keyword', 'layer-vector', 'layer-graph', 'layer-final'].forEach(id => {
+        document.getElementById(id).classList.remove('active');
+      });
+      ['fts-results', 'keyword-results', 'vector-results', 'graph-results', 'final-results'].forEach(id => {
+        document.getElementById(id).innerHTML = '';
+      });
+      stepInfo.textContent = 'Click "Run Search" to see hybrid retrieval in action.';
+    }
+
+    async function runSearch() {
+      resetSearch();
+      await sleep(300);
+
+      // Layer 1: FTS5
+      document.getElementById('layer-fts').classList.add('active');
+      stepInfo.textContent = 'Step 1: FTS5 keyword search — finding memories containing "CSS", "framework", "use"...';
+      await sleep(800);
+      for (const r of ftsData) {
+        addResult('fts-results', r);
+        await sleep(300);
+      }
+      await sleep(500);
+
+      // Layer 2: Exact keyword
+      document.getElementById('layer-keyword').classList.add('active');
+      stepInfo.textContent = 'Step 2: Exact keyword match — substring search on subject/predicate/value...';
+      await sleep(800);
+      for (const r of keywordData) {
+        addResult('keyword-results', r);
+        await sleep(300);
+      }
+      await sleep(500);
+
+      // Layer 3: Vector
+      document.getElementById('layer-vector').classList.add('active');
+      stepInfo.textContent = 'Step 3: Vector search (sqlite-vec) — semantic similarity for "CSS framework"...';
+      await sleep(800);
+      for (const r of vectorData) {
+        addResult('vector-results', r);
+        await sleep(300);
+      }
+      await sleep(500);
+
+      // Layer 4: Graph
+      document.getElementById('layer-graph').classList.add('active');
+      stepInfo.textContent = 'Step 4: Graph-aware search — entity lookup + N-hop traversal...';
+      await sleep(800);
+      for (const r of graphData) {
+        addResult('graph-results', r);
+        await sleep(300);
+      }
+      await sleep(500);
+
+      // Final
+      document.getElementById('layer-final').classList.add('active');
+      stepInfo.textContent = 'Final: Union all candidates, score by confidence × importance × recency, return top results.';
+      await sleep(800);
+      for (const r of finalData) {
+        addResult('final-results', r, true);
+        await sleep(300);
+      }
+      await sleep(500);
+      stepInfo.textContent = 'Hybrid search complete: 4 memories returned. Vector search found "Tailwind CSS" even though the query said "CSS framework".';
+    }
+
+    function addResult(containerId, result, showScore = false) {
+      const container = document.getElementById(containerId);
+      const item = document.createElement('div');
+      item.className = 'result-item';
+      item.innerHTML = `<span>${result.text}</span>${showScore ? `<span class="score">${result.score.toFixed(2)}</span>` : ''}`;
+      container.appendChild(item);
+      setTimeout(() => item.classList.add('visible'), 50);
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  </script>
+</body>
+</html>
