@@ -34,7 +34,7 @@ const jsonld = Astro.props.jsonldType
       inLanguage: "en",
       publisher: {
         "@type": "Organization",
-        name: "lexicon",
+        name: "Soapbox",
         logo: { "@type": "ImageObject", url: `${SITE}/favicon.svg` },
       },
     })
@@ -51,10 +51,11 @@ const jsonld = Astro.props.jsonldType
     <meta name="description" content={description} />
     <link rel="canonical" href={url} />
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
 
     <!-- Open Graph -->
     <meta property="og:type" content={jsonld ? "article" : "website"} />
-    <meta property="og:site_name" content="lexicon" />
+    <meta property="og:site_name" content="Soapbox" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={url} />

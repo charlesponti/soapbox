@@ -1,29 +1,15 @@
 ---
-// Brand mark — an isometric soapbox cube. Stays on screen across
-// navigations via the client router's persist optimization (same DOM node
-// survives the swap).
-const rawBase = import.meta.env.BASE_URL;
-const base = rawBase.endsWith("/") ? rawBase : rawBase + "/";
+/* Brand mark — stays on screen across navigations via the client router's
+   persist optimization (same DOM node survives the swap). */
+import SoapboxMark from "./SoapboxMark.astro";
 ---
 <a
-  href={base}
+  href="/"
   transition:persist
-  class="logo-nav fixed right-5 top-5 z-30 block text-foreground transition-transform duration-150 hover:rotate-12"
-  aria-label="Essays home"
-  title="Back to essays"
+  class="logo-nav fixed right-5 top-5 z-30 flex items-center gap-2 text-foreground transition-transform duration-150 hover:rotate-3"
+  aria-label="Soapbox home"
+  title="Back to Soapbox"
 >
-  <svg
-    width="26"
-    height="26"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="1.6"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" />
-    <path d="M12 12l8-4.5M12 12L4 7.5M12 12v9" />
-  </svg>
+  <SoapboxMark size={26} />
+  <span class="font-mono text-[12px] tracking-[0.14em]">SOAPBOX</span>
 </a>

@@ -5,13 +5,14 @@
    (default slot), any scene-primitive <style slot="head">, and its build
    functions (<script slot="script">). */
 import manifest from '../../decks.json';
-const { title, brand, series, chat = false, replayHint = false } = Astro.props;
+const { title, brand, series, chat = false, replayHint = false, category: categoryProp, description: descriptionProp, ogImage: ogImageProp } = Astro.props;
 const raw = import.meta.env.BASE_URL;            // '/' (decks live under /decks/)
 const base = raw.endsWith('/') ? raw : raw + '/';
 const slug = Astro.url.pathname.replace(`${base}decks/`, '').replace(/\/+$/, '') || 'index';
 const entry = manifest.decks.find((d) => d.slug === slug);
-const description = (entry && entry.summary) || series;
-const ogImage = new URL(`${base}og/${slug}.png`, Astro.site).href;
+const description = descriptionProp ?? ((entry && entry.summary) || series);
+const category = categoryProp ?? ((entry && entry.show) || "Decks");
+const ogImage = ogImageProp ?? (entry ? new URL(`${base}og/${slug}.png`, Astro.site).href : `${base}og-card.png`);
 ---
 <!doctype html>
 <html lang="en"><head>
@@ -30,14 +31,15 @@ const ogImage = new URL(`${base}og/${slug}.png`, Astro.site).href;
 <meta name="twitter:title" content={title}>
 <meta name="twitter:description" content={description}>
 <meta name="twitter:image" content={ogImage}>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23E4181B'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`}>
+<link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`}>
 <link rel="stylesheet" href={`${base}components/fonts.css`}>
 <link rel="stylesheet" href={`${base}components/deck.css`}>
 <script is:inline src={`${base}components/motion-11.11.17.js`}></script>
 <slot name="head" />
 </head>
 <body>
-<deck-stage brand={brand} series={series} replay-hint={replayHint ? '' : undefined}>
+<deck-stage brand={brand} series={series} replay-hint={replayHint ? '' : undefined} data-pagefind-body data-pagefind-filter={`category:${category}`}>
 <slot />
 </deck-stage>
 <script is:inline src={`${base}components/deck-scene.js`}></script>

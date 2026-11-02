@@ -3,7 +3,7 @@
  * prune-pagefind.mjs — strip unused Pagefind runtime files from a bundle.
  *
  * Pagefind 1.5.x always emits its Default UI, Component UI, Modular UI, and
- * highlighter modules into the bundle. lexicon's search UI is a custom React
+ * highlighter modules into the bundle. Soapbox's search UI is a custom React
  * island that imports only `/pagefind/pagefind.js` (the raw API), so every
  * UI bundle is dead weight. The `wasm.unknown.*` fallback is also unused
  * because every page declares `lang="en"` (BaseLayout).

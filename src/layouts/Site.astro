@@ -8,6 +8,7 @@ const base = raw.endsWith('/') ? raw : raw + '/';
 const manifest = (await import('../../decks.json')).default;
 const decks = manifest.decks;
 const views = [['cover', 'COVER', 'decks/'], ['wall', 'WALL', 'decks/wall/'], ['ledger', 'LEDGER', 'decks/ledger/'], ['orb', 'ORB', 'voice-orb/']];
+import SoapboxMark from '../components/SoapboxMark.astro';
 ---
 <!doctype html>
 <html lang="en"><head>
@@ -20,7 +21,8 @@ const views = [['cover', 'COVER', 'decks/'], ['wall', 'WALL', 'decks/wall/'], ['
 <meta property="og:description" content={description}>
 <meta property="og:url" content={Astro.url.href}>
 <slot name="head" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23E4181B'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`}>
+<link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`}>
 <link rel="stylesheet" href={`${base}components/fonts.css`}>
 <link rel="stylesheet" href={`${base}components/deck.css`}>
 <script is:inline src={`${base}components/motion-11.11.17.js`}></script>
@@ -28,7 +30,7 @@ const views = [['cover', 'COVER', 'decks/'], ['wall', 'WALL', 'decks/wall/'], ['
 /* ---------- site shell (shares deck.css tokens + Geist) ---------- */
 body.site{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100svh;display:flex;flex-direction:column}
 .site-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:22px;padding:15px clamp(20px,4vw,64px);background:rgba(0,0,0,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.site-brand{display:inline-flex;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink);text-decoration:none}
+.site-brand{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink);text-decoration:none}
 .site-switch{margin-left:auto;display:flex;gap:4px}
 .site-switch a{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--g2);text-decoration:none;padding:7px 12px;border:1px solid transparent;border-radius:999px}
 .site-switch a:hover{color:var(--ink)}
@@ -96,7 +98,7 @@ h1.site-title em{font-family:var(--serif);font-style:italic;font-weight:500}
 </head>
 <body class:list={['site', view === 'orb' && 'site-orb']}>
 <header class="site-bar">
-  <a class="site-brand" href={`${base}`}><span class="mark"></span>SOAPBOX</a>
+  <a class="site-brand" href={`${base}`}><SoapboxMark size={18} />SOAPBOX</a>
   <div role="navigation" aria-label="home page view" class="site-switch">
     {views.map(([key, label, href]) => (
       <a href={`${base}${href}`} class={view === key ? 'on' : ''} aria-current={view === key ? 'page' : undefined}>{label}</a>
