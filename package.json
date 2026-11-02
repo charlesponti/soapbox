@@ -28,6 +28,7 @@
     "@astrojs/react": "^6.0.5",
     "astro": "^7.4.0",
     "gray-matter": "^4.0.3",
+    "mermaid": "^12.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "rolldown": "^1.2.15",

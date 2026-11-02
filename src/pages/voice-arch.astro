@@ -1,0 +1,230 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MermaidArch from "../components/MermaidArch";
+
+const title = "Voice architecture — Soapbox";
+const description =
+  "Single voice chat with background agents: product design, system architecture, task lifecycle, and API sketch.";
+---
+
+<BaseLayout title={title} description={description}>
+  <main class="mx-auto max-w-3xl px-6 pb-28 pt-20" data-pagefind-ignore>
+    <a
+      href="/"
+      class="press fixed left-5 top-5 z-30 inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground"
+    >
+      ← Back
+    </a>
+
+    <header class="mb-14">
+      <h1
+        class="header-reveal text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]"
+        style="--reveal-delay: 0ms"
+      >
+        Voice + background agents
+      </h1>
+      <p
+        class="header-reveal mt-4 text-lg leading-relaxed text-muted-foreground"
+        style="--reveal-delay: 60ms"
+      >
+        One low-latency voice loop up front, with the slow work happening in
+        the background. The user holds a single conversation; the system fans
+        out, monitors, and reports back — never putting the voice on hold.
+      </p>
+    </header>
+
+    <section class="mb-14" aria-label="Product design">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Product — how it feels
+      </h2>
+      <div class="mt-6 space-y-4 text-[15px] leading-relaxed text-foreground/90">
+        <p>
+          The promise is simple: <strong>talk, and things get done.</strong> The
+          user never manages tasks, watches spinners, or asks “is it ready
+          yet?” Every spoken turn gets an immediate spoken reply — under 500
+          ms — while slow work happens in the background.
+        </p>
+        <p>
+          Say “find me the cheapest flight to Lisbon next month and hold off on
+          booking.” The voice answers right away — “On it, checking options
+          now” — and a research agent spends the next 3 minutes on the
+          slow work: searching, comparing, pricing. You keep talking about
+          something else entirely. When the options are ready, the voice tells
+          you, unprompted: “Got three options, the cheapest is Thursday at
+          6pm.”
+        </p>
+        <ul class="list-disc space-y-2 pl-6">
+          <li>
+            <strong>Interruptible by default.</strong> Say “stop that” at any
+            moment — mid-sentence, mid-task. The voice hears it on the same
+            loop it always listens on, stops the task, and confirms what was
+            stopped. No mode to enter, no button to find.
+          </li>
+          <li>
+            <strong>Proactive, not polling.</strong> Completions, failures, and
+            cancellations arrive as announcements, not as answers you have to
+            ask for. “How's that going?” works too — it's just a read of the
+            same progress store.
+          </li>
+          <li>
+            <strong>Agents are invisible.</strong> There is exactly one
+            personality, one voice, one thread of conversation. Background work
+            never gets a name, a separate chat, or a notification channel.
+          </li>
+          <li>
+            <strong>Consequential actions get a read-back.</strong> Research is
+            silent; spending money, sending messages, or deleting things always
+            comes back as “here's what I'll do — go ahead?” before it happens.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="mb-14" aria-label="Architecture diagram">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Architecture
+      </h2>
+      <div class="mt-6 overflow-hidden rounded-xl border border-border p-4 sm:p-8">
+        <MermaidArch client:only="react" />
+      </div>
+    </section>
+
+    <section class="mb-14" aria-label="Technical design">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Technical — how it works
+      </h2>
+      <div class="mt-6 space-y-4 text-[15px] leading-relaxed text-foreground/90">
+        <p>
+          The system is two planes joined by exactly one coupling: a{" "}
+          <strong>progress store</strong>. The foreground plane owns latency;
+          the background plane owns tools and time. Neither calls into the
+          other directly.
+        </p>
+        <ul class="list-disc space-y-2 pl-6">
+          <li>
+            <strong>Voice loop (foreground).</strong> Streaming STT → turn
+            detection → voice LLM → streaming TTS. Its context holds the
+            conversation plus a table of live task ids — never tool output,
+            never documents, never search results. Small context is what keeps
+            replies under 500 ms.
+          </li>
+          <li>
+            <strong>Orchestrator.</strong> Classifies every turn into one of
+            four moves: <em>answer now</em> (chit-chat, clarifications),
+            <em>spawn</em> (new work), <em>status check</em> (“how's that
+            going?”), or <em>cancel</em> (“stop that”). Spawns are
+            fire-and-forget: <code>spawn_task</code> returns an id in
+            milliseconds and the voice moves on.
+          </li>
+          <li>
+            <strong>Background agents.</strong> Each gets the full task brief,
+            its own context window, and full tool access — search, code, files,
+            bookings, long-polling APIs. They write heartbeats, partial
+            results, and terminal states to the progress store, plus artifacts
+            to an artifact store. They never speak and never see the
+            conversation.
+          </li>
+          <li>
+            <strong>Progress store + event fan-in.</strong> The only shared
+            state: task records (id, state, percent, latest checkpoint) and an
+            append-only event log (started, update, done, failed, cancelled).
+            The voice reads it on demand and receives terminal events, which it
+            speaks at the next turn boundary.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="mb-14" aria-label="Task lifecycle">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Lifecycle of a task
+      </h2>
+      <ol class="mt-6 list-decimal space-y-2 pl-6 text-[15px] leading-relaxed text-foreground/90">
+        <li>Turn arrives. Orchestrator classifies it as new work.</li>
+        <li>
+          <code>spawn_task(type, args)</code> returns a task id. It adds no
+          extra model round-trip on top of the reply.
+        </li>
+        <li>
+          Voice acknowledges in the same breath as answering: “On it — checking
+          now.” The user perceives zero waiting.
+        </li>
+        <li>
+          Agent executes with tools, writing heartbeats (state, percent,
+          checkpoints) to the store. Partial results accumulate for free.
+        </li>
+        <li>
+          “How's that going?” → voice reads the latest heartbeat and
+          paraphrases it. No agent is ever woken for this.
+        </li>
+        <li>
+          <em>Done</em> event → voice announces and presents the result, with
+          the receipt (sources, price, confirmation number) attached.
+        </li>
+        <li>
+          <em>Failed ×3</em> → dead-letter to the store → voice explains
+          plainly and offers the next move (“want me to try a different
+          source?”). Failures are spoken, never silent.
+        </li>
+        <li>
+          <em>“Stop that”</em> → <code>cancel_task(id)</code> → agent halts at
+          the next checkpoint, store records <em>cancelled</em>, voice
+          confirms what was stopped and what (if anything) survived.
+        </li>
+      </ol>
+    </section>
+
+    <section class="mb-14" aria-label="Hard problems">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        The three hard problems
+      </h2>
+      <div class="mt-6 space-y-4 text-[15px] leading-relaxed text-foreground/90">
+        <p>
+          <strong>1. Latency isolation.</strong> The voice context must stay
+          small forever. Agents summarize into the store; only summaries and
+          terminal results ever flow back up. If background output leaks into
+          the voice context, replies slow down and the whole illusion breaks —
+          so the store schema is the budget, not a suggestion.
+        </p>
+        <p>
+          <strong>2. Cancellation.</strong> Cancel is cooperative: agents poll a
+          cancel token at checkpoints and halt cleanly, leaving partial work
+          resumable. The voice must always be able to say exactly what stopped
+          and what survived — “stopped the search, kept the two quotes I
+          already had.”
+        </p>
+        <p>
+          <strong>3. Staleness.</strong> Long tasks race changing intent. Every
+          result carries the request it answers; if a newer turn supersedes
+          it, the old task is cancelled rather than announced. No delivering
+          yesterday's answer to today's question.
+        </p>
+      </div>
+    </section>
+
+    <section class="mb-14" aria-label="API sketch">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        API sketch
+      </h2>
+      <pre class="mt-6 overflow-x-auto rounded-xl border border-border bg-secondary/40 p-5 font-mono text-[13px] leading-relaxed text-foreground/90">{`spawn_task(type, args) -> task_id        // ms, never blocks
+check_status(task_id) -> TaskRecord      // heartbeats, checkpoints
+cancel_task(task_id) -> Ack              // cooperative, checkpointed
+
+TaskRecord = { id, state, pct, summary, artifacts[] }
+  state = queued | running | done | failed | cancelled
+Event    = started | update | done | failed | cancelled
+Retry    = 3 tries, exp backoff -> dead-letter -> voice speaks it`}</pre>
+    </section>
+
+    <section aria-label="Open questions">
+      <h2 class="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+        Open questions
+      </h2>
+      <ul class="mt-6 list-disc space-y-2 pl-6 text-[15px] leading-relaxed text-muted-foreground">
+        <li>What does the voice do with two simultaneous done events?</li>
+        <li>How long do task records and artifacts live? Who can delete them?</li>
+        <li>Background compute budget per user — throttle, queue, or charge?</li>
+      </ul>
+    </section>
+  </main>
+</BaseLayout>
