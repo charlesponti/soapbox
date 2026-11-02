@@ -1,0 +1,100 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Soapbox — Ledger</title><meta name="description" content="Every deck, as a table."><meta property="og:type" content="website"><meta property="og:site_name" content="Soapbox"><meta property="og:title" content="Soapbox — Ledger"><meta property="og:description" content="Every deck, as a table."><meta property="og:url" content="https://charlesponti.github.io/soapbox/decks/ledger/"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23E4181B'/%3E%3C/svg%3E"><link rel="stylesheet" href="/soapbox/components/fonts.css"><link rel="stylesheet" href="/soapbox/components/deck.css"><script src="/soapbox/components/motion-11.11.17.js"></script><style>
+/* ---------- site shell (shares deck.css tokens + Geist) ---------- */
+body.site{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100svh;display:flex;flex-direction:column}
+.site-bar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:22px;padding:15px clamp(20px,4vw,64px);background:rgba(0,0,0,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.site-brand{display:inline-flex;align-items:center;font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--ink);text-decoration:none}
+.site-switch{margin-left:auto;display:flex;gap:4px}
+.site-switch a{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--g2);text-decoration:none;padding:7px 12px;border:1px solid transparent;border-radius:999px}
+.site-switch a:hover{color:var(--ink)}
+.site-switch a.on{color:#000;background:#fff;border-color:#fff}
+.site-count{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--g1)}
+.site-main{flex:1;padding:clamp(30px,5vw,74px) clamp(20px,4vw,64px)}
+.site-foot{padding:20px clamp(20px,4vw,64px);border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--g2);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.site-orb .site-bar{height:52px;box-sizing:border-box;padding-block:10px;background:rgba(6,11,11,.88);border-color:#17312d}
+.site-orb .site-brand{color:#d6e5e0}
+.site-orb .site-switch a{color:#7f9a93}
+.site-orb .site-switch a.on{background:#5eead4;border-color:#5eead4;color:#04201c}
+.site-orb .site-main{padding:0}
+.site-orb .rvo-bar{top:52px}
+.site-orb .site-foot{background:#060b0b;border-color:#17312d;color:#7f9a93}
+.wrap{max-width:1360px;margin:0 auto;width:100%}
+h1.site-title{font-size:clamp(42px,5.8vw,92px);line-height:1.02;letter-spacing:-.045em;font-weight:800;margin:16px 0 20px;max-width:1000px}
+h1.site-title em{font-family:var(--serif);font-style:italic;font-weight:500}
+.site-lede{font-size:clamp(16px,1.4vw,20px);line-height:1.55;color:var(--g1);max-width:640px}
+.show-head{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--g1);margin:30px 0 8px}
+
+/* ---------- 1 · THE COVER — editorial index + live preview ---------- */
+.cover{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,540px);gap:clamp(28px,5vw,76px);align-items:start}
+.idx{border-top:1px solid var(--line)}
+.idxrow{display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:baseline;gap:16px;padding:15px 8px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--g2);transition:background .2s,color .2s}
+.idxrow:hover,.idxrow.on{color:var(--ink);background:#0b0b0b}
+.idxrow .n{font-family:var(--mono);font-size:12px;color:var(--g1)}
+.idxrow .t{font-size:clamp(17px,1.7vw,23px);font-weight:600;letter-spacing:-.02em}
+.idxrow .s{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--g2);white-space:nowrap}
+.preview{position:sticky;top:96px;border:1px solid var(--line);background:var(--panel)}
+.preview img{width:100%;display:block;aspect-ratio:1200/630;object-fit:cover}
+.pv-body{padding:18px 18px 20px}
+.pv-meta{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--g2);display:flex;justify-content:space-between;margin-bottom:9px}
+.pv-note{margin:0;font-size:15px;line-height:1.5;color:var(--g1)}
+.idxrow .arrow{font-family:var(--mono);font-size:11px;color:var(--g2)}
+.idxrow:hover .arrow,.idxrow.on .arrow{color:var(--ink)}
+
+/* ---------- 2 · THE WALL — the covers are the index ---------- */
+.wall-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px;margin-top:6px}
+.wall-tile{display:block;border:1px solid var(--line);background:var(--panel);text-decoration:none;color:var(--ink);transition:border-color .2s}
+.wall-tile:hover{border-color:#fff}
+.wall-tile img{width:100%;height:auto;display:block;aspect-ratio:1200/630;object-fit:cover}
+.wall-cap{display:flex;justify-content:space-between;gap:12px;padding:13px 15px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--g1)}
+.wall-cap b{font-weight:500;color:var(--ink)}
+
+/* ---------- 3 · THE LEDGER — a data table, keyboard-first ---------- */
+.led-sum{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--g1);margin:26px 0 18px;display:flex;gap:20px;flex-wrap:wrap}
+.ledger{width:100%;border-collapse:collapse;font-size:15px}
+.ledger th{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--g2);text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-weight:500;text-transform:uppercase}
+.ledger td{padding:13px 8px;border-bottom:1px solid #191919;vertical-align:baseline}
+.ledger tr.row{cursor:pointer;transition:background .15s,color .15s}
+.ledger tr.row:hover,.ledger tr.row.on{background:#fff;color:#000}
+.ledger td.n{font-family:var(--mono);color:var(--g1);width:54px}
+.ledger td.show{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--g2);white-space:nowrap}
+.ledger td.sc{font-family:var(--mono);text-align:right;width:78px;font-variant-numeric:tabular-nums;color:var(--g1)}
+.ledger tr.row:hover td.n,.ledger tr.row:hover td.show,.ledger tr.row:hover td.sc{color:#333}
+.ledger tr.hide{display:none}
+.hint{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--g2);margin-top:22px}
+.filter{font-family:var(--mono);font-size:12px;color:var(--ink);margin-top:10px;min-height:16px}
+.filter b{color:#fff}
+
+@media(max-width:1000px){.cover{grid-template-columns:1fr}.preview{position:static}}
+@media(max-width:620px){.site-orb .site-bar{gap:8px;padding-inline:12px}.site-orb .site-brand{font-size:10px}.site-orb .site-switch a{font-size:9px;padding:6px}.site-orb .site-count{display:none}}
+@media(prefers-reduced-motion:reduce){.idxrow,.wall-tile{transition:none}}
+</style></head><body class="site"><header class="site-bar"><a class="site-brand" href="/soapbox/"><span class="mark"></span>SOAPBOX</a><div role="navigation" aria-label="home page view" class="site-switch"><a href="/soapbox/decks/" class>COVER</a><a href="/soapbox/decks/wall/" class>WALL</a><a href="/soapbox/decks/ledger/" class="on" aria-current="page">LEDGER</a><a href="/soapbox/voice-orb/" class>ORB</a></div><a class="site-brand" href="/soapbox/essays/">ESSAYS</a><span class="site-count">08 DECKS</span></header><main class="site-main"><div class="wrap"><div class="eyebrow">SOAPBOX — THE LEDGER</div><div class="led-sum"><span>08 DECKS</span><span>85 SCENES</span><span>UPDATED 18 OCT 2026</span></div><table class="ledger" id="ledger"><thead><tr><th>#</th><th>Show</th><th>Title</th><th style="text-align:right">Scenes</th></tr></thead><tbody><tr class="row" data-href="/soapbox/decks/next-token/" data-search="the next token the agent series episode 01 — the build episode 1"><td class="n">01</td><td class="show">THE AGENT SERIES</td><td>The Next Token</td><td class="sc">11</td></tr><tr class="row" data-href="/soapbox/decks/the-tool-call/" data-search="the tool call is not the plan the agent series episode 02 — the contract episode 2"><td class="n">02</td><td class="show">THE AGENT SERIES</td><td>The Tool Call Is Not the Plan</td><td class="sc">11</td></tr><tr class="row" data-href="/soapbox/decks/confirmation-is-a-protocol/" data-search="confirmation is a protocol the agent series episode 03 — the protocol episode 3"><td class="n">03</td><td class="show">THE AGENT SERIES</td><td>Confirmation Is a Protocol</td><td class="sc">10</td></tr><tr class="row" data-href="/soapbox/decks/what-your-eval-is-measuring/" data-search="what your eval is actually measuring the agent series episode 04 — the instrument episode 4"><td class="n">04</td><td class="show">THE AGENT SERIES</td><td>What Your Eval Is Actually Measuring</td><td class="sc">10</td></tr><tr class="row" data-href="/soapbox/decks/models-fail-differently/" data-search="models fail differently the agent series episode 05 — failure shapes episode 5"><td class="n">05</td><td class="show">THE AGENT SERIES</td><td>Models Fail Differently</td><td class="sc">9</td></tr><tr class="row" data-href="/soapbox/decks/the-personal-agent-is-a-typed-capability-system/" data-search="the personal agent is a typed capability system the agent series episode 06 — the contract episode 6"><td class="n">06</td><td class="show">THE AGENT SERIES</td><td>The Personal Agent Is a Typed Capability System</td><td class="sc">10</td></tr><tr class="row" data-href="/soapbox/decks/train-your-own/" data-search="train your own tinyeinstein study 01 — from zero episode 7"><td class="n">07</td><td class="show">TINYEINSTEIN</td><td>Train Your Own</td><td class="sc">10</td></tr><tr class="row" data-href="/soapbox/decks/the-calendar-is-part-of-the-product/" data-search="the calendar is part of the product field notes field note 01 — the boundary episode 8"><td class="n">08</td><td class="show">FIELD NOTES</td><td>The Calendar Is Part of the Product</td><td class="sc">14</td></tr></tbody></table><div class="hint">TYPE TO FILTER · ↑↓ MOVE · ⏎ OPEN · 1–8 JUMP</div><div class="filter" id="filter" aria-live="polite"></div></div></main><footer class="site-foot"><span>SOAPBOX — FULL-SCREEN DECKS, TALKED OVER</span><span>GEIST · NO CDN · EVERY SCENE FITS 1600×900</span></footer></body></html><script slot="script">
+(() => {
+  const rows = [...document.querySelectorAll('.ledger tr.row')];
+  const filterEl = document.getElementById('filter');
+  const visible = () => rows.filter((r) => !r.classList.contains('hide'));
+  let buf = '';
+  const paint = () => {
+    rows.forEach((r) => r.classList.toggle('hide', buf !== '' && !r.dataset.search.includes(buf)));
+    filterEl.innerHTML = buf ? 'FILTER: <b>' + buf.toUpperCase() + '</b>' : '';
+  };
+  const move = (dir) => {
+    const vis = visible();
+    if (!vis.length) return;
+    const cur = vis.indexOf(document.querySelector('.ledger tr.row.on'));
+    const next = vis[(cur < 0 ? (dir > 0 ? 0 : vis.length - 1) : (cur + dir + vis.length) % vis.length)];
+    rows.forEach((r) => r.classList.toggle('on', r === next));
+    next.scrollIntoView({ block: 'nearest' });
+  };
+  const open = () => { const r = document.querySelector('.ledger tr.row.on'); if (r) location.href = r.dataset.href; };
+  rows.forEach((r) => r.addEventListener('click', () => { location.href = r.dataset.href; }));
+  document.addEventListener('keydown', (e) => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); return; }
+    if (e.key === 'Enter') { open(); return; }
+    if (e.key === 'Escape') { buf = ''; paint(); return; }
+    if (e.key === 'Backspace') { buf = buf.slice(0, -1); paint(); return; }
+    if (/^[1-9]$/.test(e.key)) { const r = rows[Number(e.key) - 1]; if (r) location.href = r.dataset.href; return; }
+    if (/^[a-z0-9 ]$/i.test(e.key)) { buf += e.key; paint(); }
+  });
+})();
+</script>
