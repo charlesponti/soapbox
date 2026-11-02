@@ -1,284 +1,236 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-
-const htmlContent = `
-  <div class="anim-container">
-    <a href="../" class="back-link">← Back</a>
-    <h1>Animated: Auto-Deprecation</h1>
-    <p class="subtitle">Facts decay at different rates. When a class falls under the threshold, it gets archived.</p>
-
-    <div class="controls">
-      <button onclick="reset()">Reset</button>
-      <button onclick="run()">Simulate 180 days</button>
-    </div>
-
-    <div class="step-info" id="step-info">Click "Simulate 180 days".</div>
-
-    <div class="chart">
-      <svg id="svg" viewBox="0 0 820 300" width="100%" height="300" role="img" aria-label="Decay curves per class">
-        <!-- axes -->
-        <line x1="60" y1="260" x2="790" y2="260" stroke="#d0d7de" />
-        <line x1="60" y1="30" x2="60" y2="260" stroke="#d0d7de" />
-        <text x="60" y="278" font-size="11" fill="#6e7781">0</text>
-        <text x="420" y="278" font-size="11" fill="#6e7781" text-anchor="middle">90 days</text>
-        <text x="780" y="278" font-size="11" fill="#6e7781" text-anchor="end">180 days</text>
-        <text x="20" y="40" font-size="11" fill="#6e7781">1.0</text>
-        <text x="20" y="150" font-size="11" fill="#6e7781">0.5</text>
-        <!-- threshold -->
-        <line id="threshold" x1="60" y1="190" x2="790" y2="190" stroke="#cf222e" stroke-dasharray="5 4" stroke-width="1.5" />
-        <text x="700" y="184" font-size="11" fill="#cf222e">archive threshold 0.25</text>
-        <g id="curves"></g>
-      </svg>
-      <div class="legend" id="legend"></div>
-    </div>
-
-    <div class="cards" id="cards"></div>
-
-    <h2>How it works</h2>
-    <ol>
-      <li><strong>Decay class</strong> is assigned at write time from the slot kind. Identity facts (<code>name</code>) are <em>exempt</em>; preferences fade at medium speed; passing observations fade fast.</li>
-      <li><strong>Effective confidence</strong> is a function of the stored confidence, reinforcement count, and elapsed time since <code>last_reinforced_at</code>.</li>
-      <li><strong>Reinforcement</strong> resets the clock: every time a memory is retrieved or restated, its decay restarts and confidence rises.</li>
-      <li><strong>Archival</strong> happens in the sleep job: anything below the threshold moves to <code>archived</code>, leaving history intact rather than deleting it.</li>
-    </ol>
-    <p>The point is not to forget — it is to stop stale facts from outranking fresh ones at retrieval time.</p>
-  </div>
-
-  <script>
-    const CLASSES = [
-      { id: 'exempt', label: 'exempt (name)',      color: '#0969da', halfLife: Infinity },
-      { id: 'slow',   label: 'slow (relationships)', color: '#1a7f37', halfLife: 240 },
-      { id: 'medium', label: 'medium (preferences)', color: '#9a6700', halfLife: 90 },
-      { id: 'fast',   label: 'fast (observations)',  color: '#cf222e', halfLife: 30 }
-    ];
-
-    const MEMS = [
-      { text: "The user's name is Charles", cls: 'exempt' },
-      { text: 'The user lives in London', cls: 'slow' },
-      { text: 'The user prefers dark mode', cls: 'medium' },
-      { text: 'The user is tired today', cls: 'fast' }
-    ];
-
-    const NS = 'http://www.w3.org/2000/svg';
-    const X0 = 60, X1 = 790, Y0 = 260, Y_TOP = 35, DAYS = 180, THRESH = 0.25;
-    const xFor = (d) => X0 + (d / DAYS) * (X1 - X0);
-    const yFor = (v) => Y0 - v * (Y0 - Y_TOP);
-
-    function effective(cls, days) {
-      if (!isFinite(cls.halfLife)) return 1;
-      return Math.pow(0.5, days / cls.halfLife);
-    }
-
-    function reset() {
-      document.getElementById('curves').innerHTML = '';
-      document.getElementById('legend').innerHTML = '';
-      document.getElementById('cards').innerHTML = '';
-      document.getElementById('step-info').textContent = 'Click "Simulate 180 days".';
-
-      for (const c of CLASSES) {
-        const path = document.createElementNS(NS, 'path');
-        let d = '';
-        for (let day = 0; day <= DAYS; day += 2) {
-          d += (day === 0 ? 'M' : 'L') + xFor(day).toFixed(1) + ' ' + yFor(effective(c, day)).toFixed(1) + ' ';
-        }
-        path.setAttribute('d', d.trim());
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', c.color);
-        path.setAttribute('stroke-width', '2.5');
-        path.setAttribute('stroke-linecap', 'round');
-        path.dataset.id = c.id;
-        const len = path.getTotalLength ? 0 : 0;
-        path.style.strokeDasharray = '1200';
-        path.style.strokeDashoffset = '1200';
-        path.style.transition = 'stroke-dashoffset 1.6s linear';
-        document.getElementById('curves').appendChild(path);
-
-        const li = document.createElement('div');
-        li.className = 'legend-item';
-        li.innerHTML = \`<span class="swatch" style="background:\${c.color}"></span>\${c.label}\`;
-        document.getElementById('legend').appendChild(li);
-      }
-
-      for (const m of MEMS) {
-        const cls = CLASSES.find(c => c.id === m.cls);
-        const el = document.createElement('div');
-        el.className = 'mem';
-        el.dataset.cls = m.cls;
-        el.innerHTML = \`<span class="cls">\${m.cls}</span><span>\${m.text}</span>
-          <span class="age">day 0 · conf 1.00</span><span class="st active">active</span>\`;
-        el.style.borderLeft = \`3px solid \${cls.color}\`;
-        document.getElementById('cards').appendChild(el);
-      }
-    }
-
-    async function run() {
-      reset();
-      const info = document.getElementById('step-info');
-      info.textContent = 'Drawing decay curves — confidence falls exponentially with a per-class half-life.';
-      await new Promise(r => setTimeout(r, 60));
-      document.querySelectorAll('#curves path').forEach(p => { p.style.strokeDashoffset = '0'; });
-      await new Promise(r => setTimeout(r, 1700));
-
-      info.textContent = 'Advancing the clock; watching each memory cross the threshold…';
-      const stepMs = 90;
-      for (let day = 0; day <= DAYS; day += 6) {
-        for (const m of MEMS) {
-          const cls = CLASSES.find(c => c.id === m.cls);
-          const conf = effective(cls, day);
-          const row = document.querySelector(\`.mem[data-cls="\${m.cls}"]\`);
-          if (!row) continue;
-          row.querySelector('.age').textContent = \`day \${day} · conf \${conf.toFixed(2)}\`;
-          if (conf < THRESH && !row.classList.contains('archived')) {
-            row.classList.add('archived');
-            const st = row.querySelector('.st');
-            st.className = 'st archived';
-            st.textContent = 'archived';
-            info.textContent = \`Day \${day}: "\${m.text}" fell to \${conf.toFixed(2)} — moved to archived by the sleep job.\`;
-          }
-        }
-        await new Promise(r => setTimeout(r, stepMs));
-      }
-
-      info.textContent = 'Done. Exempt never fades; fast observations archive first; history is preserved either way.';
-    }
-
-    reset();
-  </script>
-`;
-const cssContent = `
-    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
-    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
-    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
-    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
-    .controls button:hover { background: #eaeef2; }
-    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 44px; }
-    .chart { border: 1px solid #d0d7de; border-radius: 10px; background: #fff; padding: 12px; }
-    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 12px 0 0; font-size: 12px; color: #57606a; }
-    .legend-item { display: flex; align-items: center; gap: 6px; }
-    .swatch { width: 10px; height: 10px; border-radius: 2px; }
-    .cards { display: grid; gap: 8px; margin-top: 16px; }
-    .mem { display: flex; align-items: center; gap: 10px; border: 1px solid #d0d7de; border-radius: 8px; padding: 10px 12px; background: #fff; font-size: 13px; transition: all .4s; }
-    .mem.archived { opacity: .45; border-style: dashed; background: #fafafa; }
-    .mem .cls { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #f6f8fa; color: #57606a; font-weight: 600; }
-    .mem .age { margin-left: auto; font-variant-numeric: tabular-nums; color: #6e7781; font-size: 12px; }
-    .mem .st { font-size: 11px; padding: 2px 8px; border-radius: 999px; }
-    .st.active { background: #dafbe1; color: #1a7f37; }
-    .st.archived { background: #ffebe9; color: #cf222e; }
-    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
-    .back-link:hover { text-decoration: underline; }
-    h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; }
-    li { margin-bottom: 8px; line-height: 1.65; }
-  `;
-const jsContent = `
-    const CLASSES = [
-      { id: 'exempt', label: 'exempt (name)',      color: '#0969da', halfLife: Infinity },
-      { id: 'slow',   label: 'slow (relationships)', color: '#1a7f37', halfLife: 240 },
-      { id: 'medium', label: 'medium (preferences)', color: '#9a6700', halfLife: 90 },
-      { id: 'fast',   label: 'fast (observations)',  color: '#cf222e', halfLife: 30 }
-    ];
-
-    const MEMS = [
-      { text: "The user's name is Charles", cls: 'exempt' },
-      { text: 'The user lives in London', cls: 'slow' },
-      { text: 'The user prefers dark mode', cls: 'medium' },
-      { text: 'The user is tired today', cls: 'fast' }
-    ];
-
-    const NS = 'http://www.w3.org/2000/svg';
-    const X0 = 60, X1 = 790, Y0 = 260, Y_TOP = 35, DAYS = 180, THRESH = 0.25;
-    const xFor = (d) => X0 + (d / DAYS) * (X1 - X0);
-    const yFor = (v) => Y0 - v * (Y0 - Y_TOP);
-
-    function effective(cls, days) {
-      if (!isFinite(cls.halfLife)) return 1;
-      return Math.pow(0.5, days / cls.halfLife);
-    }
-
-    function reset() {
-      document.getElementById('curves').innerHTML = '';
-      document.getElementById('legend').innerHTML = '';
-      document.getElementById('cards').innerHTML = '';
-      document.getElementById('step-info').textContent = 'Click "Simulate 180 days".';
-
-      for (const c of CLASSES) {
-        const path = document.createElementNS(NS, 'path');
-        let d = '';
-        for (let day = 0; day <= DAYS; day += 2) {
-          d += (day === 0 ? 'M' : 'L') + xFor(day).toFixed(1) + ' ' + yFor(effective(c, day)).toFixed(1) + ' ';
-        }
-        path.setAttribute('d', d.trim());
-        path.setAttribute('fill', 'none');
-        path.setAttribute('stroke', c.color);
-        path.setAttribute('stroke-width', '2.5');
-        path.setAttribute('stroke-linecap', 'round');
-        path.dataset.id = c.id;
-        const len = path.getTotalLength ? 0 : 0;
-        path.style.strokeDasharray = '1200';
-        path.style.strokeDashoffset = '1200';
-        path.style.transition = 'stroke-dashoffset 1.6s linear';
-        document.getElementById('curves').appendChild(path);
-
-        const li = document.createElement('div');
-        li.className = 'legend-item';
-        li.innerHTML = \`<span class="swatch" style="background:\${c.color}"></span>\${c.label}\`;
-        document.getElementById('legend').appendChild(li);
-      }
-
-      for (const m of MEMS) {
-        const cls = CLASSES.find(c => c.id === m.cls);
-        const el = document.createElement('div');
-        el.className = 'mem';
-        el.dataset.cls = m.cls;
-        el.innerHTML = \`<span class="cls">\${m.cls}</span><span>\${m.text}</span>
-          <span class="age">day 0 · conf 1.00</span><span class="st active">active</span>\`;
-        el.style.borderLeft = \`3px solid \${cls.color}\`;
-        document.getElementById('cards').appendChild(el);
-      }
-    }
-
-    async function run() {
-      reset();
-      const info = document.getElementById('step-info');
-      info.textContent = 'Drawing decay curves — confidence falls exponentially with a per-class half-life.';
-      await new Promise(r => setTimeout(r, 60));
-      document.querySelectorAll('#curves path').forEach(p => { p.style.strokeDashoffset = '0'; });
-      await new Promise(r => setTimeout(r, 1700));
-
-      info.textContent = 'Advancing the clock; watching each memory cross the threshold…';
-      const stepMs = 90;
-      for (let day = 0; day <= DAYS; day += 6) {
-        for (const m of MEMS) {
-          const cls = CLASSES.find(c => c.id === m.cls);
-          const conf = effective(cls, day);
-          const row = document.querySelector(\`.mem[data-cls="\${m.cls}"]\`);
-          if (!row) continue;
-          row.querySelector('.age').textContent = \`day \${day} · conf \${conf.toFixed(2)}\`;
-          if (conf < THRESH && !row.classList.contains('archived')) {
-            row.classList.add('archived');
-            const st = row.querySelector('.st');
-            st.className = 'st archived';
-            st.textContent = 'archived';
-            info.textContent = \`Day \${day}: "\${m.text}" fell to \${conf.toFixed(2)} — moved to archived by the sleep job.\`;
-          }
-        }
-        await new Promise(r => setTimeout(r, stepMs));
-      }
-
-      info.textContent = 'Done. Exempt never fades; fast observations archive first; history is preserved either way.';
-    }
-
-    reset();
-  `;
+import Deck from '../../layouts/Deck.astro';
 ---
+<Deck title="Auto-Deprecation" brand="AUTO-DEPRECATION" series="SEME · DIAGRAM 04" replayHint={true}
+  category="technology"
+  description="Facts fade at different speeds. When a memory falls under the line, the sleep job archives it — history intact.">
+<deck-cue time="COVER" title="The title">Open on the title. Facts fade, but history stays. Then meet the four decay classes.</deck-cue>
+<deck-cue time="STEP 1 · CLASSES" title="Four speeds">Decay class is assigned at write time. Names are exempt; passing observations burn fast.</deck-cue>
+<deck-cue time="STEP 2 · CURVES" title="Exponential">Confidence falls exponentially, one half-life per class. The red line is the whole system: under 0.25, archived.</deck-cue>
+<deck-cue time="STEP 3 · 180 DAYS" title="The crossing">Run the clock. The fast observation crosses the line at day ninety; the sleep job moves it, deletes nothing.</deck-cue>
+<deck-cue time="CLOSE" title="The point">Forget nothing. Outrank the stale. Hand off to the deep-dive essay.</deck-cue>
 
-<BaseLayout title="Animated: Auto-Deprecation" description="Interactive animated diagram for the Seme memory system" jsonldType="Article">
-  <main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body>
-    <a href="../" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">
-      ← Back
-    </a>
-    <style is:inline set:html={cssContent} />
-    <div set:html={htmlContent} />
-    <script is:inline set:html={jsContent} />
-  </main>
-</BaseLayout>
+<deck-scene id="s0" title="SEME · DIAGRAM 04" layout="full" cover>
+<h1 class="rise">Auto-Deprecation</h1>
+<p class="lede rise">Facts fade. History stays.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="CLASSES" layout="split"><div>
+<h2 class="rise">Not every fact<br><em class="serif">fades alike.</em></h2>
+<p class="lede rise">Four decay classes, assigned at write time. Names never fade.</p></div>
+<div class="diagram rise"><div class="dlabel"><span>DECAY CLASSES</span><span>HALF-LIFE</span></div>
+<div class="res">
+<div class="rrow"><span>Exempt · names</span><span class="score">never</span></div>
+<div class="rrow"><span>Slow · relationships</span><span class="score">240 days</span></div>
+<div class="rrow"><span>Medium · preferences</span><span class="score">90 days</span></div>
+<div class="rrow"><span>Fast · observations</span><span class="score">30 days</span></div>
+</div>
+<p class="note">Reinforcement resets the clock: retrieve it, restate it, it lives longer.</p></div></deck-scene>
+
+<deck-scene id="s2" title="CURVES" layout="split"><div>
+<h2 class="rise">Confidence falls<br><em class="serif">exponentially.</em></h2>
+<p class="lede rise">One half-life per class. Cross the red line and the sleep job moves you.</p>
+<button class="replay rise" data-replay="curves"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CURVES</button></div>
+<div class="diagram rise"><div class="dlabel"><span>DECAY · 180 DAYS</span><span>ARCHIVE 0.25</span></div>
+<svg id="decay-svg" viewBox="0 0 640 300" role="img" aria-label="Decay curves per class" width="100%">
+<line x1="50" y1="250" x2="612" y2="250" stroke="#666" stroke-width="1"/>
+<line x1="50" y1="250" x2="50" y2="40" stroke="#666" stroke-width="1"/>
+<text x="50" y="268" font-size="11" fill="#666" font-family="monospace">0</text>
+<text x="330" y="268" font-size="11" fill="#666" font-family="monospace" text-anchor="middle">90 days</text>
+<text x="612" y="268" font-size="11" fill="#666" font-family="monospace" text-anchor="end">180 days</text>
+<text x="40" y="54" font-size="11" fill="#666" font-family="monospace" text-anchor="end">1.0</text>
+<line x1="50" y1="200" x2="612" y2="200" stroke="#E4181B" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="604" y="192" font-size="11" fill="#E4181B" font-family="monospace" text-anchor="end">archive 0.25</text>
+<g id="decay-lines"></g>
+<g id="decay-labels" font-size="11" font-family="monospace" fill="#a1a1a1" text-anchor="end"></g>
+</svg>
+<div class="legend" id="decay-legend"></div>
+<p class="note">Medium kisses the line at day 180. Fast crosses it at day 90.</p></div></deck-scene>
+
+<deck-scene id="s3" title="180 DAYS" layout="split"><div>
+<h2 class="rise">Watch them cross<br><em class="serif">the line.</em></h2>
+<p class="lede rise">Half a year in six seconds. The sleep job archives; it never deletes.</p>
+<button class="replay rise" data-replay="sim180"><deck-icon name="rotate-ccw"></deck-icon> REPLAY 180 DAYS</button></div>
+<div class="diagram rise"><div class="dlabel"><span>SIMULATION</span><span id="sim-day">DAY 0</span></div>
+<div class="res" id="sim-mems"></div>
+<p class="note" id="sim-status">Press replay. The fast observation will not survive.</p></div></deck-scene>
+
+<deck-scene id="s4" title="CLOSE" layout="full">
+<div class="finish serif rise">Forget nothing. Outrank the stale.</div>
+<p class="lede rise" style="margin-top:26px">The deep dive sits under Essays, Auto-Deprecation.</p>
+</deck-scene>
+</Deck>
+
+<style is:inline slot="head">
+.res{margin-top:6px;min-height:60px}
+.rrow{display:flex;align-items:baseline;gap:10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:11px 14px;margin:8px 0;font-size:14px}
+.rrow .score{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--g1);white-space:nowrap}
+.rrow.dim{opacity:.45;border-style:dashed}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;border:1px solid #333;border-radius:999px;padding:3px 9px;color:var(--g1)}
+.tag.arch{border-color:#fff;color:#fff}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--g1)}
+.sw{display:inline-block;width:24px;height:0;margin-right:8px;vertical-align:middle}
+#decay-svg text{font-family:var(--mono)}
+</style>
+
+<!--
+ACCENT AUDIT (SYSTEM.md §2): the archive threshold line (#E4181B) is the one
+semantic state of this deck — under the line means archived. Everything else
+is monochrome. The nav mark is the shared brand component owned by
+components/deck-stage.js.
+-->
+
+<script is:inline slot="script">
+/* One script, one declaration of everything. The stage fires each scene's
+   builder on first view and on R. */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const beat = () => window.DECK_BEAT || 900;
+  const reduced = () => !!window.deckBuild.reduced;
+  const motion = () => window.deckBuild.Motion;
+  const X0 = 50, X1 = 612, Y0 = 250, YH = 200, DAYS = 180;
+
+  const CLASSES = [
+    { id: 'exempt', label: 'exempt', dash: null, color: '#ffffff', halfLife: Infinity },
+    { id: 'slow', label: 'slow', dash: null, color: '#a1a1a1', halfLife: 240 },
+    { id: 'medium', label: 'medium', dash: '6 4', color: '#666666', halfLife: 90 },
+    { id: 'fast', label: 'fast', dash: '2 4', color: '#ffffff', halfLife: 30 },
+  ];
+  const MEMS = [
+    { text: 'The name is Charles.', cls: 'exempt' },
+    { text: 'Lives in London.', cls: 'slow' },
+    { text: 'Prefers dark mode.', cls: 'medium' },
+    { text: 'Tired today.', cls: 'fast' },
+  ];
+  const conf = (c, d) => (isFinite(c.halfLife) ? Math.pow(0.5, d / c.halfLife) : 1);
+  const xFor = (d) => X0 + (d / DAYS) * (X1 - X0);
+  const yFor = (v) => Y0 - v * YH;
+
+  function drawSkeleton() {
+    const g = document.getElementById('decay-lines');
+    const lab = document.getElementById('decay-labels');
+    const leg = document.getElementById('decay-legend');
+    g.innerHTML = '';
+    lab.innerHTML = '';
+    leg.innerHTML = '';
+    for (const c of CLASSES) {
+      let d = '';
+      for (let day = 0; day <= DAYS; day += 2) {
+        d += (day === 0 ? 'M' : 'L') + xFor(day).toFixed(1) + ' ' + yFor(conf(c, day)).toFixed(1) + ' ';
+      }
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', d.trim());
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', c.color);
+      path.setAttribute('stroke-width', '2.5');
+      path.setAttribute('stroke-linecap', 'round');
+      if (c.dash) path.setAttribute('stroke-dasharray', c.dash);
+      g.appendChild(path);
+      c.el = path;
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', X1 + 4);
+      t.setAttribute('y', yFor(conf(c, DAYS)) + 4);
+      t.setAttribute('font-size', '11');
+      t.textContent = c.label;
+      lab.appendChild(t);
+    }
+    for (const c of CLASSES) {
+      const item = document.createElement('span');
+      const sw = document.createElement('span');
+      sw.className = 'sw';
+      sw.style.borderTop = '3px ' + (c.dash ? (c.dash === '2 4' ? 'dotted' : 'dashed') : 'solid') + ' ' + c.color;
+      item.appendChild(sw);
+      item.appendChild(document.createTextNode(c.label));
+      leg.appendChild(item);
+    }
+  }
+
+  function playCurves() {
+    drawSkeleton();
+    if (reduced()) return;
+    // Native WAAPI, not Motion: Motion 11's animate() silently no-ops on SVG
+    // content in Chromium (verified: no error, no effect).
+    CLASSES.forEach((c, i) => {
+      const el = c.el;
+      const delay = i * beat();
+      if (c.dash) {
+        el.style.opacity = '0';
+        el.animate([{ opacity: '0' }, { opacity: '1' }], { duration: 1200, delay, easing: 'ease-out', fill: 'forwards' });
+      } else {
+        const len = el.getTotalLength();
+        el.style.strokeDasharray = String(len);
+        el.style.strokeDashoffset = String(len);
+        el.animate(
+          [{ strokeDashoffset: len + 'px' }, { strokeDashoffset: '0px' }],
+          { duration: 1400, delay, easing: 'linear', fill: 'forwards' }
+        );
+      }
+    });
+  }
+
+  function memRow(m) {
+    const el = document.createElement('div');
+    el.className = 'rrow';
+    el.dataset.cls = m.cls;
+    const label = document.createElement('span');
+    label.textContent = m.text;
+    const score = document.createElement('span');
+    score.className = 'score';
+    const tag = document.createElement('span');
+    tag.className = 'tag';
+    tag.textContent = 'ACTIVE';
+    el.appendChild(label);
+    el.appendChild(score);
+    el.appendChild(tag);
+    el._score = score;
+    el._tag = tag;
+    return el;
+  }
+
+  function playSim() {
+    const box = document.getElementById('sim-mems');
+    const dayEl = document.getElementById('sim-day');
+    const status = document.getElementById('sim-status');
+    box.innerHTML = '';
+    const rows = MEMS.map((m) => {
+      const r = memRow(m);
+      r._score.textContent = 'day 0 · 1.00';
+      box.appendChild(r);
+      return r;
+    });
+    const steps = [0, 30, 60, 90, 120, 150, 180];
+    const announced = new Set();
+    const runStep = (k) => {
+      const day = steps[k];
+      dayEl.textContent = 'DAY ' + day;
+      MEMS.forEach((m, i) => {
+        const c = CLASSES.find((x) => x.id === m.cls);
+        const v = conf(c, day);
+        rows[i]._score.textContent = 'day ' + day + ' · ' + v.toFixed(2);
+        if (v < 0.25 && !rows[i].classList.contains('dim')) {
+          rows[i].classList.add('dim');
+          rows[i]._tag.textContent = 'ARCHIVED';
+          rows[i]._tag.classList.add('arch');
+        }
+      });
+      const crossed = MEMS.filter((m) => {
+        const c = CLASSES.find((x) => x.id === m.cls);
+        return conf(c, day) < 0.25;
+      });
+      if (crossed.length && !announced.has(crossed[0].text)) {
+        announced.add(crossed[0].text);
+        status.textContent = 'Day ' + day + ': "' + crossed[0].text + '" fell under 0.25 — archived, history kept.';
+      } else if (k === steps.length - 1) {
+        status.textContent = 'Day 180: exempt, slow and medium survive. Only the fast observation archived.';
+      }
+    };
+    if (reduced()) {
+      runStep(steps.length - 1);
+      return;
+    }
+    steps.forEach((_, k) => setTimeout(() => runStep(k), k * beat()));
+  }
+
+  window.deckBuild.register({ curves: playCurves, sim180: playSim });
+})();
+</script>

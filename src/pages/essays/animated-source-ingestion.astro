@@ -1,251 +1,159 @@
 ---
-import BaseLayout from "../../layouts/BaseLayout.astro";
-
-const htmlContent = `
-  <div class="anim-container">
-    <a href="../" class="back-link">← Back</a>
-    <h1>Animated: Source Ingestion</h1>
-    <p class="subtitle">URLs, PDFs, YouTube transcripts and pasted text all converge on the same pipeline.</p>
-
-    <div class="src-tabs" id="src-tabs"></div>
-
-    <div class="controls">
-      <button onclick="reset()">Reset</button>
-      <button onclick="run()">Ingest</button>
-    </div>
-
-    <div class="step-info" id="step-info">Pick a source type, then press Ingest.</div>
-
-    <div class="flow">
-      <div class="node" id="n1"><h4>1. Fetch</h4><div class="body" id="b1">—</div></div>
-      <div class="node" id="n2"><h4>2. Extract text</h4><div class="body" id="b2">—</div></div>
-      <div class="node" id="n3"><h4>3. Chunk</h4><div class="body" id="b3">—</div></div>
-      <div class="node" id="n4"><h4>4. Turns</h4><div class="body" id="b4">—</div></div>
-      <div class="node" id="n5"><h4>5. Extract</h4><div class="body" id="b5">—</div></div>
-    </div>
-
-    <div id="detail" style="border:1px solid #d0d7de;border-radius:10px;padding:14px;background:#fff;min-height:110px;font-size:13px;"></div>
-
-    <h2>How it works</h2>
-    <ol>
-      <li><strong>One entry point.</strong> A single <code>/ingest/source</code> call branches on the payload: <code>url</code>, <code>pdf_path</code>, or <code>text</code>. YouTube URLs are detected by hostname and routed to the transcript fetcher.</li>
-      <li><strong>Text extraction.</strong> HTML is stripped to readable text, PDFs are read page by page, transcripts are cleaned of timing artefacts.</li>
-      <li><strong>Paragraph chunking.</strong> Splitting on blank lines keeps each chunk semantically whole — far better for extraction than fixed-width windows that cut sentences in half.</li>
-      <li><strong>Provenance.</strong> Every chunk becomes a turn with <code>source_type</code> and a source row, so each extracted memory can be traced back to the exact document and paragraph that produced it.</li>
-      <li><strong>Extraction</strong> then runs exactly as it does for conversation: the same entity, relationship and memory pipeline handles both.</li>
-    </ol>
-  </div>
-
-  <script>
-    const SOURCES = {
-      url: {
-        label: 'URL',
-        fetch: 'GET https://example.com/post\\n200 OK · text/html',
-        extract: 'strip tags → 1,842 words\\nremoved 14 script/style blocks',
-        chunk: '6 paragraphs\\n(max 900 chars each)',
-        turns: '6 turns\\nuser role, source_type=url',
-        extract: '2 entities · 1 relationship\\n3 memories'
-      },
-      pdf: {
-        label: 'PDF',
-        fetch: 'open paper.pdf\\n12 pages · text layer present',
-        extract: 'page-by-page read\\n4,310 words',
-        chunk: '9 paragraphs',
-        turns: '9 turns\\nsource_type=pdf',
-        extract: '7 entities · 5 relationships\\n11 memories'
-      },
-      youtube: {
-        label: 'YouTube',
-        fetch: 'youtube.com/watch?v=…\\ncaptions available',
-        extract: 'transcript 3,120 words\\ntimestamps stripped',
-        chunk: '8 paragraphs',
-        turns: '8 turns\\nsource_type=youtube',
-        extract: '5 entities · 3 relationships\\n9 memories'
-      },
-      text: {
-        label: 'Pasted text',
-        fetch: 'inline payload\\nno network call',
-        extract: 'as-provided\\nraw string',
-        chunk: '3 paragraphs',
-        turns: '3 turns\\nsource_type=text',
-        extract: '4 entities · 2 relationships\\n6 memories'
-      }
-    };
-
-    let current = 'url';
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const info = document.getElementById('step-info');
-
-    function renderTabs() {
-      const wrap = document.getElementById('src-tabs');
-      wrap.innerHTML = '';
-      for (const key of Object.keys(SOURCES)) {
-        const b = document.createElement('button');
-        b.textContent = SOURCES[key].label;
-        b.className = key === current ? 'on' : '';
-        b.onclick = () => { current = key; renderTabs(); reset(); };
-        wrap.appendChild(b);
-      }
-    }
-
-    function reset() {
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById('n' + i).classList.remove('active');
-        document.getElementById('b' + i).textContent = '—';
-      }
-      document.getElementById('detail').innerHTML = '';
-      info.textContent = \`Source: \${SOURCES[current].label}. Press Ingest.\`;
-    }
-
-    async function run() {
-      reset();
-      const src = SOURCES[current];
-      const steps = ['fetch', 'extract', 'chunk', 'turns', 'extract'];
-      const labels = ['Fetching source…', 'Extracting readable text…', 'Chunking by paragraph…', 'Creating turns with provenance…', 'Running extraction…'];
-
-      for (let i = 0; i < steps.length; i++) {
-        const node = document.getElementById('n' + (i + 1));
-        node.classList.add('active');
-        info.textContent = labels[i];
-        const body = document.getElementById('b' + (i + 1));
-        for (const line of src[steps[i]].split('\\n')) {
-          body.innerHTML += line + '<br>';
-          await sleep(140);
-        }
-        await sleep(320);
-      }
-
-      const d = document.getElementById('detail');
-      d.innerHTML = \`<strong>Result</strong><br><span style="color:#57606a">\${src.extract.replace('\\n', ' · ')}</span>
-        <div style="margin-top:8px;font-size:12px;color:#6e7781">All extracted memories carry a source pointer back to the original \${src.label.toLowerCase()} and paragraph.</div>\`;
-      info.textContent = 'Done. Same pipeline, four different entry points.';
-    }
-
-    renderTabs();
-    reset();
-  </script>
-`;
-const cssContent = `
-    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
-    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
-    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
-    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
-    .controls button:hover { background: #eaeef2; }
-    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 44px; }
-    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; align-items: stretch; margin: 18px 0; }
-    @media (max-width: 760px) { .flow { grid-template-columns: 1fr; } }
-    .node { border: 1px solid #d0d7de; border-radius: 10px; background: #fff; padding: 12px; font-size: 12px; transition: all .4s; opacity: .4; min-height: 96px; }
-    .node.active { opacity: 1; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9,105,218,.08); transform: translateY(-2px); }
-    .node h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #57606a; margin: 0 0 8px; }
-    .node .body { font-family: var(--font-mono); font-size: 11px; line-height: 1.5; color: #24292f; word-break: break-word; }
-    .src-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-    .src-tabs button { padding: 6px 12px; border-radius: 999px; border: 1px solid #d0d7de; background: #fff; font-size: 12px; cursor: pointer; }
-    .src-tabs button.on { background: #0969da; border-color: #0969da; color: #fff; }
-    .para { opacity: 0; transform: translateY(4px); transition: all .3s; padding: 6px 8px; border-left: 2px solid #54aeff; background: #f6f8fa; margin: 4px 0; border-radius: 0 4px 4px 0; font-size: 11px; }
-    .para.on { opacity: 1; transform: translateY(0); }
-    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
-    .back-link:hover { text-decoration: underline; }
-    h2 { font-size: 22px; font-weight: 700; margin: 32px 0 12px; }
-    li { margin-bottom: 8px; line-height: 1.65; }
-  `;
-const jsContent = `
-    const SOURCES = {
-      url: {
-        label: 'URL',
-        fetch: 'GET https://example.com/post\\n200 OK · text/html',
-        extract: 'strip tags → 1,842 words\\nremoved 14 script/style blocks',
-        chunk: '6 paragraphs\\n(max 900 chars each)',
-        turns: '6 turns\\nuser role, source_type=url',
-        extract: '2 entities · 1 relationship\\n3 memories'
-      },
-      pdf: {
-        label: 'PDF',
-        fetch: 'open paper.pdf\\n12 pages · text layer present',
-        extract: 'page-by-page read\\n4,310 words',
-        chunk: '9 paragraphs',
-        turns: '9 turns\\nsource_type=pdf',
-        extract: '7 entities · 5 relationships\\n11 memories'
-      },
-      youtube: {
-        label: 'YouTube',
-        fetch: 'youtube.com/watch?v=…\\ncaptions available',
-        extract: 'transcript 3,120 words\\ntimestamps stripped',
-        chunk: '8 paragraphs',
-        turns: '8 turns\\nsource_type=youtube',
-        extract: '5 entities · 3 relationships\\n9 memories'
-      },
-      text: {
-        label: 'Pasted text',
-        fetch: 'inline payload\\nno network call',
-        extract: 'as-provided\\nraw string',
-        chunk: '3 paragraphs',
-        turns: '3 turns\\nsource_type=text',
-        extract: '4 entities · 2 relationships\\n6 memories'
-      }
-    };
-
-    let current = 'url';
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const info = document.getElementById('step-info');
-
-    function renderTabs() {
-      const wrap = document.getElementById('src-tabs');
-      wrap.innerHTML = '';
-      for (const key of Object.keys(SOURCES)) {
-        const b = document.createElement('button');
-        b.textContent = SOURCES[key].label;
-        b.className = key === current ? 'on' : '';
-        b.onclick = () => { current = key; renderTabs(); reset(); };
-        wrap.appendChild(b);
-      }
-    }
-
-    function reset() {
-      for (let i = 1; i <= 5; i++) {
-        document.getElementById('n' + i).classList.remove('active');
-        document.getElementById('b' + i).textContent = '—';
-      }
-      document.getElementById('detail').innerHTML = '';
-      info.textContent = \`Source: \${SOURCES[current].label}. Press Ingest.\`;
-    }
-
-    async function run() {
-      reset();
-      const src = SOURCES[current];
-      const steps = ['fetch', 'extract', 'chunk', 'turns', 'extract'];
-      const labels = ['Fetching source…', 'Extracting readable text…', 'Chunking by paragraph…', 'Creating turns with provenance…', 'Running extraction…'];
-
-      for (let i = 0; i < steps.length; i++) {
-        const node = document.getElementById('n' + (i + 1));
-        node.classList.add('active');
-        info.textContent = labels[i];
-        const body = document.getElementById('b' + (i + 1));
-        for (const line of src[steps[i]].split('\\n')) {
-          body.innerHTML += line + '<br>';
-          await sleep(140);
-        }
-        await sleep(320);
-      }
-
-      const d = document.getElementById('detail');
-      d.innerHTML = \`<strong>Result</strong><br><span style="color:#57606a">\${src.extract.replace('\\n', ' · ')}</span>
-        <div style="margin-top:8px;font-size:12px;color:#6e7781">All extracted memories carry a source pointer back to the original \${src.label.toLowerCase()} and paragraph.</div>\`;
-      info.textContent = 'Done. Same pipeline, four different entry points.';
-    }
-
-    renderTabs();
-    reset();
-  `;
+import Deck from '../../layouts/Deck.astro';
 ---
+<Deck title="Source Ingestion" brand="SOURCE INGESTION" series="SEME · DIAGRAM 05" replayHint={true}
+  category="technology"
+  description="URLs, PDFs, transcripts, pasted text — four doors into the same five-step pipeline.">
+<deck-cue time="COVER" title="The title">Open on the title. Four doors, one pipeline. Meet the doors first.</deck-cue>
+<deck-cue time="STEP 1 · DOORS" title="Four doors">URL, PDF, YouTube, pasted text. One /ingest/source call branches on the payload.</deck-cue>
+<deck-cue time="STEP 2 · PIPELINE" title="Five steps">Fetch, extract, chunk, turn, extract. Watch a URL walk all five.</deck-cue>
+<deck-cue time="STEP 3 · PROVENANCE" title="The pointer">Every memory carries a source pointer back to its document and paragraph.</deck-cue>
+<deck-cue time="CLOSE" title="Same pipe">Four doors, one pipe, zero special cases. Hand off to the deep-dive essay.</deck-cue>
 
-<BaseLayout title="Animated: Source Ingestion" description="Interactive animated diagram for the Seme memory system" jsonldType="Article">
-  <main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body>
-    <a href="../" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">
-      ← Back
-    </a>
-    <style is:inline set:html={cssContent} />
-    <div set:html={htmlContent} />
-    <script is:inline set:html={jsContent} />
-  </main>
-</BaseLayout>
+<deck-scene id="s0" title="SEME · DIAGRAM 05" layout="full" cover>
+<h1 class="rise">Source Ingestion</h1>
+<p class="lede rise">Four doors. One pipeline.</p>
+</deck-scene>
+
+<deck-scene id="s1" title="DOORS" layout="split"><div>
+<h2 class="rise">Four doors,<br><em class="serif">one call.</em></h2>
+<p class="lede rise">A single endpoint branches on the payload. YouTube sniffs by hostname.</p>
+<button class="replay rise" data-replay="sources"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE DOORS</button></div>
+<div class="diagram rise"><div class="dlabel"><span>ENTRY POINTS</span><span>/INGEST/SOURCE</span></div>
+<div class="res" id="res-doors"></div>
+<p class="note">Same shape in, whatever the door.</p></div></deck-scene>
+
+<deck-scene id="s2" title="PIPELINE" layout="split"><div>
+<h2 class="rise">Five steps,<br><em class="serif">every time.</em></h2>
+<p class="lede rise">A URL walks the pipe. The other three doors walk the same five.</p>
+<button class="replay rise" data-replay="pipeline"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE PIPE</button></div>
+<div class="diagram rise"><div class="dlabel"><span>PIPELINE · URL</span><span id="pipe-step">READY</span></div>
+<div class="pflow" id="pipe-flow"></div>
+<p class="note" id="pipe-note">Paragraph chunks stay whole — no sliced sentences.</p></div></deck-scene>
+
+<deck-scene id="s3" title="PROVENANCE" layout="split"><div>
+<h2 class="rise">Every memory<br><em class="serif">points home.</em></h2>
+<p class="lede rise">Each turn keeps its source row: document, paragraph, type.</p>
+<button class="replay rise" data-replay="provenance"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE CHAIN</button></div>
+<div class="diagram rise"><div class="dlabel"><span>PROVENANCE</span><span>TRACEABLE</span></div>
+<deck-flow class="rise" id="prov-flow">
+<deck-step>MEMORY</deck-step><deck-step>PARAGRAPH</deck-step><deck-step>DOCUMENT</deck-step>
+</deck-flow>
+<p class="note" id="prov-note">Ask where a fact came from — walk the chain.</p></div></deck-scene>
+
+<deck-scene id="s4" title="CLOSE" layout="full">
+<div class="finish serif rise">Four doors, one pipe, zero special cases.</div>
+<p class="lede rise" style="margin-top:26px">Extraction runs exactly as it does for conversation. The deep dive sits under Essays, Source Ingestion.</p>
+</deck-scene>
+</Deck>
+
+<style is:inline slot="head">
+.res{margin-top:6px;min-height:60px}
+.chip{display:inline-block;border:1px solid #333;border-radius:8px;padding:10px 14px;margin:0 8px 8px 0;font-size:13px;background:var(--panel)}
+.pflow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px}
+.pnode{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:10px 8px;font-size:11px;min-height:118px;opacity:.35}
+.pnode.on{opacity:1;border-color:#fff}
+.pnode h4{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--g1);margin:0 0 8px}
+.pnode.on h4{color:var(--ink)}
+.pnode .bd{font-family:var(--mono);font-size:10.5px;line-height:1.55;color:var(--g1);white-space:pre-line}
+.pnode.on .bd{color:var(--ink)}
+@media(max-width:760px){.pflow{grid-template-columns:repeat(2,1fr)}}
+</style>
+
+<!--
+ACCENT AUDIT (SYSTEM.md §2): no coloured components — monochrome throughout,
+emphasis by border and opacity only. The nav mark is the shared brand component
+owned by components/deck-stage.js.
+-->
+
+<script is:inline slot="script">
+/* One script, one declaration of everything. The stage fires each scene's
+   builder on first view and on R. */
+(function () {
+  const beat = () => window.DECK_BEAT || 900;
+  const reduced = () => !!window.deckBuild.reduced;
+  const motion = () => window.deckBuild.Motion;
+  const DOORS = ['URL', 'PDF', 'YOUTUBE', 'PASTED TEXT'];
+  const STEPS = [
+    { h: 'FETCH', lines: ['GET post', '200 · html'] },
+    { h: 'EXTRACT', lines: ['strip tags', '1,842 words'] },
+    { h: 'CHUNK', lines: ['6 paragraphs', 'max 900 chars'] },
+    { h: 'TURNS', lines: ['6 turns', 'role: user'] },
+    { h: 'EXTRACT', lines: ['2 entities', '1 relation', '3 memories'] },
+  ];
+
+  function enter(el, delayMs) {
+    const M = motion();
+    if (reduced() || !M) return;
+    M.animate(el, { opacity: [0, 1], y: [8, 0] }, { duration: 0.4, delay: delayMs / 1000, ease: [0.22, 1, 0.36, 1] });
+  }
+
+  function playSources() {
+    const box = document.getElementById('res-doors');
+    box.innerHTML = '';
+    DOORS.forEach((d, i) => {
+      const show = () => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = d;
+        box.appendChild(chip);
+        enter(chip, 0);
+      };
+      if (reduced()) show();
+      else setTimeout(show, i * beat());
+    });
+  }
+
+  function playPipeline() {
+    const flow = document.getElementById('pipe-flow');
+    const stepEl = document.getElementById('pipe-step');
+    flow.innerHTML = '';
+    const nodes = STEPS.map((s) => {
+      const n = document.createElement('div');
+      n.className = 'pnode';
+      const h = document.createElement('h4');
+      h.textContent = s.h;
+      const bd = document.createElement('div');
+      bd.className = 'bd';
+      bd.textContent = '—';
+      n.appendChild(h);
+      n.appendChild(bd);
+      flow.appendChild(n);
+      return { n, bd, lines: s.lines };
+    });
+    stepEl.textContent = 'FETCH';
+    nodes.forEach((node, i) => {
+      const run = () => {
+        node.n.classList.add('on');
+        stepEl.textContent = STEPS[i].h;
+        node.lines.forEach((line, k) => {
+          const add = () => {
+            node.bd.textContent = node.bd.textContent === '—' ? line : node.bd.textContent + '\n' + line;
+          };
+          if (reduced()) add();
+          else setTimeout(add, k * (beat() / 3));
+        });
+      };
+      if (reduced()) run();
+      else setTimeout(run, i * beat());
+    });
+  }
+
+  function playProvenance() {
+    const flow = document.getElementById('prov-flow');
+    const steps = [...flow.querySelectorAll('deck-step')];
+    steps.forEach((s) => s.classList.remove('on'));
+    if (reduced()) {
+      steps.forEach((s) => s.classList.add('on'));
+      return;
+    }
+    steps.forEach((s, i) => setTimeout(() => s.classList.add('on'), i * beat()));
+  }
+
+  window.deckBuild.register({
+    sources: playSources,
+    pipeline: playPipeline,
+    provenance: playProvenance,
+  });
+})();
+</script>
