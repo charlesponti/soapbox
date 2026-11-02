@@ -46,7 +46,7 @@ const deepDives = [
       <ul class="grid gap-4 sm:grid-cols-2">
         {diagrams.map((d) => (
           <li>
-            <a href={`/essays/${d.slug}/`} class="group block h-full rounded-2xl border border-border bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/30">
+            <a href={`./${d.slug}/`} class="group block h-full rounded-2xl border border-border bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/30">
               <div class="flex items-start justify-between gap-3">
                 <div class="text-[17px] font-semibold leading-snug group-hover:text-white">{d.title}</div>
                 <span class="shrink-0 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground">▶</span>
@@ -63,7 +63,7 @@ const deepDives = [
       <ul class="grid gap-4 sm:grid-cols-2">
         {deepDives.map((d) => (
           <li>
-            <a href={`/essays/${d.slug}/`} class="group block h-full rounded-2xl border border-border bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/30">
+            <a href={`./${d.slug}/`} class="group block h-full rounded-2xl border border-border bg-card/60 p-5 backdrop-blur transition-all hover:-translate-y-0.5 hover:border-foreground/30">
               <div class="flex items-start justify-between gap-3">
                 <div class="text-[17px] font-semibold leading-snug group-hover:text-white">{d.title}</div>
                 <span class="shrink-0 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground">→</span>
@@ -82,7 +82,7 @@ const deepDives = [
       <ul class="grid gap-3">
         {essays.map((e: CollectionEntry<"essays">) => (
           <li>
-            <a href={`/essays/${e.data.slug}/`} class="group block rounded-xl border border-border bg-card/50 p-5 backdrop-blur transition-colors hover:border-foreground/30">
+            <a href={`./${e.data.slug}/`} class="group block rounded-xl border border-border bg-card/50 p-5 backdrop-blur transition-colors hover:border-foreground/30">
               <div class="text-[18px] font-medium leading-snug group-hover:text-white">{e.data.title}</div>
               {e.data.description && <p class="mt-1.5 text-[14px] text-muted-foreground">{e.data.description}</p>}
               <div class="mt-3 text-[12px] text-muted-foreground/70">

@@ -12,17 +12,18 @@ things land.
 
 - **The vault is local-only, forever.** `~/Developer/vault/notes` has no remote
   and must never get one. Content never leaves this machine except as built
-  static pages via `npm run deploy` (which uploads `dist/` to Railway). Never
-  push, add remotes, or copy vault content out beyond the normal
-  `filekit stage` → `staged/` → `dist/` → Railway flow.
-- **Vault content never goes through git or CI.** `staged/` is gitignored and
-  stays that way. This repo has a GitHub remote (soapbox), and CI builds the
-  decks with zero essays (the loader tolerates a missing `staged/`). Real
-  deploys are a local build + push of artifacts (`scripts/deploy.sh`); there is
-  no Pages deploy anymore.
-- **The site is publicly deployed** on Railway (`web` service, project
-  `lexicon`) — see `docs/deployment.md`. Anything `status: published` in the
-  vault is public once `npm run deploy` runs.
+  static pages via `npm run deploy` (which pushes `dist/` to the `gh-pages`
+  branch for GitHub Pages). Never push, add remotes, or copy vault content out
+  beyond the normal `filekit stage` → `staged/` → `dist/` → `gh-pages` flow.
+- **Vault content never goes through git or CI, except as rendered HTML on
+  `gh-pages`.** `staged/*.md` is gitignored and stays that way. This repo has
+  a GitHub remote (soapbox), and CI builds the decks with zero essays (the
+  loader tolerates a missing `staged/`). Real deploys are a local build + push
+  of `dist/` (`scripts/deploy-pages.sh`); CI never publishes.
+- **The site is publicly deployed** on GitHub Pages (project site
+  `charlesponti.github.io/soapbox`, served from the `gh-pages` branch) — see
+  `docs/deployment.md`. Anything `status: published` in the vault is public
+  once `npm run deploy` runs.
 - The vault is the source of truth. The site only _reads_ it via
   `filekit frontmatter stage` (see `package.json` scripts). Never edit
   `staged/*` or `dist/*` directly — they are generated.
@@ -31,15 +32,14 @@ things land.
 
 ## Deployment
 
-- Public URL: `https://web-production-02a47.up.railway.app`
-- `npm run deploy` = `scripts/deploy.sh` → builds locally (gates + stage +
-  astro + pagefind), then `railway up --no-gitignore` uploads the repo root and
-  the `Dockerfile` (nginx) serves `dist/`. nginx replaces Railway's built-in
-  static hosting, whose injected CSP blocks Pagefind WASM (`wasm-unsafe-eval`).
-  The vault stays on this machine.
-- Railway IDs live in `scripts/deploy.sh`; service config/domains are managed
-  on Railway (domain is pinned to target port 80). To publish an essay, flip it
-  in the vault and `npm run deploy`.
+- Public URL: `https://charlesponti.github.io/soapbox/`
+- `npm run deploy` = `scripts/deploy-pages.sh` → builds locally (gates + stage +
+  astro + pagefind), then pushes `dist/` to the orphan `gh-pages` branch, which
+  Pages serves. No servers, no containers, no injected CSP to fight — Pagefind
+  WASM runs unmodified. The vault stays on this machine.
+- One-time setup lives in the repo's Settings → Pages (source: `gh-pages`
+  branch, root path). To publish an essay, flip it in the vault and
+  `npm run deploy`.
 - See `docs/deployment.md` for the full strategy, rollback, and custom-domain
   notes. Deeper build/gotcha knowledge: `docs/development.md`.
 
@@ -61,7 +61,7 @@ To publish more: `filekit frontmatter set --file <vault-note> --field status
 ```bash
 npm run dev       # portless → stage → astro dev at https://soapbox.lvh.me:4200
 npm run build     # stage → astro build → pagefind (gates run first, see below)
-npm run deploy    # build locally + push to Railway (see docs/deployment.md)
+npm run deploy    # build locally + push dist/ to gh-pages (see docs/deployment.md)
 npm run preview   # serve dist/ :4321 — RESTART after every rebuild
 npm run check:astro # astro check (expect 0 errors)
 npm run check     # deck lint over dist/ (needs a build first)
@@ -91,8 +91,12 @@ and (with a preview server up) `node tests/search-check.mjs`.
   `store.clear()` in the loader, or removed essays linger.
 - `astro preview` serves stale `dist/`; restart it after every rebuild. Under an
   agent it daemonizes, so Playwright's `webServer` exits early: run
-  `npx astro preview --port 4321` first, then `npm test`.
+  `npx astro preview --port 4321` first, then `npm test`. Preview serves at
+  root — open the production shape at `http://localhost:4321/soapbox/`.
 - `npm run stage` needs `$STUDIO_PRESS_ROOT` set (publishing workspace root); unset, it stages 0 files. Staged from `$STUDIO_PRESS_ROOT/charlesponti/essays`.
+- The site serves from `/soapbox/`, not `/`. Depth-fixed pages use relative
+  links (`essays/`, `../`, `assets/…`); shared layouts and components (used at
+  any depth, including `404.html`) build URLs from `import.meta.env.BASE_URL`.
 - `astro check` requires TypeScript ≤ 6 (TS 6.0.3 is deliberate).
 - Pagefind facets: inline `data-pagefind-filter="key:value"`; the old `-value`
   attribute is gone. Its runtime is pure-ESM — import with `@vite-ignore`.
@@ -117,9 +121,9 @@ and (with a preview server up) `node tests/search-check.mjs`.
 - `src/components/` — React islands (`TopicSelect`, `EssayList`) + Astro comps.
 - `src/client/` — `list-transition.ts`, `progress.ts`.
 - `.githooks/` — tracked git hooks (`pre-commit` runs `npm run gates`).
-- `scripts/` — `deploy.sh` (build + push to Railway), `install-hooks.mjs`,
-  `prune-pagefind.mjs`.
-- `Dockerfile` + `nginx.conf` — deploy-time static server (replaces Railway's
-  built-in static hosting, whose CSP blocks Pagefind WASM). `.railwayignore`
-  trims the upload.
+- `scripts/` — `deploy-pages.sh` (build + push `dist/` to `gh-pages`),
+  `install-hooks.mjs`, `prune-pagefind.mjs`.
+- No server files: GitHub Pages serves `dist/` directly (no Dockerfile, no
+  nginx, no CSP workaround — Pagefind WASM runs unmodified). The deploy script
+  writes `.nojekyll` into `dist/` so Pages never runs Jekyll over the output.
 - `tests/search-check.mjs` — 15-assertion regression gate (Pagefind + navigation).

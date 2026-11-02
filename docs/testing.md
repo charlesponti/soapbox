@@ -5,13 +5,13 @@ integration gate needs a running preview server and stays manual.
 
 ## Fast gates (`npm run gates`)
 
-`pnpm check && pnpm typecheck`. Runs automatically as `prebuild` before every
-`pnpm build` and via the tracked `.githooks/pre-commit` hook (installed by
-`pnpm prepare` / `scripts/install-hooks.mjs`).
+`npm run check && npm run typecheck`. Runs automatically as `prebuild` before every
+`npm run build` and via the tracked `.githooks/pre-commit` hook (installed by
+`npm run prepare` / `scripts/install-hooks.mjs`).
 
-- `pnpm exec astro check`; expects 0 errors, 0 warnings.
-- `pnpm typecheck` — `tsc --noEmit`.
-- `pnpm lint` — `oxlint --fix` (Rust-based; fast).
+- `npx astro check`; expects 0 errors, 0 warnings.
+- `npm run typecheck` — `tsc --noEmit`.
+- `npm run lint` — `oxlint --fix` (Rust-based; fast).
 
 ## Integration gate
 
@@ -32,7 +32,7 @@ re-running the gate.
 After `npm run deploy`, verify the live site (see `docs/deployment.md`):
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}\n" https://web-production-02a47.up.railway.app/
-curl -s -o /dev/null -w "%{http_code}\n" https://web-production-02a47.up.railway.app/pagefind/pagefind.js
-curl -sI https://web-production-02a47.up.railway.app/ | rg "wasm-unsafe-eval"
+curl -s -o /dev/null -w "%{http_code}\n" https://charlesponti.github.io/soapbox/
+curl -s -o /dev/null -w "%{http_code}\n" https://charlesponti.github.io/soapbox/pagefind/pagefind.js
+curl -s https://charlesponti.github.io/soapbox/essays/ | rg -o "From the notebook · [0-9]+"
 ```

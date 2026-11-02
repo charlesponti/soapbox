@@ -48,7 +48,7 @@ dist/  (static HTML + Pagefind index; generated, never edited)
 npm run dev       # portless → stage → astro dev at https://soapbox.lvh.me:4200
 npm run build     # stage → astro build → pagefind --site dist
 npm run preview   # serve dist/ :4321 — RESTART after every rebuild
-npm run deploy    # build locally + push to Railway (see docs/deployment.md)
+npm run deploy    # build locally + push dist/ to gh-pages (see docs/deployment.md)
 npm run check     # astro check (0 errors expected)
 npm run typecheck # tsc --noEmit
 npm run lint      # oxlint --fix

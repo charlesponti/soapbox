@@ -15,12 +15,14 @@ interface Props {
   ogImage?: string;
 }
 
-const SITE = "https://web-production-02a47.up.railway.app";
+const SITE = "https://charlesponti.github.io";
 const { title = "Essays" } = Astro.props;
 const description = Astro.props.description ?? "Longform essays, from the notebook.";
 const path = Astro.url.pathname;
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith("/") ? rawBase : rawBase + "/";
 const url = Astro.props.url ?? `${SITE}${path}`;
-const ogImage = Astro.props.ogImage ?? `${SITE}/og-card.png`;
+const ogImage = Astro.props.ogImage ?? `${SITE}${base}og-card.png`;
 const jsonld = Astro.props.jsonldType
   ? JSON.stringify({
       "@context": "https://schema.org",
@@ -48,7 +50,7 @@ const jsonld = Astro.props.jsonldType
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={url} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
 
     <!-- Open Graph -->
     <meta property="og:type" content={jsonld ? "article" : "website"} />

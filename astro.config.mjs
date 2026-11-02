@@ -28,7 +28,8 @@ const soapbox = {
 
 // One site: essays at / (from the local vault) and decks under /decks/.
 export default defineConfig({
-  site: "https://web-production-02a47.up.railway.app",
+  site: "https://charlesponti.github.io",
+  base: "/soapbox/",
   integrations: [react(), soapbox],
   vite: {
     plugins: [tailwindcss()],

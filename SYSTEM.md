@@ -343,5 +343,5 @@ Rules:
 3. The published site is a **superset** — Astro pages plus any not-yet-migrated
    root `*.html` decks (copied into `dist/` by the same hook), so migrating one
    deck at a time never drops a live URL.
-4. Decks are served under `/decks/` (site base is `/`, on Railway). Build asset
+4. Decks are served under `/decks/` (site base is `/soapbox/`, on GitHub Pages). Build asset
    URLs from `import.meta.env.BASE_URL`; link decks as `${base}decks/<slug>/`.

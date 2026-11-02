@@ -12,7 +12,7 @@ HTML scenes the presenter talks over. Black & white, Geist, Motion, Lucide.
 
 One Astro site: **essays** (from the local vault, built with `npm run build`,
 see `docs/` and `AGENTS.md`) at `/`, and **decks** under `/decks/`.
-Deploy with `npm run deploy` (local build, pushed to Railway).
+Deploy with `npm run deploy` (local build, pushed to the `gh-pages` branch for GitHub Pages).
 
 Each presentation is its own page, built with Astro. A deck is a `<deck-page>`
 that supplies only its cues and scenes; the shared shell lives in
@@ -20,7 +20,7 @@ that supplies only its cues and scenes; the shared shell lives in
 
 ```
 npm install
-npm run dev        # local dev server (http://localhost:4321/decks/)
+npm run dev        # local dev server (https://soapbox.lvh.me:4200)
 npm run build      # static build → dist/
 npm run preview    # serve dist/ at the configured base
 ```
@@ -38,11 +38,11 @@ npm run preview    # serve dist/ at the configured base
   build. This is the canonical library and is **not** owned by Astro: a config
   hook mirrors it into `public/components` for dev and `dist/components` for the
   build.
-- **Static decks at the repo root** (`the-tool-call.html`, `stage-poc.html`,
+- **Static decks at the repo root** (`stage-poc.html`,
   `streamchat-offline.html`) predate the Astro layer and are copied into the
   build output, so the published site is a superset while decks migrate.
 
-Published site (Railway): https://web-production-02a47.up.railway.app/
-The flagship deck: https://web-production-02a47.up.railway.app/decks/next-token/
+Published site (GitHub Pages): https://charlesponti.github.io/soapbox/
+The flagship deck: https://charlesponti.github.io/soapbox/decks/next-token/
 Scroll it; `C` toggles speaker cues, `R` replays the active scene, and every
 scene is a shareable `#hash` link.

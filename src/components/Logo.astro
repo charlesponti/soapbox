@@ -2,9 +2,11 @@
 // Brand mark — an isometric soapbox cube. Stays on screen across
 // navigations via the client router's persist optimization (same DOM node
 // survives the swap).
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith("/") ? rawBase : rawBase + "/";
 ---
 <a
-  href="/"
+  href={base}
   transition:persist
   class="logo-nav fixed right-5 top-5 z-30 block text-foreground transition-transform duration-150 hover:rotate-12"
   aria-label="Essays home"
