@@ -1,0 +1,221 @@
+{
+  "$comment": "The content registry — every hand-built page that is not a vault essay and not a deck-series entry. The essays index merges this with the vault collection so search, topics, and newest-first cover the whole site. Routes are base-relative (no leading slash). kind is essay | deck | diagram | interactive.",
+  "content": [
+    {
+      "route": "essays/auto-deprecation/",
+      "title": "Auto-Deprecation: Decay Classes & Staleness Detection",
+      "description": "How Seme detects and archives stale facts using configurable decay thresholds",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "essay"
+    },
+    {
+      "route": "essays/entity-extraction/",
+      "title": "Entity Extraction: LLM-Based NER & Chunking",
+      "description": "How Seme extracts named entities and relationships from conversation text using LLMs",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "essay"
+    },
+    {
+      "route": "essays/hybrid-search/",
+      "title": "Hybrid Search: Cross-Layer Retrieval & Scoring",
+      "description": "How Seme combines keyword, semantic, and graph search into one LLM-ready context block",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "essay"
+    },
+    {
+      "route": "essays/kb-intelligence/",
+      "title": "KB Intelligence: Pattern Emergence & Contradiction Detection",
+      "description": "Higher-order reasoning over accumulated knowledge",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "essay"
+    },
+    {
+      "route": "essays/knowledge-graph/",
+      "title": "Knowledge Graph: Entity Resolution & Graph Traversal",
+      "description": "How Seme builds and queries a knowledge graph from unstructured conversation text",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "essay"
+    },
+    {
+      "route": "essays/source-ingestion/",
+      "title": "Source Ingestion: Content Extraction & Chunking",
+      "description": "How Seme ingests URLs, PDFs, YouTube videos, and text into the memory system",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "essay"
+    },
+    {
+      "route": "essays/temporal-queries/",
+      "title": "Temporal Queries: Bi-Temporal Memory & As-Of Snapshots",
+      "description": "How Seme supports time-based filtering and historical reconstruction",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "essay"
+    },
+    {
+      "route": "essays/animated-auto-deprecation/",
+      "title": "Animated: Auto-Deprecation",
+      "description": "Facts decay at different rates. When a class falls under the threshold, it gets archived.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-28",
+      "kind": "diagram"
+    },
+    {
+      "route": "essays/animated-entity-extraction/",
+      "title": "Animated: Entity Extraction",
+      "description": "Watch raw text become typed entities, resolved duplicates, and a knowledge graph.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-28",
+      "kind": "diagram"
+    },
+    {
+      "route": "essays/animated-hybrid-search/",
+      "title": "Animated: Hybrid Search",
+      "description": "Watch FTS5, vector search, keyword matching, and graph traversal combine into one result set.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-28",
+      "kind": "diagram"
+    },
+    {
+      "route": "essays/animated-kb-intelligence/",
+      "title": "Animated: KB Intelligence",
+      "description": "Contradictions get caught, resolved, and patterns surface across many memories.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-28",
+      "kind": "diagram"
+    },
+    {
+      "route": "essays/animated-knowledge-graph/",
+      "title": "Animated: Knowledge Graph",
+      "description": "Watch entities appear, relationships form, and traversal algorithms explore the graph in real time.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "diagram"
+    },
+    {
+      "route": "essays/animated-source-ingestion/",
+      "title": "Animated: Source Ingestion",
+      "description": "URLs, PDFs, YouTube transcripts and pasted text all converge on the same pipeline.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-28",
+      "kind": "diagram"
+    },
+    {
+      "route": "decks/next-token/",
+      "title": "The Next Token",
+      "description": "Two camps argued about the answer. Nobody asked what the machine was looking at.",
+      "category": "The Agent Series",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "deck"
+    },
+    {
+      "route": "decks/the-tool-call/",
+      "title": "The Tool Call",
+      "description": "A reliable agent separates capability routing, exact tool planning, and guarded execution.",
+      "category": "The Agent Series",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "deck"
+    },
+    {
+      "route": "decks/confirmation-is-a-protocol/",
+      "title": "Confirmation Is a Protocol",
+      "description": "A boolean cannot hold a state machine.",
+      "category": "The Agent Series",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "deck"
+    },
+    {
+      "route": "decks/what-your-eval-is-measuring/",
+      "title": "What Your Eval Is Measuring",
+      "description": "An assertion can be deterministic and still measure the wrong behaviour.",
+      "category": "The Agent Series",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "deck"
+    },
+    {
+      "route": "decks/models-fail-differently/",
+      "title": "Models Fail Differently",
+      "description": "There is no single best tool-calling model — only models that fail in different ways.",
+      "category": "The Agent Series",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "deck"
+    },
+    {
+      "route": "decks/the-personal-agent-is-a-typed-capability-system/",
+      "title": "The Personal Agent Is a Typed Capability System",
+      "description": "The durable advantage is the contract, not the prompt.",
+      "category": "The Agent Series",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "deck"
+    },
+    {
+      "route": "decks/train-your-own/",
+      "title": "Train Your Own",
+      "description": "Five small machines, built from zero — and one idea underneath them all.",
+      "category": "TinyEinstein",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "deck"
+    },
+    {
+      "route": "decks/the-calendar-is-part-of-the-product/",
+      "title": "The Calendar Is Part of the Product",
+      "description": "A player in Los Angeles got London's tomorrow. Today and most recent both needed a boundary.",
+      "category": "Field Notes",
+      "tags": [],
+      "pubDate": "2026-10-25",
+      "kind": "deck"
+    },
+    {
+      "route": "voice-arch/",
+      "title": "Voice + background agents",
+      "description": "Single voice chat with background agents: product design, system architecture, task lifecycle, and API sketch.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-11-02",
+      "kind": "essay"
+    },
+    {
+      "route": "data/",
+      "title": "Data — Essays",
+      "description": "Corpus statistics for the essays.",
+      "category": "media",
+      "tags": [],
+      "pubDate": "2026-10-21",
+      "kind": "diagram"
+    },
+    {
+      "route": "voice-orb/",
+      "title": "The Voice Orb",
+      "description": "An interactive explainer of a voice-reactive orb of dots, with a reusable voice-orb web component.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-10-26",
+      "kind": "interactive"
+    }
+  ]
+}
