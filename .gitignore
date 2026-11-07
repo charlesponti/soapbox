@@ -21,7 +21,7 @@ public/components/
 playwright-report/
 test-results/
 
-# Essays (lexicon) — vault content is local-only and must never be committed
+# Essays (Soapbox) — vault content is local-only and must never be committed
 staged/
 site/
 src/content/essays/

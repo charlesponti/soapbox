@@ -16,7 +16,7 @@ const shows = [...new Set(decks.map((d) => d.show))].map((show) => ({ show, deck
       <div class="show-head">{show.toUpperCase()}</div>
       <div class="wall-grid">
         {decks.map((d) => (
-          <a class="wall-tile" href={`${base}decks/${d.slug}/`} data-rise>
+          <a class="wall-tile" href={`${base}${d.route ?? `decks/${d.slug}/`}`} data-rise>
             <img src={`${base}og/${d.slug}.png`} alt="" loading="lazy" width="1200" height="630" />
             <span class="wall-cap"><b>{String(d.episode).padStart(2, '0')} · {d.title}</b><span>{d.scenes} SCENES</span></span>
           </a>

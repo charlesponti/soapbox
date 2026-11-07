@@ -19,7 +19,7 @@ for (const deck of decks) {
     test('every scene matches its snapshot', async ({ page }) => {
       await page.setViewportSize({ width: 1600, height: 900 });
       await page.emulateMedia({ reducedMotion: 'reduce' });
-      await page.goto(`/decks/${deck.slug}/`, { waitUntil: 'load' });
+      await page.goto(deck.route ?? `decks/${deck.slug}/`, { waitUntil: 'load' });
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(300);
 

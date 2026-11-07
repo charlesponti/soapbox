@@ -1,8 +1,8 @@
 // OG share cards — render each deck's cover to a 1200×630 image in public/og/.
 //
 //   npm run build
-//   npx astro preview --port 4321     # (or set OG_URL)
-//   npm run og
+//   npx astro preview --port 4321
+//   OG_URL=http://localhost:4321/soapbox npm run og   # OG_URL must include the base path
 //
 // The images are committed (public/og/<slug>.png) so the build just copies them
 // into dist/og/. Re-run this when a cover's copy changes.
@@ -23,7 +23,7 @@ const page = await browser.newPage({
 });
 
 for (const d of decks) {
-  const url = `${base}/decks/${d.slug}/`;
+  const url = `${base}/${d.route ?? `decks/${d.slug}/`}`;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForTimeout(350);
   // cover only: no presenter chrome, no scroll cue

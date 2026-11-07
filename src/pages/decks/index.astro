@@ -11,14 +11,14 @@ const first = decks[0]!;
 <div class="wrap cover">
   <div>
     <div class="eyebrow">SOAPBOX — FULL-SCREEN DECKS</div>
-    <h1 class="site-title">Eight decks. <em>One idea at a time.</em></h1>
+    <h1 class="site-title">{decks.length} decks. <em>One idea at a time.</em></h1>
     <p class="site-lede">Black and white, self-hosted Geist, and one rule the whole system is built on: every scene fits the frame. Pick an episode.</p>
     {shows.map(({ show, decks }) => (
       <section>
         <div class="show-head">{show.toUpperCase()}</div>
         <div class="idx">
           {decks.map((d) => (
-            <a class="idxrow" href={`${base}decks/${d.slug}/`} data-slug={d.slug} data-ep={String(d.episode).padStart(2, '0')} data-show={d.show} data-sum={d.summary} data-og={`${base}og/${d.slug}.png`}>
+            <a class="idxrow" href={`${base}${d.route ?? `decks/${d.slug}/`}`} data-slug={d.slug} data-ep={String(d.episode).padStart(2, '0')} data-show={d.show} data-sum={d.summary} data-og={`${base}og/${d.slug}.png`}>
               <span class="n">{String(d.episode).padStart(2, '0')}</span>
               <span class="t">{d.title}</span>
               <span class="s">{d.series} <span class="arrow">→</span></span>

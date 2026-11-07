@@ -5,7 +5,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 const { decks } = JSON.parse(readFileSync(new URL('../decks.json', import.meta.url), 'utf8'));
-const route = (d) => (d.migrated ? `/decks/${d.slug}/` : `/${d.slug}.html`);
+const route = (d) => d.route ?? (d.migrated ? `decks/${d.slug}/` : `${d.slug}.html`);
 
 for (const deck of decks) {
   test.describe(deck.slug, () => {
@@ -95,7 +95,7 @@ test('code cards render as blocks and never clip a line', async ({ page }) => {
 });
 
 test('a scene\'s replay control lives with its visual', async ({ page }) => {
-  await page.goto('/decks/next-token/', { waitUntil: 'load' });
+  await page.goto('decks/next-token/', { waitUntil: 'load' });
   await page.waitForTimeout(300);
   const bad = await page.evaluate(() => {
     const s = document.querySelector('deck-stage');
@@ -113,7 +113,7 @@ test('a scene\'s replay control lives with its visual', async ({ page }) => {
 });
 
 test('a replay button invokes its registered scene build', async ({ page }) => {
-  await page.goto('/decks/next-token/#s1', { waitUntil: 'load' });
+  await page.goto('decks/next-token/#s1', { waitUntil: 'load' });
   await page.waitForFunction(() => typeof window.deckBuilds?.chat === 'function');
   await page.evaluate(() => {
     window.__chatReplayCalls = 0;
@@ -124,7 +124,7 @@ test('a replay button invokes its registered scene build', async ({ page }) => {
 });
 
 test('Train Your Own uses R to replay its scene builds without replay buttons', async ({ page }) => {
-  await page.goto('/decks/train-your-own/#s3', { waitUntil: 'load' });
+  await page.goto('decks/train-your-own/#s3', { waitUntil: 'load' });
   await page.waitForFunction(() => typeof window.deckBuilds?.vectors === 'function');
   await expect(page.locator('[data-replay]')).toHaveCount(0);
   await expect(page.locator('.deck-replay-key')).toHaveText('R REPLAY');
@@ -142,7 +142,7 @@ test('Train Your Own uses R to replay its scene builds without replay buttons', 
 
 test('the Next button morphs into Restart on the last scene', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });   // instant jumps, no scroll race
-  await page.goto('/decks/next-token/', { waitUntil: 'load' });
+  await page.goto('decks/next-token/', { waitUntil: 'load' });
   await page.evaluate(() => {
     const s = document.querySelector('deck-stage');
     s.goto(s.scenes.length - 1);

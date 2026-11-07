@@ -1,6 +1,6 @@
 # DEPLOY — soapbox deployment strategy (essays + decks)
 
-Lexicon (the studio's core knowledge site) is a fully static Astro site that
+Soapbox (the studio's core knowledge site) is a fully static Astro site that
 is **built locally and pushed to the `gh-pages` branch**, which GitHub Pages
 serves at https://charlesponti.github.io/soapbox/. This page documents the
 strategy: the threat model it satisfies, the mechanism, and the operational

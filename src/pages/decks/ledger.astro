@@ -12,13 +12,13 @@ const total = decks.reduce((n, d) => n + (d.scenes || 0), 0);
   <div class="led-sum">
     <span>{String(decks.length).padStart(2, '0')} DECKS</span>
     <span>{total} SCENES</span>
-    <span>UPDATED 18 OCT 2026</span>
+    <span>UPDATED 07 NOV 2026</span>
   </div>
   <table class="ledger" id="ledger">
     <thead><tr><th>#</th><th>Show</th><th>Title</th><th style="text-align:right">Scenes</th></tr></thead>
     <tbody>
       {decks.map((d) => (
-        <tr class="row" data-href={`${base}decks/${d.slug}/`} data-search={`${d.title} ${d.show} ${d.series} episode ${d.episode}`.toLowerCase()}>
+        <tr class="row" data-href={`${base}${d.route ?? `decks/${d.slug}/`}`} data-search={`${d.title} ${d.show} ${d.series} episode ${d.episode}`.toLowerCase()}>
           <td class="n">{String(d.episode).padStart(2, '0')}</td>
           <td class="show">{d.show.toUpperCase()}</td>
           <td>{d.title}</td>

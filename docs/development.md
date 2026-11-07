@@ -85,7 +85,7 @@ npm run gates     # check + typecheck — runs automatically
 - **lint:** oxlint (Rust-based) via `npm run lint`; pinned as a devDependency.
 - **Search index weight:** at 88 essays the raw Pagefind bundle was ~1.2 MB, of
   which ~475 KB was dead weight: Pagefind 1.5.x always emits its Default UI,
-  Component UI, Modular UI, and highlighter modules, but lexicon's custom React
+  Component UI, Modular UI, and highlighter modules, but Soapbox's custom React
   search island only imports `/pagefind/pagefind.js` (verified: the runtime
   never references the UI modules). `scripts/prune-pagefind.mjs` removes them
   plus the `wasm.unknown.*` fallback (every page is `lang="en"`), taking the

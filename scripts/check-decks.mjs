@@ -65,12 +65,12 @@ for (const file of files) {
   if (cues && cues !== sceneEls) fail.push(`${rel}: ${sceneEls} scenes vs ${cues} <deck-cue>`);
 
   // the manifest's scene count must match the page (the Ledger shows it)
-  const slugMatch = rel.match(/^decks\/([^/]+)\/index\.html$/);
-  if (slugMatch) {
-    const entry = manifest.decks.find((d) => d.slug === slugMatch[1]);
-    if (entry && entry.scenes && entry.scenes !== sceneEls) {
-      fail.push(`${rel}: manifest says ${entry.scenes} scenes, page has ${sceneEls}`);
-    }
+  const route = rel.replace(/\/index\.html$/, '/');
+  const entry =
+    manifest.decks.find((d) => d.route === route) ??
+    manifest.decks.find((d) => `decks/${d.slug}/` === route);
+  if (entry && entry.scenes && entry.scenes !== sceneEls) {
+    fail.push(`${rel}: manifest says ${entry.scenes} scenes, page has ${sceneEls}`);
   }
 
   if (/cdn\.jsdelivr\.net\/npm\/motion/.test(markup)) fail.push(`${rel}: Motion must be vendored, not the CDN`);
