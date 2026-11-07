@@ -1,422 +1,190 @@
-<!DOCTYPE html><html lang="en" class="dark" data-pagefind-title="Animated: Knowledge Graph"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="dark"><title>Animated: Knowledge Graph</title><meta name="description" content="Interactive animated visualization of knowledge graph traversal"><link rel="canonical" href="https://charlesponti.github.io/soapbox/essays/animated-knowledge-graph/"><link rel="icon" type="image/svg+xml" href="/soapbox/favicon.svg"><!-- Open Graph --><meta property="og:type" content="article"><meta property="og:site_name" content="lexicon"><meta property="og:title" content="Animated: Knowledge Graph"><meta property="og:description" content="Interactive animated visualization of knowledge graph traversal"><meta property="og:url" content="https://charlesponti.github.io/soapbox/essays/animated-knowledge-graph/"><meta property="og:image" content="https://charlesponti.github.io/soapbox/og-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="en_US"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Animated: Knowledge Graph"><meta name="twitter:description" content="Interactive animated visualization of knowledge graph traversal"><meta name="twitter:image" content="https://charlesponti.github.io/soapbox/og-card.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Animated: Knowledge Graph","description":"Interactive animated visualization of knowledge graph traversal","url":"https://charlesponti.github.io/soapbox/essays/animated-knowledge-graph/","image":"https://charlesponti.github.io/soapbox/og-card.png","inLanguage":"en","publisher":{"@type":"Organization","name":"lexicon","logo":{"@type":"ImageObject","url":"https://charlesponti.github.io/favicon.svg"}}}</script><meta name="astro-view-transitions-enabled" content="true"><meta name="astro-view-transitions-fallback" content="animate"><script type="module" src="/soapbox/_astro/ClientRouter.astro_astro_type_script_index_0_lang.BDCjmQ8c.js"></script><link rel="stylesheet" href="/soapbox/_astro/BaseLayout.BP-7WAKp.css"></head><body><div data-astro-transition-persist="astro-nfpogox7-1" id="progress"></div><a data-astro-transition-persist="astro-kvdwrehc-2" href="/soapbox/" class="logo-nav fixed right-5 top-5 z-30 block text-foreground transition-transform duration-150 hover:rotate-12" aria-label="Essays home" title="Back to essays"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"></path><path d="M12 12l8-4.5M12 12L4 7.5M12 12v9"></path></svg></a><main class="mx-auto max-w-4xl px-6 pb-24 pt-20" data-pagefind-body><a href="../" class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/85 px-3.5 py-1.5 text-sm text-muted-foreground backdrop-blur hover:border-foreground/40 hover:text-foreground mb-8">← Back</a><style>
-    .anim-container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
-    .anim-container h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; }
-    .anim-container .subtitle { font-size: 16px; color: #57606a; margin-bottom: 32px; }
-    .graph-canvas { width: 100%; height: 400px; border: 1px solid #d0d7de; border-radius: 8px; position: relative; overflow: hidden; background: #ffffff; margin: 24px 0; }
-    .node { position: absolute; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; text-align: center; transition: all 0.5s ease; opacity: 0; transform: scale(0); }
-    .node.visible { opacity: 1; transform: scale(1); }
-    .node.person { background: #ddf4ff; border: 2px solid #0969da; color: #0969da; }
-    .node.organization { background: #dafbe1; border: 2px solid #1a7f37; color: #1a7f37; }
-    .node.place { background: #fff8c5; border: 2px solid #9a6700; color: #9a6700; }
-    .node.tool { background: #fbefff; border: 2px solid #8250df; color: #8250df; }
-    .node.animal { background: #ffebe9; border: 2px solid #cf222e; color: #cf222e; }
-    .node.highlight { box-shadow: 0 0 0 4px rgba(9,105,218,0.3); transform: scale(1.1); }
-    .node.visited { background: #0969da; color: #ffffff; border-color: #0969da; }
-    .edge { position: absolute; height: 2px; background: #d0d7de; transform-origin: left center; opacity: 0; transition: opacity 0.5s ease; }
-    .edge.visible { opacity: 1; }
-    .edge.highlight { background: #0969da; height: 3px; }
-    .edge-label { position: absolute; font-size: 10px; color: #6e7781; background: #ffffff; padding: 2px 4px; border-radius: 3px; transform: translate(-50%, -50%); opacity: 0; transition: opacity 0.5s ease; }
-    .edge-label.visible { opacity: 1; }
-    .controls { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
-    .controls button { padding: 8px 16px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; cursor: pointer; font-size: 14px; }
-    .controls button:hover { background: #eaeef2; }
-    .controls button.active { background: #0969da; color: #ffffff; border-color: #0969da; }
-    .step-info { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px 16px; margin: 16px 0; font-size: 14px; min-height: 40px; }
-    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; font-size: 12px; }
-    .legend-item { display: flex; align-items: center; gap: 6px; }
-    .legend-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; }
-    .back-link { display: inline-block; margin-bottom: 24px; color: #0969da; text-decoration: none; font-size: 14px; }
-    .back-link:hover { text-decoration: underline; }
-  </style><div>
-  <div class="anim-container">
-    <a href="../" class="back-link">← Back to Seme</a>
-    <h1>Animated: Knowledge Graph</h1>
-    <p class="subtitle">Watch entities appear, relationships form, and traversal algorithms explore the graph in real time.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Knowledge Graph — Slides</title><meta name="description" content="Six entities, six edges, in SQLite. Two hops out, one shortest path — no graph database."><meta property="og:type" content="website"><meta property="og:site_name" content="Soapbox"><meta property="og:title" content="Knowledge Graph"><meta property="og:description" content="Six entities, six edges, in SQLite. Two hops out, one shortest path — no graph database."><meta property="og:url" content="https://charlesponti.github.io/soapbox/essays/animated-knowledge-graph/"><meta property="og:image" content="/soapbox/og-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Knowledge Graph"><meta name="twitter:description" content="Six entities, six edges, in SQLite. Two hops out, one shortest path — no graph database."><meta name="twitter:image" content="/soapbox/og-card.png"><link rel="icon" type="image/svg+xml" href="/soapbox/favicon.svg"><link rel="apple-touch-icon" href="/soapbox/apple-touch-icon.png"><link rel="stylesheet" href="/soapbox/components/fonts.css"><link rel="stylesheet" href="/soapbox/components/deck.css"><script src="/soapbox/components/motion-11.11.17.js"></script></head><body><deck-stage brand="KNOWLEDGE GRAPH" series="SEME · DIAGRAM 02" replay-hint data-pagefind-body="true" data-pagefind-filter="category:technology"><deck-cue time="COVER" title="The title">Open on the title. Six nodes, six edges, zero graph databases. Build it first.</deck-cue><deck-cue time="STEP 1 · BUILD" title="Entities in">Nodes drop in one per beat, then the edges wire up. Six and six.</deck-cue><deck-cue time="STEP 2 · 2 HOPS" title="Traversal">Two hops out from Charles: the direct neighbours, then their neighbours. This is retrieval finding context.</deck-cue><deck-cue time="STEP 3 · PATH" title="Shortest path">Breadth-first, Charles to Edinburgh, two hops through Ponti Studios. Depth first would wander; BFS doesn't.</deck-cue><deck-cue time="CLOSE" title="Pure SQL">Recursive CTEs. The query you already have, pointed at the graph.</deck-cue><deck-scene id="s0" title="SEME · DIAGRAM 02" layout="full" cover="true"><h1 class="rise">Knowledge Graph</h1><p class="lede rise">Six nodes. No graph database.</p></deck-scene><deck-scene id="s1" title="BUILD" layout="split"><div><h2 class="rise">Entities in.<br><em class="serif">Edges between.</em></h2><p class="lede rise">Typed nodes, labelled edges, source provenance on every one.</p><button class="replay rise" data-replay="build"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE BUILD</button></div><div class="diagram rise"><div class="dlabel"><span>GRAPH · 6 + 6</span><span id="build-state">EMPTY</span></div><svg class="canvas" id="cv-build" viewBox="0 0 820 400" role="img" aria-label="Knowledge graph"></svg><p class="note">People, orgs, places, tools — one shared canvas.</p></div></deck-scene><deck-scene id="s2" title="2 HOPS" layout="split"><div><h2 class="rise">Two hops out<br><em class="serif">from Charles.</em></h2><p class="lede rise">Neighbours, then neighbours-of-neighbours. Retrieval finding context.</p><button class="replay rise" data-replay="traverse"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE TRAVERSAL</button></div><div class="diagram rise"><div class="dlabel"><span>N-HOP · FROM CHARLES</span><span id="trav-state">READY</span></div><svg class="canvas" id="cv-trav" viewBox="0 0 820 400" role="img" aria-label="Two-hop traversal"></svg><p class="note">Hop zero is Charles. Everything else is found, not fetched.</p></div></deck-scene><deck-scene id="s3" title="PATH" layout="split"><div><h2 class="rise">Two hops.<br><em class="serif">One answer.</em></h2><p class="lede rise">Breadth-first from Charles to Edinburgh, through Ponti Studios.</p><button class="replay rise" data-replay="path"><deck-icon name="rotate-ccw"></deck-icon> REPLAY THE SEARCH</button></div><div class="diagram rise"><div class="dlabel"><span>SHORTEST PATH · BFS</span><span id="path-state">READY</span></div><svg class="canvas" id="cv-path" viewBox="0 0 820 400" role="img" aria-label="Shortest path"></svg><p class="note">Charles, works at, Ponti Studios, located in, Edinburgh.</p></div></deck-scene><deck-scene id="s4" title="CLOSE" layout="full"><div class="finish serif rise">Recursive CTEs. Pure SQL.</div><p class="lede rise" style="margin-top:26px">No graph database. Just the query you already have. The deep dive sits under Essays, Knowledge Graph.</p></deck-scene></deck-stage><script src="/soapbox/components/deck-scene.js"></script><script src="/soapbox/components/deck-icon.js"></script><script src="/soapbox/components/deck-stage.js"></script><script src="/soapbox/components/deck-build.js"></script><script src="/soapbox/components/deck-parts.js"></script><script src="/soapbox/components/deck-stage-driver.js"></script></body></html><style slot="head">
+.canvas{width:100%;height:auto;display:block;background:#050505;border:1px solid var(--line);border-radius:8px}
+.canvas text{font-family:var(--mono)}
+.gnode{opacity:0}
+.gnode circle{fill:#0d0d0d;stroke:#666;stroke-width:2}
+.gnode .nm{fill:#fff;font-size:15px;font-weight:700;text-anchor:middle}
+.gnode .tp{fill:#666;font-size:10px;letter-spacing:.12em;text-anchor:middle}
+.gedge{opacity:0}
+.gedge line{stroke:#333;stroke-width:2}
+.gedge text{fill:#666;font-size:11px;text-anchor:middle}
+.gnode.lit circle{stroke:#E4181B;stroke-width:3}
+.gnode.lit .nm{fill:#E4181B}
+.gedge.lit line{stroke:#E4181B;stroke-width:3}
+.gedge.lit text{fill:#E4181B}
+.gnode.dim,.gedge.dim{opacity:.18}
+</style><!--
+ACCENT AUDIT (SYSTEM.md §2): the visited/path red (#E4181B) is the one
+semantic state of this deck — on the traversal, lit, off it, dimmed.
+Everything else is monochrome. The nav mark is the shared brand component
+owned by components/deck-stage.js.
+--><script slot="script">
+/* One script, one declaration of everything. The stage fires each scene's
+   builder on first view and on R. Each graph scene owns its SVG so replay
+   and direct entry always start clean. */
+(function () {
+  const NS = 'http://www.w3.org/2000/svg';
+  const beat = () => window.DECK_BEAT || 900;
+  const reduced = () => !!window.deckBuild.reduced;
+  const motion = () => window.deckBuild.Motion;
 
-    <div class="controls">
-      <button onclick="resetGraph()">Reset</button>
-      <button onclick="buildGraph()">1. Build Graph</button>
-      <button onclick="animateNeighborhood()">2. N-Hop Traversal</button>
-      <button onclick="animatePath()">3. Shortest Path</button>
-    </div>
+  const NODES = [
+    { id: 'charles', x: 110, y: 190, label: 'Charles', type: 'PERSON' },
+    { id: 'ponti', x: 320, y: 100, label: 'Ponti Studios', type: 'ORG' },
+    { id: 'edinburgh', x: 540, y: 190, label: 'Edinburgh', type: 'PLACE' },
+    { id: 'typescript', x: 310, y: 300, label: 'TypeScript', type: 'TOOL' },
+    { id: 'cyndi', x: 110, y: 330, label: 'Cyndi', type: 'ANIMAL' },
+    { id: 'sarah', x: 550, y: 330, label: 'Sarah', type: 'PERSON' },
+  ];
+  const EDGES = [
+    { from: 'charles', to: 'ponti', label: 'works_at' },
+    { from: 'ponti', to: 'edinburgh', label: 'located_in' },
+    { from: 'charles', to: 'typescript', label: 'uses' },
+    { from: 'charles', to: 'cyndi', label: 'owns' },
+    { from: 'charles', to: 'sarah', label: 'partner' },
+    { from: 'ponti', to: 'typescript', label: 'uses' },
+  ];
+  const byId = (id) => NODES.find((n) => n.id === id);
 
-    <div class="graph-canvas" id="canvas"></div>
+  function el(name, attrs) {
+    const e = document.createElementNS(NS, name);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
 
-    <div class="step-info" id="step-info">Click "Build Graph" to start the animation.</div>
+  function enter(node, delayMs) {
+    if (reduced()) {
+      node.style.opacity = '1';
+      return;
+    }
+    // Native WAAPI, not Motion: Motion 11's animate() silently no-ops on SVG
+    // <g> content in Chromium (verified: no error, no effect), while WAAPI
+    // drives opacity + transform on them correctly.
+    node.animate(
+      [{ opacity: '0', transform: 'scale(.4)' }, { opacity: '1', transform: 'scale(1)' }],
+      { duration: 450, delay: delayMs, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' }
+    );
+  }
 
-    <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#ddf4ff;border-color:#0969da"></div> Person</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#dafbe1;border-color:#1a7f37"></div> Organization</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#fff8c5;border-color:#9a6700"></div> Place</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#fbefff;border-color:#8250df"></div> Tool</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#ffebe9;border-color:#cf222e"></div> Animal</div>
-    </div>
+  function drawGraph(svg) {
+    svg.innerHTML = '';
+    const nodeEls = {};
+    const edgeEls = [];
+    for (const e of EDGES) {
+      const a = byId(e.from);
+      const b = byId(e.to);
+      const g = el('g', { class: 'gedge', style: 'transform-box:fill-box;transform-origin:center' });
+      g.appendChild(el('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y }));
+      const t = el('text', { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 8 });
+      t.textContent = e.label;
+      g.appendChild(t);
+      svg.appendChild(g);
+      edgeEls.push({ e, g });
+    }
+    for (const n of NODES) {
+      const g = el('g', { class: 'gnode', style: 'transform-box:fill-box;transform-origin:center' });
+      g.appendChild(el('circle', { cx: n.x, cy: n.y, r: 44 }));
+      const nm = el('text', { x: n.x, y: n.y - 1 });
+      nm.setAttribute('class', 'nm');
+      nm.textContent = n.label;
+      const tp = el('text', { x: n.x, y: n.y + 17 });
+      tp.setAttribute('class', 'tp');
+      tp.textContent = n.type;
+      g.appendChild(nm);
+      g.appendChild(tp);
+      svg.appendChild(g);
+      nodeEls[n.id] = g;
+    }
+    return { nodeEls, edgeEls };
+  }
 
-    <div class="section" style="margin-top:40px;">
-      <h2>How It Works</h2>
-      <p>The animation above demonstrates three key operations:</p>
-      <ol>
-        <li><strong>Build Graph</strong>: Entities appear as nodes, relationships as edges. Each entity is typed (person, organization, place, tool, animal) and has source provenance.</li>
-        <li><strong>N-Hop Traversal</strong>: Starting from "Charles", the algorithm explores 2 hops outward, highlighting visited nodes and edges. This is how the system finds related context during retrieval.</li>
-        <li><strong>Shortest Path</strong>: BFS finds the shortest path between "Charles" and "Edinburgh" through the graph. The path is highlighted in blue.</li>
-      </ol>
-      <p>The graph uses SQLite's recursive CTEs for traversal — no separate graph database needed. Recursive CTEs provide BFS/DFS traversal in pure SQL, keeping the system simple and single-file.</p>
-    </div>
-  </div>
+  function finishInstant(refs) {
+    for (const id in refs.nodeEls) refs.nodeEls[id].style.opacity = '1';
+    for (const { g } of refs.edgeEls) g.style.opacity = '1';
+  }
 
-  <script>
-    const canvas = document.getElementById('canvas');
-    const stepInfo = document.getElementById('step-info');
+  function playBuild() {
+    const svg = document.getElementById('cv-build');
+    const state = document.getElementById('build-state');
+    const refs = drawGraph(svg);
+    state.textContent = 'NODES';
+    if (reduced()) {
+      finishInstant(refs);
+      state.textContent = '6 + 6';
+      return;
+    }
+    NODES.forEach((n, i) => setTimeout(() => {
+      enter(refs.nodeEls[n.id], 0);
+      if (i === NODES.length - 1) {
+        state.textContent = 'EDGES';
+        refs.edgeEls.forEach(({ g }, k) => setTimeout(() => enter(g, 0), k * (beat() / 3)));
+        setTimeout(() => { state.textContent = '6 + 6'; }, EDGES.length * (beat() / 3));
+      }
+    }, i * beat()));
+  }
 
-    // Node positions
-    const nodes = {
-      charles: { x: 100, y: 180, label: 'Charles', type: 'person' },
-      ponti: { x: 300, y: 100, label: 'Ponti Studios', type: 'organization' },
-      edinburgh: { x: 500, y: 180, label: 'Edinburgh', type: 'place' },
-      typescript: { x: 300, y: 280, label: 'TypeScript', type: 'tool' },
-      cyndi: { x: 100, y: 320, label: 'Cyndi', type: 'animal' },
-      sarah: { x: 500, y: 320, label: 'Sarah', type: 'person' },
+  function playTraverse() {
+    const svg = document.getElementById('cv-trav');
+    const state = document.getElementById('trav-state');
+    const refs = drawGraph(svg);
+    finishInstant(refs);
+    const hop1 = EDGES.filter((e) => e.from === 'charles');
+    const hop2 = EDGES.filter((e) => hop1.some((h) => h.to === e.from) && e.from !== 'charles');
+    const light = (ids, edges) => {
+      for (const id in refs.nodeEls) refs.nodeEls[id].classList.remove('lit');
+      for (const { g } of refs.edgeEls) g.classList.remove('lit');
+      ids.forEach((id) => refs.nodeEls[id].classList.add('lit'));
+      edges.forEach((i) => refs.edgeEls[i].g.classList.add('lit'));
     };
-
-    const edges = [
-      { from: 'charles', to: 'ponti', label: 'works_at' },
-      { from: 'ponti', to: 'edinburgh', label: 'located_in' },
-      { from: 'charles', to: 'typescript', label: 'uses' },
-      { from: 'charles', to: 'cyndi', label: 'owns' },
-      { from: 'charles', to: 'sarah', label: 'partner' },
-      { from: 'ponti', to: 'typescript', label: 'uses' },
+    const hop1ids = ['charles', ...hop1.map((e) => e.to)];
+    const hop1edges = hop1.map((e) => EDGES.indexOf(e));
+    const seq = [
+      ['HOP 0 · CHARLES', ['charles'], []],
+      ['HOP 1 · 4 FOUND', hop1ids, hop1edges],
+      ['HOP 2 · EDINBURGH', [...hop1ids, 'edinburgh'], [...hop1edges, 1, 5]],
     ];
-
-    let nodeElements = {};
-    let edgeElements = {};
-    let labelElements = {};
-
-    function resetGraph() {
-      canvas.innerHTML = '';
-      nodeElements = {};
-      edgeElements = {};
-      labelElements = {};
-      stepInfo.textContent = 'Graph reset. Click "Build Graph" to start.';
+    if (reduced()) {
+      const last = seq[seq.length - 1];
+      light(last[1], last[2]);
+      state.textContent = last[0];
+      return;
     }
+    seq.forEach(([label, ids, edges], k) => setTimeout(() => {
+      light(ids, edges);
+      state.textContent = label;
+    }, k * beat() * 2));
+  }
 
-    function createNode(id, node) {
-      const el = document.createElement('div');
-      el.className = `node ${node.type}`;
-      el.textContent = node.label;
-      el.style.left = (node.x - 40) + 'px';
-      el.style.top = (node.y - 40) + 'px';
-      canvas.appendChild(el);
-      nodeElements[id] = el;
-      return el;
+  function playPath() {
+    const svg = document.getElementById('cv-path');
+    const state = document.getElementById('path-state');
+    const refs = drawGraph(svg);
+    finishInstant(refs);
+    const nodes = ['charles', 'ponti', 'edinburgh'];
+    const edges = [0, 1];
+    if (reduced()) {
+      for (const id in refs.nodeEls) refs.nodeEls[id].classList.add('dim');
+      for (const { g } of refs.edgeEls) g.classList.add('dim');
+      nodes.forEach((id) => {
+        refs.nodeEls[id].classList.remove('dim');
+        refs.nodeEls[id].classList.add('lit');
+      });
+      edges.forEach((i) => {
+        refs.edgeEls[i].g.classList.remove('dim');
+        refs.edgeEls[i].g.classList.add('lit');
+      });
+      state.textContent = '2 HOPS';
+      return;
     }
+    state.textContent = 'BFS…';
+    nodes.forEach((id, k) => setTimeout(() => {
+      refs.nodeEls[id].classList.add('lit');
+      if (k < edges.length) refs.edgeEls[edges[k]].g.classList.add('lit');
+      state.textContent = 'DEPTH ' + k;
+    }, (k + 1) * beat()));
+    setTimeout(() => { state.textContent = '2 HOPS'; }, (nodes.length + 1) * beat());
+  }
 
-    function createEdge(id, edge) {
-      const from = nodes[edge.from];
-      const to = nodes[edge.to];
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      const length = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-      const el = document.createElement('div');
-      el.className = 'edge';
-      el.style.left = from.x + 'px';
-      el.style.top = from.y + 'px';
-      el.style.width = length + 'px';
-      el.style.transform = `rotate(${angle}deg)`;
-      canvas.appendChild(el);
-      edgeElements[id] = el;
-
-      const label = document.createElement('div');
-      label.className = 'edge-label';
-      label.textContent = edge.label;
-      label.style.left = (from.x + to.x) / 2 + 'px';
-      label.style.top = (from.y + to.y) / 2 + 'px';
-      canvas.appendChild(label);
-      labelElements[id] = label;
-
-      return el;
-    }
-
-    async function buildGraph() {
-      resetGraph();
-      stepInfo.textContent = 'Building graph: creating entities and relationships...';
-
-      // Create nodes one by one
-      const nodeIds = Object.keys(nodes);
-      for (let i = 0; i < nodeIds.length; i++) {
-        await sleep(300);
-        const id = nodeIds[i];
-        createNode(id, nodes[id]);
-        await sleep(50);
-        nodeElements[id].classList.add('visible');
-      }
-
-      await sleep(500);
-      stepInfo.textContent = 'Creating relationships...';
-
-      // Create edges one by one
-      for (let i = 0; i < edges.length; i++) {
-        await sleep(300);
-        const id = `edge-${i}`;
-        createEdge(id, edges[i]);
-        await sleep(50);
-        edgeElements[id].classList.add('visible');
-        labelElements[id].classList.add('visible');
-      }
-
-      await sleep(500);
-      stepInfo.textContent = 'Graph built: 6 entities, 6 relationships. Ready for traversal.';
-    }
-
-    async function animateNeighborhood() {
-      stepInfo.textContent = 'N-Hop Traversal: Starting from Charles (2 hops)...';
-
-      // Reset highlights
-      Object.values(nodeElements).forEach(el => el.classList.remove('visited', 'highlight'));
-      Object.values(edgeElements).forEach(el => el.classList.remove('highlight'));
-
-      await sleep(500);
-
-      // Hop 0: Charles
-      nodeElements['charles'].classList.add('visited');
-      stepInfo.textContent = 'Hop 0: Charles (starting entity)';
-      await sleep(800);
-
-      // Hop 1: direct neighbors
-      const hop1Edges = edges.filter(e => e.from === 'charles');
-      for (const edge of hop1Edges) {
-        const edgeId = `edge-${edges.indexOf(edge)}`;
-        edgeElements[edgeId].classList.add('highlight');
-        labelElements[edgeId].classList.add('visible');
-        await sleep(200);
-        nodeElements[edge.to].classList.add('visited');
-        stepInfo.textContent = `Hop 1: ${nodes[edge.to].label} (via ${edge.label})`;
-        await sleep(600);
-      }
-
-      // Hop 2: neighbors of neighbors
-      const hop2Edges = edges.filter(e => hop1Edges.some(h => h.to === e.from) && e.from !== 'charles');
-      for (const edge of hop2Edges) {
-        const edgeId = `edge-${edges.indexOf(edge)}`;
-        edgeElements[edgeId].classList.add('highlight');
-        await sleep(200);
-        if (!nodeElements[edge.to].classList.contains('visited')) {
-          nodeElements[edge.to].classList.add('visited');
-        }
-        stepInfo.textContent = `Hop 2: ${nodes[edge.to].label} (via ${edge.label})`;
-        await sleep(600);
-      }
-
-      stepInfo.textContent = 'Traversal complete: visited all entities within 2 hops of Charles.';
-    }
-
-    async function animatePath() {
-      stepInfo.textContent = 'Shortest Path: Charles → Edinburgh (BFS)...';
-
-      // Reset
-      Object.values(nodeElements).forEach(el => el.classList.remove('visited', 'highlight'));
-      Object.values(edgeElements).forEach(el => el.classList.remove('highlight'));
-
-      await sleep(500);
-
-      // BFS path: charles -> ponti -> edinburgh
-      const pathNodes = ['charles', 'ponti', 'edinburgh'];
-      const pathEdges = ['edge-0', 'edge-1'];
-
-      for (let i = 0; i < pathNodes.length; i++) {
-        nodeElements[pathNodes[i]].classList.add('highlight');
-        stepInfo.textContent = `BFS: Visiting ${nodes[pathNodes[i]].label} (depth ${i})`;
-        await sleep(800);
-        if (i < pathEdges.length) {
-          edgeElements[pathEdges[i]].classList.add('highlight');
-          labelElements[pathEdges[i]].classList.add('visible');
-        }
-      }
-
-      await sleep(500);
-      stepInfo.textContent = 'Shortest path found: Charles → works_at → Ponti Studios → located_in → Edinburgh (2 hops)';
-    }
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-  </script>
-</div><script>
-    const canvas = document.getElementById('canvas');
-    const stepInfo = document.getElementById('step-info');
-
-    // Node positions
-    const nodes = {
-      charles: { x: 100, y: 180, label: 'Charles', type: 'person' },
-      ponti: { x: 300, y: 100, label: 'Ponti Studios', type: 'organization' },
-      edinburgh: { x: 500, y: 180, label: 'Edinburgh', type: 'place' },
-      typescript: { x: 300, y: 280, label: 'TypeScript', type: 'tool' },
-      cyndi: { x: 100, y: 320, label: 'Cyndi', type: 'animal' },
-      sarah: { x: 500, y: 320, label: 'Sarah', type: 'person' },
-    };
-
-    const edges = [
-      { from: 'charles', to: 'ponti', label: 'works_at' },
-      { from: 'ponti', to: 'edinburgh', label: 'located_in' },
-      { from: 'charles', to: 'typescript', label: 'uses' },
-      { from: 'charles', to: 'cyndi', label: 'owns' },
-      { from: 'charles', to: 'sarah', label: 'partner' },
-      { from: 'ponti', to: 'typescript', label: 'uses' },
-    ];
-
-    let nodeElements = {};
-    let edgeElements = {};
-    let labelElements = {};
-
-    function resetGraph() {
-      canvas.innerHTML = '';
-      nodeElements = {};
-      edgeElements = {};
-      labelElements = {};
-      stepInfo.textContent = 'Graph reset. Click "Build Graph" to start.';
-    }
-
-    function createNode(id, node) {
-      const el = document.createElement('div');
-      el.className = `node ${node.type}`;
-      el.textContent = node.label;
-      el.style.left = (node.x - 40) + 'px';
-      el.style.top = (node.y - 40) + 'px';
-      canvas.appendChild(el);
-      nodeElements[id] = el;
-      return el;
-    }
-
-    function createEdge(id, edge) {
-      const from = nodes[edge.from];
-      const to = nodes[edge.to];
-      const dx = to.x - from.x;
-      const dy = to.y - from.y;
-      const length = Math.sqrt(dx * dx + dy * dy);
-      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
-      const el = document.createElement('div');
-      el.className = 'edge';
-      el.style.left = from.x + 'px';
-      el.style.top = from.y + 'px';
-      el.style.width = length + 'px';
-      el.style.transform = `rotate(${angle}deg)`;
-      canvas.appendChild(el);
-      edgeElements[id] = el;
-
-      const label = document.createElement('div');
-      label.className = 'edge-label';
-      label.textContent = edge.label;
-      label.style.left = (from.x + to.x) / 2 + 'px';
-      label.style.top = (from.y + to.y) / 2 + 'px';
-      canvas.appendChild(label);
-      labelElements[id] = label;
-
-      return el;
-    }
-
-    async function buildGraph() {
-      resetGraph();
-      stepInfo.textContent = 'Building graph: creating entities and relationships...';
-
-      // Create nodes one by one
-      const nodeIds = Object.keys(nodes);
-      for (let i = 0; i < nodeIds.length; i++) {
-        await sleep(300);
-        const id = nodeIds[i];
-        createNode(id, nodes[id]);
-        await sleep(50);
-        nodeElements[id].classList.add('visible');
-      }
-
-      await sleep(500);
-      stepInfo.textContent = 'Creating relationships...';
-
-      // Create edges one by one
-      for (let i = 0; i < edges.length; i++) {
-        await sleep(300);
-        const id = `edge-${i}`;
-        createEdge(id, edges[i]);
-        await sleep(50);
-        edgeElements[id].classList.add('visible');
-        labelElements[id].classList.add('visible');
-      }
-
-      await sleep(500);
-      stepInfo.textContent = 'Graph built: 6 entities, 6 relationships. Ready for traversal.';
-    }
-
-    async function animateNeighborhood() {
-      stepInfo.textContent = 'N-Hop Traversal: Starting from Charles (2 hops)...';
-
-      // Reset highlights
-      Object.values(nodeElements).forEach(el => el.classList.remove('visited', 'highlight'));
-      Object.values(edgeElements).forEach(el => el.classList.remove('highlight'));
-
-      await sleep(500);
-
-      // Hop 0: Charles
-      nodeElements['charles'].classList.add('visited');
-      stepInfo.textContent = 'Hop 0: Charles (starting entity)';
-      await sleep(800);
-
-      // Hop 1: direct neighbors
-      const hop1Edges = edges.filter(e => e.from === 'charles');
-      for (const edge of hop1Edges) {
-        const edgeId = `edge-${edges.indexOf(edge)}`;
-        edgeElements[edgeId].classList.add('highlight');
-        labelElements[edgeId].classList.add('visible');
-        await sleep(200);
-        nodeElements[edge.to].classList.add('visited');
-        stepInfo.textContent = `Hop 1: ${nodes[edge.to].label} (via ${edge.label})`;
-        await sleep(600);
-      }
-
-      // Hop 2: neighbors of neighbors
-      const hop2Edges = edges.filter(e => hop1Edges.some(h => h.to === e.from) && e.from !== 'charles');
-      for (const edge of hop2Edges) {
-        const edgeId = `edge-${edges.indexOf(edge)}`;
-        edgeElements[edgeId].classList.add('highlight');
-        await sleep(200);
-        if (!nodeElements[edge.to].classList.contains('visited')) {
-          nodeElements[edge.to].classList.add('visited');
-        }
-        stepInfo.textContent = `Hop 2: ${nodes[edge.to].label} (via ${edge.label})`;
-        await sleep(600);
-      }
-
-      stepInfo.textContent = 'Traversal complete: visited all entities within 2 hops of Charles.';
-    }
-
-    async function animatePath() {
-      stepInfo.textContent = 'Shortest Path: Charles → Edinburgh (BFS)...';
-
-      // Reset
-      Object.values(nodeElements).forEach(el => el.classList.remove('visited', 'highlight'));
-      Object.values(edgeElements).forEach(el => el.classList.remove('highlight'));
-
-      await sleep(500);
-
-      // BFS path: charles -> ponti -> edinburgh
-      const pathNodes = ['charles', 'ponti', 'edinburgh'];
-      const pathEdges = ['edge-0', 'edge-1'];
-
-      for (let i = 0; i < pathNodes.length; i++) {
-        nodeElements[pathNodes[i]].classList.add('highlight');
-        stepInfo.textContent = `BFS: Visiting ${nodes[pathNodes[i]].label} (depth ${i})`;
-        await sleep(800);
-        if (i < pathEdges.length) {
-          edgeElements[pathEdges[i]].classList.add('highlight');
-          labelElements[pathEdges[i]].classList.add('visible');
-        }
-      }
-
-      await sleep(500);
-      stepInfo.textContent = 'Shortest path found: Charles → works_at → Ponti Studios → located_in → Edinburgh (2 hops)';
-    }
-
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-  </script></main><script type="module">var e=window;if(!e.__essaysProgressInit){e.__essaysProgressInit=!0;let t=document.getElementById(`progress`),n=!1,r=()=>{let e=document.documentElement.scrollHeight-window.innerHeight,r=e>0?Math.min(100,window.scrollY/e*100):0;t&&(t.style.transform=`scaleX(${r/100})`),n=!1};window.addEventListener(`scroll`,()=>{n||(n=!0,requestAnimationFrame(r))},{passive:!0}),document.addEventListener(`astro:page-load`,r),r()}</script></body></html>
+  window.deckBuild.register({ build: playBuild, traverse: playTraverse, path: playPath });
+})();
+</script>

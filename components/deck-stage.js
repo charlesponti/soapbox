@@ -73,7 +73,7 @@
       const showMark = this.getAttribute('mark') !== 'false';
       const nav = document.createElement('nav');
       nav.innerHTML =
-        '<div class="brand">' + (showMark ? '<span class="mark"></span>' : '') +
+        '<div class="brand">' + (showMark ? '<svg class="mark" width="15" height="15" viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="4" width="26" height="24" rx="6" fill="#E4181B" stroke="#262626" stroke-width="2.5"/><circle cx="10.8" cy="13.5" r="4.2" fill="#fff"/><circle cx="21.2" cy="13.5" r="4.2" fill="#fff"/><circle cx="11.8" cy="12.5" r="2.2" fill="#262626"/><circle cx="22.2" cy="12.5" r="2.2" fill="#262626"/></svg>' : '') +
           '<span data-brand></span> <b>/</b> <span data-series></span></div>' +
         '<div class="deck-dots" data-dots></div>' +
         '<div class="navright">' +
