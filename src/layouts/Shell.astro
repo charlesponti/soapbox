@@ -1,0 +1,150 @@
+---
+/* Shell.astro — the one site chrome. Every page (essays, decks index, home)
+   renders this header + footer + search palette, so the whole site reads as
+   one authored object. Two style modes, one IA:
+   - style="essay": Tailwind side (global.css, ClientRouter, progress bar)
+   - style="deck":  deck-dialect side (deck.css, no Tailwind, no router)
+   Deck *stage* pages keep their own full-screen chrome (Deck.astro) — the
+   stage is a performance, not a document. */
+import SoapboxMark from "../components/SoapboxMark.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  url?: string;
+  ogImage?: string;
+  jsonldType?: string;
+  section?: "essays" | "decks" | null;
+  style?: "essay" | "deck";
+  /** Footer right-hand note. */
+  footing?: string;
+  /** Extra body class (e.g. site-orb for the full-bleed orb app). */
+  bodyClass?: string;
+}
+
+const SITE = "https://charlesponti.github.io";
+const {
+  title = "Soapbox",
+  description = "Essays and full-screen decks.",
+  section = null,
+  style = "essay",
+  footing = "SET IN GEIST · BLACK & WHITE",
+  bodyClass = "",
+} = Astro.props;
+const path = Astro.url.pathname;
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith("/") ? rawBase : rawBase + "/";
+const url = Astro.props.url ?? `${SITE}${path}`;
+const ogImage = Astro.props.ogImage ?? `${SITE}${base}og-card.png`;
+const jsonld = Astro.props.jsonldType
+  ? JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": Astro.props.jsonldType,
+      headline: title,
+      description,
+      url,
+      image: ogImage,
+      inLanguage: "en",
+      publisher: {
+        "@type": "Organization",
+        name: "Soapbox",
+        logo: { "@type": "ImageObject", url: `${SITE}${base}favicon.svg` },
+      },
+    })
+  : null;
+
+const nav = [
+  { key: "essays", label: "ESSAYS", href: `${base}essays/` },
+  { key: "decks", label: "DECKS", href: `${base}decks/` },
+] as const;
+---
+
+<!doctype html>
+<html lang="en" class="dark" data-pagefind-title={title}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
+    <meta property="og:type" content={jsonld ? "article" : "website"} />
+    <meta property="og:site_name" content="Soapbox" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    {jsonld && <script type="application/ld+json" is:inline set:html={jsonld} />}
+    {style === "essay" ? <slot name="client-router" /> : null}
+    {style === "deck" && (
+      <>
+        <link rel="stylesheet" href={`${base}components/fonts.css`} />
+        <link rel="stylesheet" href={`${base}components/deck.css`} />
+      </>
+    )}
+    <slot name="head" />
+  </head>
+  <body class:list={[style === "deck" && "site", bodyClass]} data-shell={style}>
+    {style === "essay" && <div id="progress" transition:persist></div>}
+    <header class={style === "deck" ? "site-bar" : "shell-bar"}>
+      <a class={style === "deck" ? "site-brand" : "shell-brand"} href={`${base}`} aria-label="Soapbox home">
+        <SoapboxMark size={18} />SOAPBOX
+      </a>
+      <nav class={style === "deck" ? "site-switch" : "shell-nav"} aria-label="Sections">
+        {nav.map((n) => (
+          <a
+            href={n.href}
+            class={section === n.key ? "on" : undefined}
+            aria-current={section === n.key ? "page" : undefined}
+          >
+            {n.label}
+          </a>
+        ))}
+      </nav>
+      <button
+        type="button"
+        class={style === "deck" ? "site-search" : "shell-search"}
+        data-pal-open
+        aria-label="Search (Command K)"
+      >
+        <span aria-hidden="true">⌕</span> SEARCH <kbd>⌘K</kbd>
+      </button>
+    </header>
+    <slot />
+    <footer class={style === "deck" ? "site-foot" : "shell-foot"}>
+      <span>SOAPBOX</span>
+      <span>{footing}</span>
+    </footer>
+
+    <div class="pal-backdrop" data-pal hidden>
+      <div class="pal" role="dialog" aria-modal="true" aria-label="Search">
+        <div class="pal-box">
+          <span class="pal-glyph" aria-hidden="true">⌕</span>
+          <input
+            type="search"
+            data-pal-input
+            placeholder="Search essays, decks, diagrams…"
+            aria-label="Search essays, decks, diagrams"
+            spellcheck={false}
+            autocomplete="off"
+          />
+          <kbd>ESC</kbd>
+        </div>
+        <ol class="pal-list" data-pal-list></ol>
+        <div class="pal-foot" aria-hidden="true">↑↓ NAVIGATE · ⏎ OPEN · ESC CLOSE</div>
+      </div>
+    </div>
+    <script src="../client/palette.ts"></script>
+    {style === "essay" && <script src="../client/progress.ts"></script>}
+    <slot name="script" />
+  </body>
+</html>
