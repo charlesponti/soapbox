@@ -1,6 +1,6 @@
 /**
  * tests/search-check.mjs — regression test for the index search feature.
- * Requires a built site served at $URL (default http://localhost:4321).
+ * Requires a built site served at $URL (default http://localhost:4321/soapbox/essays/).
  *
  * Checks:
  *   1. typing a query returns full-text results (Pagefind)
@@ -11,7 +11,7 @@
  */
 import { chromium } from "playwright";
 
-const URL = process.env.URL ?? "http://localhost:4321/essays/";
+const URL = process.env.URL ?? "http://localhost:4321/soapbox/essays/";
 let failures = 0;
 const check = (name, ok, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`);
@@ -33,7 +33,9 @@ page.on("pageerror", (e) => console.log(`[pageerror] ${e.message}`));
 
 try {
   await page.goto(URL, { waitUntil: "networkidle" });
-  const input = page.locator('input[type="search"]');
+  // Scoped to the essay island: the global ⌘K palette carries its own
+  // searchbox (data-pal-input) on every page.
+  const input = page.locator('#search-input');
 
   /* 1. typed query returns full-text results */
   // "antitrust" → 3 results: small enough that no paginator renders (the
@@ -128,12 +130,26 @@ try {
   /* 3. clickthrough navigates to the essay */
   await page.locator("#list li a").first().click();
   await page.waitForFunction(
-    () => location.pathname.startsWith("/essays/") && !!document.querySelector("article.prose"),
+    () => location.pathname.startsWith("/soapbox/essays/") && !!document.querySelector("article.prose"),
     { timeout: 10000 },
   );
   const path = await page.evaluate(() => location.pathname);
-  check("result click navigates to essay", path.startsWith("/essays/"), path);
+  check("result click navigates to essay", path.startsWith("/soapbox/essays/"), path);
   check("essay prose rendered", (await page.locator("article.prose").innerText()).length > 100);
+
+  /* 3b. the global ⌘K palette searches the same index from any page */
+  await page.keyboard.press("Meta+k");
+  await page.waitForSelector("[data-pal]:not([hidden])", { timeout: 5000 });
+  check("palette opens on Meta+K", true);
+  await page.locator("[data-pal-input]").fill("strawberry");
+  await page.waitForFunction(() => document.querySelectorAll("[data-pal-item]").length > 0, {
+    timeout: 10000,
+  });
+  const palCount = await page.locator("[data-pal-item]").count();
+  check("palette returns index results", palCount > 0, `${palCount} item(s)`);
+  await page.keyboard.press("Escape");
+  await page.waitForSelector("[data-pal]", { state: "hidden", timeout: 5000 });
+  check("palette closes on Escape", true);
 
   /* 4. essay tag pills get the native entry transition (@starting-style) */
   const pillCount = await page.locator(".tag-pill").count();

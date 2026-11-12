@@ -1,66 +1,196 @@
 ---
-/* THE COVER — an editorial index with a live preview (concept 1 of 3). */
+/* THE GALLERY — one route, three readings. Cover (editorial + preview),
+   Wall (covers as index), Ledger (keyboard-first table). ?view= switches
+   without navigation; no-JS renders the cover. */
 import Site from '../../layouts/Site.astro';
 const raw = import.meta.env.BASE_URL;
 const base = raw.endsWith('/') ? raw : raw + '/';
 const decks = (await import('../../../decks.json')).default.decks;
 const shows = [...new Set(decks.map((d) => d.show))].map((show) => ({ show, decks: decks.filter((d) => d.show === show) }));
 const first = decks[0]!;
+const total = decks.reduce((n, d) => n + (d.scenes || 0), 0);
+const views = [["cover", "COVER"], ["wall", "WALL"], ["ledger", "LEDGER"]] as const;
 ---
 <Site title="Soapbox — Decks" description={first.summary} view="cover">
-<div class="wrap cover">
-  <div>
-    <div class="eyebrow">SOAPBOX — FULL-SCREEN DECKS</div>
-    <h1 class="site-title">{decks.length} decks. <em>One idea at a time.</em></h1>
-    <p class="site-lede">Black and white, self-hosted Geist, and one rule the whole system is built on: every scene fits the frame. Pick an episode.</p>
+<div class="wrap" data-gallery>
+  <div class="eyebrow">SOAPBOX — FULL-SCREEN DECKS</div>
+  <h1 class="site-title">{decks.length} decks. <em>One idea at a time.</em></h1>
+  <p class="site-lede">Black and white, self-hosted Geist, and one rule the whole system is built on: every scene fits the frame. Pick an episode.</p>
+  <div class="view-switch" role="tablist" aria-label="Gallery view">
+    {views.map(([key, label]) => (
+      <a href={`?view=${key}`} data-view-link={key} role="tab" aria-selected={key === "cover"}>{label}</a>
+    ))}
+  </div>
+
+  <div data-view="cover">
+    <div class="cover" style="margin-top:34px">
+      <div>
+        {shows.map(({ show, decks }) => (
+          <section>
+            <div class="show-head">{show.toUpperCase()}</div>
+            <div class="idx">
+              {decks.map((d) => (
+                <a class="idxrow" href={`${base}${d.route ?? `decks/${d.slug}/`}`} data-slug={d.slug} data-ep={String(d.episode).padStart(2, '0')} data-show={d.show} data-sum={d.summary} data-og={`${base}og/${d.slug}.png`}>
+                  <span class="n">{String(d.episode).padStart(2, '0')}</span>
+                  <span class="t">{d.title}</span>
+                  <span class="s">{d.series} <span class="arrow">→</span></span>
+                </a>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+      <aside class="preview">
+        <img id="pvImg" src={`${base}og/${first.slug}.png`} alt="" />
+        <div class="pv-body">
+          <div class="pv-meta"><span id="pvEp">EP {String(first.episode).padStart(2, '0')}</span><span id="pvShow">{first.show.toUpperCase()}</span></div>
+          <p class="pv-note" id="pvNote">{first.summary}</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div data-view="wall" hidden>
     {shows.map(({ show, decks }) => (
       <section>
         <div class="show-head">{show.toUpperCase()}</div>
-        <div class="idx">
+        <div class="wall-grid">
           {decks.map((d) => (
-            <a class="idxrow" href={`${base}${d.route ?? `decks/${d.slug}/`}`} data-slug={d.slug} data-ep={String(d.episode).padStart(2, '0')} data-show={d.show} data-sum={d.summary} data-og={`${base}og/${d.slug}.png`}>
-              <span class="n">{String(d.episode).padStart(2, '0')}</span>
-              <span class="t">{d.title}</span>
-              <span class="s">{d.series} <span class="arrow">→</span></span>
+            <a class="wall-tile" href={`${base}${d.route ?? `decks/${d.slug}/`}`} data-rise>
+              <img src={`${base}og/${d.slug}.png`} alt="" loading="lazy" width="1200" height="630" />
+              <span class="wall-cap"><b>{String(d.episode).padStart(2, '0')} · {d.title}</b><span>{d.scenes} SCENES</span></span>
             </a>
           ))}
         </div>
       </section>
     ))}
   </div>
-  <aside class="preview">
-    <img id="pvImg" src={`${base}og/${first.slug}.png`} alt="" />
-    <div class="pv-body">
-      <div class="pv-meta"><span id="pvEp">EP {String(first.episode).padStart(2, '0')}</span><span id="pvShow">{first.show.toUpperCase()}</span></div>
-      <p class="pv-note" id="pvNote">{first.summary}</p>
+
+  <div data-view="ledger" hidden>
+    <div class="led-sum">
+      <span>{String(decks.length).padStart(2, '0')} DECKS</span>
+      <span>{total} SCENES</span>
     </div>
-  </aside>
+    <table class="ledger" id="ledger">
+      <thead><tr><th>#</th><th>Show</th><th>Title</th><th style="text-align:right">Scenes</th></tr></thead>
+      <tbody>
+        {decks.map((d) => (
+          <tr class="row" data-href={`${base}${d.route ?? `decks/${d.slug}/`}`} data-search={`${d.title} ${d.show} ${d.series} episode ${d.episode}`.toLowerCase()} tabindex="0">
+            <td class="n">{String(d.episode).padStart(2, '0')}</td>
+            <td class="show">{d.show.toUpperCase()}</td>
+            <td>{d.title}</td>
+            <td class="sc">{d.scenes}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <div class="hint">TYPE TO FILTER · ↑↓ MOVE · ⏎ OPEN</div>
+    <div class="filter" id="filter" aria-live="polite"></div>
+  </div>
 </div>
 </Site>
 <script is:inline slot="script">
 (() => {
-  const rows = [...document.querySelectorAll('.idxrow')];
+  const root = document.querySelector('[data-gallery]');
+  if (!root) return;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const M = window.Motion;
+
+  /* --- view switch (?view=cover|wall|ledger), no navigation --- */
+  const panels = [...root.querySelectorAll('[data-view]')];
+  const links = [...root.querySelectorAll('[data-view-link]')];
+  const setView = (name, push) => {
+    const valid = panels.some((p) => p.dataset.view === name);
+    const next = valid ? name : 'cover';
+    panels.forEach((p) => { p.hidden = p.dataset.view !== next; });
+    links.forEach((a) => {
+      const on = a.dataset.viewLink === next;
+      a.classList.toggle('on', on);
+      a.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    if (push) history.replaceState(null, '', next === 'cover' ? location.pathname : `?view=${next}`);
+    if (next === 'wall') riseWall();
+  };
+  links.forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); setView(a.dataset.viewLink, true); }));
+  setView(new URLSearchParams(location.search).get('view'), false);
+
+  /* --- cover preview --- */
+  const rows = [...root.querySelectorAll('.idxrow')];
   const img = document.getElementById('pvImg');
   const ep = document.getElementById('pvEp');
   const show = document.getElementById('pvShow');
   const note = document.getElementById('pvNote');
-  const M = window.Motion, reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const seen = new Set();
   const select = (row) => {
     rows.forEach((r) => r.classList.toggle('on', r === row));
-    if (!seen.has(row.dataset.slug)) { seen.add(row.dataset.slug); const i = new Image(); i.src = row.dataset.og; }
-    img.src = row.dataset.og;
-    ep.textContent = 'EP ' + row.dataset.ep;
-    show.textContent = row.dataset.show.toUpperCase();
-    note.textContent = row.dataset.sum;
-    if (M && !reduced) M.animate(img, { opacity: [0.15, 1] }, { duration: 0.3, ease: 'easeOut' });
+    if (img && row.dataset.og) {
+      if (!seen.has(row.dataset.slug)) { seen.add(row.dataset.slug); const i = new Image(); i.src = row.dataset.og; }
+      img.src = row.dataset.og;
+    }
+    if (ep) ep.textContent = 'EP ' + row.dataset.ep;
+    if (show) show.textContent = row.dataset.show.toUpperCase();
+    if (note) note.textContent = row.dataset.sum;
+    if (M && !reduced && img) M.animate(img, { opacity: [0.15, 1] }, { duration: 0.3, ease: 'easeOut' });
   };
   rows.forEach((row) => {
     row.addEventListener('mouseenter', () => select(row));
     row.addEventListener('focus', () => select(row));
   });
+
+  /* --- wall rise (once, when first shown) --- */
+  let risen = false;
+  function riseWall() {
+    if (risen || !M || reduced) return;
+    risen = true;
+    const tiles = [...root.querySelectorAll('[data-rise]')];
+    tiles.forEach((t) => { t.style.opacity = 0; });
+    M.animate(tiles, { opacity: [0, 1], y: [22, 0] }, { duration: 0.6, delay: M.stagger(0.06), ease: [0.22, 1, 0.36, 1] });
+  }
+
+  /* --- ledger keys (only when ledger visible) --- */
+  const lrows = [...root.querySelectorAll('.ledger tr.row')];
+  const filterEl = document.getElementById('filter');
+  const ledgerVisible = () => {
+    const p = root.querySelector('[data-view="ledger"]');
+    return p && !p.hidden;
+  };
+  const visible = () => lrows.filter((r) => !r.classList.contains('hide'));
+  let buf = '';
+  const paint = () => {
+    lrows.forEach((r) => r.classList.toggle('hide', buf !== '' && !r.dataset.search.includes(buf)));
+    if (filterEl) filterEl.innerHTML = buf ? 'FILTER: <b>' + buf.toUpperCase() + '</b>' : '';
+  };
+  const move = (dir) => {
+    const vis = visible();
+    if (!vis.length) return;
+    const cur = vis.indexOf(root.querySelector('.ledger tr.row.on'));
+    const next = vis[(cur < 0 ? (dir > 0 ? 0 : vis.length - 1) : (cur + dir + vis.length) % vis.length)];
+    lrows.forEach((r) => r.classList.toggle('on', r === next));
+    next.scrollIntoView({ block: 'nearest' });
+  };
+  const open = () => { const r = root.querySelector('.ledger tr.row.on'); if (r) location.href = r.dataset.href; };
+  lrows.forEach((r) => {
+    r.addEventListener('click', () => { location.href = r.dataset.href; });
+    r.addEventListener('keydown', (e) => { if (e.key === 'Enter') open(); });
+  });
   document.addEventListener('keydown', (e) => {
+    if (!ledgerVisible() || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (document.querySelector('[data-pal]:not([hidden])')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); move(1); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); return; }
+    if (e.key === 'Enter') { open(); return; }
+    if (e.key === 'Escape') { buf = ''; paint(); return; }
+    if (e.key === 'Backspace') { buf = buf.slice(0, -1); paint(); return; }
+    if (/^[a-z0-9 ]$/i.test(e.key) && e.key.length === 1) { buf += e.key; paint(); }
+  });
+
+  /* --- cover rows: arrow-key travel --- */
+  document.addEventListener('keydown', (e) => {
+    const p = root.querySelector('[data-view="cover"]');
+    if (!p || p.hidden) return;
+    if (document.querySelector('[data-pal]:not([hidden])')) return;
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    if (/INPUT|TEXTAREA/.test(document.activeElement?.tagName ?? '')) return;
     e.preventDefault();
     const i = rows.indexOf(document.activeElement);
     const next = Math.max(0, Math.min(rows.length - 1, (i < 0 ? (e.key === 'ArrowDown' ? -1 : rows.length) : i) + (e.key === 'ArrowDown' ? 1 : -1)));

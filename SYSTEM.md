@@ -107,8 +107,10 @@ exempt.
   plan, cues are what he needs at a glance).
 - Keyboard: `↑/↓` or `←/→` navigate, `C` toggles cues, `R` replays the active
   scene's simulation.
-- Scroll-snap scenes, IntersectionObserver-driven counter/cues, 16:9-first
-  layout (design at 1920×1080; scenes are `min-height:100svh`).
+- Scroll-snap scenes, IntersectionObserver-driven counter/cues, fluid
+  layout from 390px up (scenes are `min-height:100svh`). The frame law (§8):
+  at ≥900px a scene fits without scrolling; below that columns stack and the
+  scene scrolls — nothing overflows horizontally, nothing is cut off sideways.
 
 ## 6. Scene types (the catalogue — build from these, don't invent)
 
@@ -133,7 +135,8 @@ exempt.
 4. Choose the deck's single semantic accent (§2) in advance — or none.
 5. Run the checks: `npm run build && npm run check && npm test` — colour audit,
    one build per scene, every diagram replays, reduced motion renders clean,
-   and every scene fits 1600×900.
+   every scene fits 1600×900 on desktop (`tests/fit.spec.js`) and nothing
+   overflows horizontally at 390px (`tests/mobile-fit.spec.js`).
 
 ## 8. Narrative decks — self-contained scenes (revised 17 Oct 2026)
 
@@ -145,11 +148,13 @@ and it crowded each diagram out of its own column. The law now:
   thesis. No step counter on the cover.
 - **The slide does the narrative work.** One claim per scene, carried by the
   headline and lede; the diagram proves it. Nothing recurs between scenes.
-- Text owns the **left** column, the diagram owns the **right**. Never stack a
-  diagram under the text in the same column — that is what pushed scenes past
-  the 16:9 frame.
-- A scene must **fit 1600×900** (`tests/fit.spec.js`). What does not fit is cut,
-  not scrolled.
+- Text owns the **left** column, the diagram owns the **right** — at ≥900px.
+  Below that the columns stack, text over diagram: that is what makes the
+  phone frame work, and the old ban on stacking died with the 16:9-only era.
+- A scene must **fit its frame**. At 1600×900 it fits without scrolling
+  (`tests/fit.spec.js`) — what does not fit is cut, not scrolled. At 390px
+  the scene may scroll vertically, but nothing overflows horizontally and no
+  scene is cut off sideways (`tests/mobile-fit.spec.js`).
 - Steps still hand off — each scene ends on the question the next answers — but
   the hand-off lives in the writing, not in a persistent widget.
 

@@ -1,129 +1,50 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { compareNewest } from "../lib/registry";
 import manifest from "../../decks.json";
 
-const byNewest = (a: CollectionEntry<"essays">, b: CollectionEntry<"essays">) => {
-  if (!a.data.pubDate && !b.data.pubDate) return a.data.title.localeCompare(b.data.title);
-  if (!a.data.pubDate) return 1;
-  if (!b.data.pubDate) return -1;
-  return b.data.pubDate.localeCompare(a.data.pubDate);
-};
-const all = (await getCollection("essays")).sort(byNewest);
-const essays = all.slice(0, 3);
-const decks = [...manifest.decks].sort((a, b) => b.episode - a.episode).slice(0, 3);
+const all = (await getCollection("essays")).sort(
+  (a: CollectionEntry<"essays">, b: CollectionEntry<"essays">) => compareNewest(a.data, b.data),
+);
+const ordered = [...manifest.decks].sort((a, b) => a.episode - b.episode);
+
+interface Row {
+  title: string;
+  url: string;
+  tag: string;
+}
+const rows: Row[] = [
+  ...ordered.map((d) => ({
+    title: d.title,
+    url: `decks/${d.slug}/`,
+    tag: d.series,
+  })),
+  ...all.map((e: CollectionEntry<"essays">) => ({
+    title: e.data.title,
+    url: `essays/${e.data.slug}/`,
+    tag: e.data.category,
+  })),
+];
 ---
 
 <BaseLayout title="Soapbox" description="Essays and full-screen decks.">
   <canvas id="universe" aria-hidden="true"></canvas>
-  <main class="home mx-auto max-w-5xl px-6 pb-32 pt-20" data-pagefind-ignore>
-    <!-- Hero -->
-    <header class="mb-24 relative">
-      <div class="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3.5 py-1.5 text-xs text-muted-foreground backdrop-blur mb-8">
-        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        Now writing · {all.length} essays published
-      </div>
-      <h1 class="text-[clamp(48px,8vw,96px)] font-bold leading-[0.95] tracking-[-0.04em]">
-        <span class="block">Ideas that</span>
-        <span class="block bg-gradient-to-r from-white via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
-          refuse to stay quiet.
-        </span>
-      </h1>
-      <p class="mt-8 max-w-2xl text-[18px] leading-relaxed text-muted-foreground">
-        Essays from the notebook, and full-screen decks talked over. Same head, two formats —
-        long-form thinking you can read, or listen to while you work.
-      </p>
-      <div class="mt-10 flex flex-wrap gap-3">
-        <a href="essays/" class="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background hover:opacity-90 transition-opacity">
-          Read essays →
-        </a>
-        <a href="decks/" class="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-6 py-3 text-sm font-medium text-foreground hover:border-foreground/40 transition-colors backdrop-blur">
-          Watch decks →
-        </a>
-      </div>
-    </header>
-
-    <!-- Stats -->
-    <section class="mb-24 grid grid-cols-2 gap-4 sm:grid-cols-4">
-      <div class="rounded-2xl border border-border bg-card/40 p-6 backdrop-blur">
-        <div class="text-[32px] font-bold tracking-tight">{all.length}</div>
-        <div class="mt-1 text-[13px] text-muted-foreground">Essays published</div>
-      </div>
-      <div class="rounded-2xl border border-border bg-card/40 p-6 backdrop-blur">
-        <div class="text-[32px] font-bold tracking-tight">{manifest.decks.length}</div>
-        <div class="mt-1 text-[13px] text-muted-foreground">Decks recorded</div>
-      </div>
-      <div class="rounded-2xl border border-border bg-card/40 p-6 backdrop-blur">
-        <div class="text-[32px] font-bold tracking-tight">∞</div>
-        <div class="mt-1 text-[13px] text-muted-foreground">Ideas in the queue</div>
-      </div>
-      <div class="rounded-2xl border border-border bg-card/40 p-6 backdrop-blur">
-        <div class="text-[32px] font-bold tracking-tight">1</div>
-        <div class="mt-1 text-[13px] text-muted-foreground">Head, two formats</div>
-      </div>
-    </section>
-
-    <!-- Latest essays -->
-    <section class="mb-24">
-      <div class="mb-8 flex items-baseline justify-between">
-        <h2 class="text-[13px] uppercase tracking-[0.14em] text-muted-foreground">Latest essays</h2>
-        <a href="essays/" class="text-sm text-muted-foreground hover:text-foreground transition-colors">All {all.length} →</a>
-      </div>
-      <ul class="grid gap-4">
-        {essays.map((e: CollectionEntry<"essays">) => (
-          <li>
-            <a href={`essays/${e.data.slug}/`} class="card press group block rounded-2xl border border-border p-6 hover:border-foreground/30 transition-all">
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <div class="text-[20px] font-semibold leading-snug group-hover:text-white transition-colors">{e.data.title}</div>
-                  {e.data.description && <p class="mt-2 text-[14px] leading-relaxed text-muted-foreground">{e.data.description}</p>}
-                </div>
-                <div class="shrink-0 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors text-lg">→</div>
-              </div>
-              <div class="mt-4 flex items-center gap-2 text-[12px] text-muted-foreground/60">
-                {e.data.category && <span class="rounded-full bg-accent px-2.5 py-0.5">{e.data.category}</span>}
-                {e.data.pubDate && <span>{e.data.pubDate.slice(0, 10)}</span>}
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <!-- Latest decks -->
-    <section class="mb-24">
-      <div class="mb-8 flex items-baseline justify-between">
-        <h2 class="text-[13px] uppercase tracking-[0.14em] text-muted-foreground">Latest decks</h2>
-        <a href="decks/" class="text-sm text-muted-foreground hover:text-foreground transition-colors">All decks →</a>
-      </div>
-      <ul class="grid gap-4 sm:grid-cols-3">
-        {decks.map((d) => (
-          <li>
-            <a href={`decks/${d.slug}/`} class="card press group block overflow-hidden rounded-2xl border border-border hover:border-foreground/30 transition-all">
-              <img src={`og/${d.slug}.png`} alt="" width="1200" height="630" loading="lazy" class="aspect-[1200/630] w-full object-cover" />
-              <div class="p-5">
-                <div class="text-[11px] tracking-[0.12em] text-muted-foreground/70 uppercase">{d.series}</div>
-                <div class="mt-1.5 text-[16px] font-semibold leading-snug group-hover:text-white transition-colors">{d.title}</div>
-                <p class="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{d.summary}</p>
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <!-- CTA -->
-    <section class="rounded-3xl border border-border bg-gradient-to-b from-card/60 to-transparent p-12 text-center backdrop-blur">
-      <h2 class="text-[32px] font-bold tracking-tight">Your knowledge deserves better than bookmarks.</h2>
-      <p class="mt-4 mx-auto max-w-lg text-[16px] text-muted-foreground">
-        Long-form thinking, distilled into essays and decks. No noise, no algorithm — just ideas that matter.
-      </p>
-      <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="essays/" class="inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background hover:opacity-90 transition-opacity">
-          Start reading
-        </a>
-      </div>
-    </section>
+  <main class="home mx-auto max-w-3xl px-6 pb-32 pt-20 sm:pt-28" data-pagefind-ignore>
+    <h1 class="header-reveal" style="--reveal-delay: 0ms">
+      Ideas that refuse to stay quiet.
+    </h1>
+    <ol class="idx">
+      {rows.map((r, i) => (
+        <li>
+          <a href={r.url} class="group">
+            <span class="n">{String(i + 1).padStart(2, "0")}</span>
+            <span class="t"><span class="row-title">{r.title}</span></span>
+            <span class="c">{r.tag}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
   </main>
 </BaseLayout>
 
@@ -137,10 +58,40 @@ const decks = [...manifest.decks].sort((a, b) => b.episode - a.episode).slice(0,
     background: radial-gradient(ellipse at 50% 120%, #14141f 0%, #0a0a0a 60%);
   }
   .home { position: relative; }
-  .card { background: rgb(10 10 10 / 0.6); backdrop-filter: blur(6px); transition: border-color 0.2s, transform 0.2s; }
-  .card:hover { border-color: rgb(250 250 250 / 0.3); transform: translateY(-2px); }
-  .press { transition: transform 0.1s ease; }
-  .press:active { transform: scale(0.98); }
+  .home h1 {
+    font-size: clamp(48px, 8vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
+    font-weight: 800;
+    text-wrap: balance;
+    margin: 0 0 3.5rem;
+  }
+  .idx { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-border); }
+  .idx a {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 1rem 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+    text-decoration: none;
+    color: var(--color-foreground);
+  }
+  .idx a:hover { background: rgb(13 13 13 / 0.8); }
+  .idx .n { font-family: var(--font-mono); font-size: 12px; color: var(--color-g2, #737373); }
+  .idx .t { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
+  .idx .c {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-g2, #737373);
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .idx a { grid-template-columns: 2.25rem minmax(0, 1fr); }
+    .idx .c { display: none; }
+  }
 </style>
 
 <script>

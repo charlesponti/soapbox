@@ -25,6 +25,7 @@ const { title, description, tags, category } = entry.data;
   title={`${title} — Essays`}
   description={description || undefined}
   jsonldType="Article"
+  section="essays"
 >
   <main
     class="mx-auto max-w-2xl px-6 pb-28 pt-20"
@@ -40,14 +41,15 @@ const { title, description, tags, category } = entry.data;
     </a>
 
     <header class="mb-14">
-      <h1 class="header-reveal text-[34px] font-medium leading-[1.1] tracking-[-0.02em] sm:text-[40px]" style="--reveal-delay: 0ms">{title}</h1>
-      {description && <p class="header-reveal mt-4 text-lg leading-relaxed text-muted-foreground" style="--reveal-delay: 60ms">{description}</p>}
+      <div class="header-reveal font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground" style="--reveal-delay: 0ms">{category}</div>
+      <h1 class="header-reveal mt-3 text-[34px] font-medium leading-[1.1] tracking-[-0.02em] text-balance sm:text-[40px]" style="--reveal-delay: 60ms">{title}</h1>
+      {description && <p class="header-reveal mt-4 text-lg leading-relaxed text-muted-foreground" style="--reveal-delay: 120ms">{description}</p>}
       {tags.length > 0 && (
         <ul class="mt-5 flex flex-wrap gap-2">
           {tags.map((t: string, i: number) => (
             <li
               class="tag-pill rounded-full border border-border px-3 py-0.5 text-xs text-muted-foreground"
-              style={`--reveal-delay: ${80 + Math.min(i, 8) * 40}ms`}
+              style={`--reveal-delay: ${140 + Math.min(i, 8) * 40}ms`}
             >
               {t}
             </li>
@@ -56,30 +58,42 @@ const { title, description, tags, category } = entry.data;
       )}
     </header>
 
-    <article class="prose">
+    <article class="prose max-w-[65ch]">
       <Content />
     </article>
 
     {related.length > 0 && (
-      <aside class="mt-20 border-t border-border pt-10" aria-label="Related essays">
-        <h2 class="mb-6 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-          Related
+      <aside class="mt-20 border-t border-border pt-10" aria-label="Keep reading">
+        <h2 class="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          Keep reading
         </h2>
-        <ul class="space-y-1">
-          {related.map((r: EssayEntry) => (
-            <li>
-              <a
-                href={`../${r.data.slug}/`}
-                class="group -mx-3 flex items-baseline justify-between gap-6 rounded-md px-3 py-3 transition-colors hover:bg-muted/70"
-              >
-                <span class="block text-[16px] font-medium leading-snug tracking-[-0.01em] group-hover:underline group-hover:underline-offset-4">
-                  {r.data.title}
-                </span>
-                <span class="shrink-0 text-[13px] text-muted-foreground">{r.data.category}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <a
+          href={`../${related[0]!.data.slug}/`}
+          class="group block py-5"
+        >
+          <span class="block text-[24px] font-semibold leading-snug tracking-[-0.02em]"><span class="row-title">{related[0]!.data.title}</span></span>
+          {related[0]!.data.description && (
+            <span class="mt-1 block max-w-[52ch] text-[15px] leading-relaxed text-muted-foreground">{related[0]!.data.description}</span>
+          )}
+          <span class="mt-2 block font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Next essay <span aria-hidden="true">→</span></span>
+        </a>
+        {related.length > 1 && (
+          <ul class="mt-2 space-y-1 border-t border-border/60 pt-4">
+            {related.slice(1).map((r: EssayEntry) => (
+              <li>
+                <a
+                  href={`../${r.data.slug}/`}
+                  class="group -mx-3 flex items-baseline justify-between gap-6 rounded-md px-3 py-3 transition-colors hover:bg-muted/70"
+                >
+                  <span class="block text-[16px] font-medium leading-snug tracking-[-0.01em] group-hover:underline group-hover:underline-offset-4">
+                    {r.data.title}
+                  </span>
+                  <span class="shrink-0 text-[13px] text-muted-foreground">{r.data.category}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </aside>
     )}
   </main>

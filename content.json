@@ -71,7 +71,7 @@
       "category": "technology",
       "tags": [],
       "pubDate": "2026-10-28",
-      "kind": "diagram"
+      "kind": "deck"
     },
     {
       "route": "essays/animated-entity-extraction/",
@@ -80,7 +80,7 @@
       "category": "technology",
       "tags": [],
       "pubDate": "2026-10-28",
-      "kind": "diagram"
+      "kind": "deck"
     },
     {
       "route": "essays/animated-hybrid-search/",
@@ -89,7 +89,7 @@
       "category": "technology",
       "tags": [],
       "pubDate": "2026-10-28",
-      "kind": "diagram"
+      "kind": "deck"
     },
     {
       "route": "essays/animated-kb-intelligence/",
@@ -98,7 +98,7 @@
       "category": "technology",
       "tags": [],
       "pubDate": "2026-10-28",
-      "kind": "diagram"
+      "kind": "deck"
     },
     {
       "route": "essays/animated-knowledge-graph/",
@@ -107,7 +107,7 @@
       "category": "technology",
       "tags": [],
       "pubDate": "2026-10-25",
-      "kind": "diagram"
+      "kind": "deck"
     },
     {
       "route": "essays/animated-source-ingestion/",
@@ -116,7 +116,7 @@
       "category": "technology",
       "tags": [],
       "pubDate": "2026-10-28",
-      "kind": "diagram"
+      "kind": "deck"
     },
     {
       "route": "decks/next-token/",
@@ -157,7 +157,7 @@
     {
       "route": "decks/models-fail-differently/",
       "title": "Models Fail Differently",
-      "description": "There is no single best tool-calling model — only models that fail in different ways.",
+      "description": "There is no single best tool-calling model \u2014 only models that fail in different ways.",
       "category": "The Agent Series",
       "tags": [],
       "pubDate": "2026-10-21",
@@ -175,7 +175,7 @@
     {
       "route": "decks/train-your-own/",
       "title": "Train Your Own",
-      "description": "Five small machines, built from zero — and one idea underneath them all.",
+      "description": "Five small machines, built from zero \u2014 and one idea underneath them all.",
       "category": "TinyEinstein",
       "tags": [],
       "pubDate": "2026-10-21",
@@ -201,7 +201,7 @@
     },
     {
       "route": "data/",
-      "title": "Data — Essays",
+      "title": "Data \u2014 Essays",
       "description": "Corpus statistics for the essays.",
       "category": "media",
       "tags": [],

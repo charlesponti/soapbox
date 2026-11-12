@@ -96,7 +96,20 @@ npm run gates     # check + typecheck — runs automatically
 - **Content data:** `pubDate` was removed from all vault notes (341 notes,
   surgical). The loader yields null dates → essays show "undated" and the index
   sorts alphabetically by title. If dates return, re-add the field and the
-  `byNewest` sort picks it back up.
+  `compareNewest` sort in `src/lib/registry.ts` picks it back up.
+- **Deck runtime bundle:** `Deck.astro` loads one concatenated
+  `components/deck-runtime.js` (scene → icon → stage → build → parts →
+  driver, in load order) instead of six blocking scripts. It is generated —
+  the `astro.config.mjs` mirror hook concatenates the IIFE-wrapped library
+  files into `public/components/` at config time. Motion stays a separate
+  blocking script: `deck-stage` reads `window.Motion` at define time, and
+  per-deck inline scripts destructure `window.deckBuild` at parse time, so
+  nothing in this chain can `defer` without touching all 14 deck pages.
+- **Tokens:** `components/deck.css` `:root` is the single truth (ink steps,
+  `--ease`, `--d-blink/shift/settle`, `--measure`); the Tailwind `@theme` in
+  `src/styles/global.css` mirrors the shared steps. Deck token *values* are
+  frozen — `tests/visual.spec.js` snapshots are pixel-exact and even a
+  `#fff`→`#fafafa` shift fails them (verified Nov 2026).
 
 ## Gotchas (don't re-derive)
 
@@ -126,9 +139,16 @@ npm run gates     # check + typecheck — runs automatically
 
 - `src/loaders/essays.ts` — content loader (stage ingestion, `store.clear()`).
 - `src/content.config.ts` — essay collection schema (no `status` field).
+- `src/lib/registry.ts` — the ONE listing layer: vault+content.json merge
+  and newest-first comparator. Pages never hardcode listings or sorts — they
+  call this. (Decks and diagrams are the same thing: one list, no shelves.)
+- `src/layouts/Shell.astro` — the one site chrome (header/nav/footer/palette).
+  `BaseLayout` (essay side) and `Site` (deck-index side) are thin wrappers over
+  it; deck *stage* pages keep `Deck.astro` (full-screen contract).
 - `src/pages/index.astro`, `src/pages/essays/[slug].astro`, `src/pages/404.astro`.
 - `src/components/` — React islands (`TopicSelect`, `EssayList`) + Astro comps.
-- `src/client/` — `list-transition.ts`, `progress.ts`.
+- `src/client/` — `list-transition.ts`, `progress.ts`, `palette.ts` (the
+  framework-free ⌘K palette; runs on essay AND deck-index pages).
 - `scripts/` — `deploy.sh`, `install-hooks.mjs`, `prune-pagefind.mjs`.
 - `.githooks/` — tracked git hooks (`pre-commit` runs `npm run gates`).
-- `tests/search-check.mjs` — 15-assertion regression gate (Pagefind + nav).
+- `tests/search-check.mjs` — regression gate (Pagefind + nav + palette).

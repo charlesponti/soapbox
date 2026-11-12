@@ -42,12 +42,10 @@ const ogImage = ogImageProp ?? (entry ? new URL(`${base}og/${slug}.png`, Astro.s
 <deck-stage brand={brand} series={series} replay-hint={replayHint ? '' : undefined} data-pagefind-body data-pagefind-filter={`category:${category}`}>
 <slot />
 </deck-stage>
-<script is:inline src={`${base}components/deck-scene.js`}></script>
-<script is:inline src={`${base}components/deck-icon.js`}></script>
-<script is:inline src={`${base}components/deck-stage.js`}></script>
+{/* One concatenated runtime (built by the astro.config.mjs mirror hook) instead
+   of six blocking scripts: same order, same timing, one request. Motion stays
+   a separate blocking script — deck-stage reads window.Motion at define time. */}
+<script is:inline src={`${base}components/deck-runtime.js`}></script>
 {chat && <script is:inline src={`${base}components/deck-chat.js`}></script>}
-<script is:inline src={`${base}components/deck-build.js`}></script>
-<script is:inline src={`${base}components/deck-parts.js`}></script>
-<script is:inline src={`${base}components/deck-stage-driver.js`}></script>
 <slot name="script" />
 </body></html>

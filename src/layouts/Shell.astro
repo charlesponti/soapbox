@@ -89,6 +89,10 @@ const nav = [
       <>
         <link rel="stylesheet" href={`${base}components/fonts.css`} />
         <link rel="stylesheet" href={`${base}components/deck.css`} />
+        {/* Gallery/wall/ledger read window.Motion for their entrance work.
+            Deck *stage* pages load their own copy in Deck.astro; Shell only
+            serves the deck-index side, so this never double-loads. */}
+        <script is:inline src={`${base}components/motion-11.11.17.js`}></script>
       </>
     )}
     <slot name="head" />
