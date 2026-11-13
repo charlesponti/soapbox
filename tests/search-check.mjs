@@ -1,6 +1,6 @@
 /**
  * tests/search-check.mjs — regression test for the index search feature.
- * Requires a built site served at $URL (default http://localhost:4321/soapbox/essays/).
+ * Requires a built site served at $URL (default http://localhost:4321/soapbox/).
  *
  * Checks:
  *   1. typing a query returns full-text results (Pagefind)
@@ -11,7 +11,7 @@
  */
 import { chromium } from "playwright";
 
-const URL = process.env.URL ?? "http://localhost:4321/soapbox/essays/";
+const URL = process.env.URL ?? "http://localhost:4321/soapbox/";
 let failures = 0;
 const check = (name, ok, detail = "") => {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? ` — ${detail}` : ""}`);

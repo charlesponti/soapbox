@@ -73,7 +73,7 @@ path. If it ever gets reset, re-point it under the repo's Settings → Pages.
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" https://charlesponti.github.io/soapbox/                                   # 200
-curl -s https://charlesponti.github.io/soapbox/essays/ | rg -o "From the notebook · [0-9]+"                        # essay count
+curl -s https://charlesponti.github.io/soapbox/ | rg -o "[0-9]+ pieces"                                    # content count
 curl -s -o /dev/null -w "%{http_code}\n" https://charlesponti.github.io/soapbox/pagefind/pagefind.js              # 200 → search live
 curl -s -o /dev/null -w "%{http_code}\n" https://charlesponti.github.io/soapbox/voice-arch/                      # 200
 ```

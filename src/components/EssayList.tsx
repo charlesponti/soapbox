@@ -86,7 +86,7 @@ const SearchField = memo(function SearchField({
         type="search"
         spellCheck={false}
         autoComplete="off"
-        placeholder="Search essays…"
+        placeholder="Search essays, decks…"
         value={value}
         ref={inputRef}
         onChange={(e) => {

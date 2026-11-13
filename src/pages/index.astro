@@ -1,50 +1,28 @@
 ---
 import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { compareNewest } from "../lib/registry";
-import manifest from "../../decks.json";
+import EssayList from "../components/EssayList";
+import { siteIndex } from "../lib/registry";
 
-const all = (await getCollection("essays")).sort(
-  (a: CollectionEntry<"essays">, b: CollectionEntry<"essays">) => compareNewest(a.data, b.data),
-);
-const ordered = [...manifest.decks].sort((a, b) => a.episode - b.episode);
-
-interface Row {
-  title: string;
-  url: string;
-  tag: string;
-}
-const rows: Row[] = [
-  ...ordered.map((d) => ({
-    title: d.title,
-    url: `decks/${d.slug}/`,
-    tag: d.series,
-  })),
-  ...all.map((e: CollectionEntry<"essays">) => ({
-    title: e.data.title,
-    url: `essays/${e.data.slug}/`,
-    tag: e.data.category,
-  })),
-];
+const essays = await getCollection("essays");
+const rawBase = import.meta.env.BASE_URL;
+const base = rawBase.endsWith("/") ? rawBase : rawBase + "/";
+/* Vault essays + registry (essays, decks, diagrams): one list, newest first.
+   The old /essays index is gone — this IS the index. */
+const meta = siteIndex(essays as CollectionEntry<"essays">[], base);
 ---
 
 <BaseLayout title="Soapbox" description="Essays and full-screen decks.">
   <canvas id="universe" aria-hidden="true"></canvas>
-  <main class="home mx-auto max-w-3xl px-6 pb-32 pt-20 sm:pt-28" data-pagefind-ignore>
+  <main class="home mx-auto max-w-5xl px-6 pb-32 pt-20 sm:pt-28" data-pagefind-ignore>
     <h1 class="header-reveal" style="--reveal-delay: 0ms">
       Ideas that refuse to stay quiet.
     </h1>
-    <ol class="idx">
-      {rows.map((r, i) => (
-        <li>
-          <a href={r.url} class="group">
-            <span class="n">{String(i + 1).padStart(2, "0")}</span>
-            <span class="t"><span class="row-title">{r.title}</span></span>
-            <span class="c">{r.tag}</span>
-          </a>
-        </li>
-      ))}
-    </ol>
+    <p class="home-lede header-reveal" style="--reveal-delay: 60ms">
+      Long-form thinking from the notebook, plus full-screen decks — one list,
+      newest first.
+    </p>
+    <EssayList essays={meta} base={base} client:idle />
   </main>
 </BaseLayout>
 
@@ -64,33 +42,14 @@ const rows: Row[] = [
     letter-spacing: -0.045em;
     font-weight: 800;
     text-wrap: balance;
+    margin: 0 0 1rem;
+  }
+  .home-lede {
     margin: 0 0 3.5rem;
-  }
-  .idx { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--color-border); }
-  .idx a {
-    display: grid;
-    grid-template-columns: 3rem minmax(0, 1fr) auto;
-    gap: 1rem;
-    align-items: baseline;
-    padding: 1rem 0.5rem;
-    border-bottom: 1px solid var(--color-border);
-    text-decoration: none;
-    color: var(--color-foreground);
-  }
-  .idx a:hover { background: rgb(13 13 13 / 0.8); }
-  .idx .n { font-family: var(--font-mono); font-size: 12px; color: var(--color-g2, #737373); }
-  .idx .t { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
-  .idx .c {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--color-g2, #737373);
-    white-space: nowrap;
-  }
-  @media (max-width: 640px) {
-    .idx a { grid-template-columns: 2.25rem minmax(0, 1fr); }
-    .idx .c { display: none; }
+    max-width: 42rem;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--color-muted-foreground);
   }
 </style>
 

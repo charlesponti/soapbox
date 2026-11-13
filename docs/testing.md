@@ -34,5 +34,5 @@ After `npm run deploy`, verify the live site (see `docs/deployment.md`):
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" https://charlesponti.github.io/soapbox/
 curl -s -o /dev/null -w "%{http_code}\n" https://charlesponti.github.io/soapbox/pagefind/pagefind.js
-curl -s https://charlesponti.github.io/soapbox/essays/ | rg -o "From the notebook · [0-9]+"
+curl -s https://charlesponti.github.io/soapbox/ | rg -o "[0-9]+ pieces"
 ```
