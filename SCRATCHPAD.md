@@ -42,10 +42,8 @@ Legend: **P0** next · **P1** soon · **P2** someday · 🔥 obviously good.
   `font-display: block`, no font CDN at render time.
 - ✅ **OG share cards** — `npm run og` renders each cover to 1200×630; `og:` /
   `twitter:` meta with per-deck summaries.
-- ✅ **Visual regression** — `npm run visual` compares a snapshot per scene;
-  baselines in `tests/__screenshots__` are generated and compared inside
-  Playwright's container image (the `visual` CI job), because pixel baselines
-  are platform-specific. `npm run visual:update` refreshes them.
+- ❌ **Visual regression (dropped)** — removed. Pixel PNG baselines were flaky
+  across macOS and the Linux CI container, and we don't want to maintain them.
 - ✅ **Reduced-motion race fixed** — the stage settles on `DOMContentLoaded`,
   not `setTimeout(0)`, so un-built panels can't be captured mid-load.
 
@@ -146,8 +144,6 @@ phone is fully covered by it now.
 
 ## Quality / CI
 
-- **P0 🔥 Visual regression.** Playwright `toHaveScreenshot` per scene in CI.
-  The suite proves the DOM; nothing proves the *picture*.
 - **P0 Extend `check-decks`:** the word ceiling per scene, the **accent audit**
   (colour only in sanctioned components), duplicate `data-replay` values, one
   replay button per build, and an `h1`/landmark presence check.
