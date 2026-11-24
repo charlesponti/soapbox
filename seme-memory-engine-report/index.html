@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Seme Memory Engine Report</title>
+<style>
+/* Layout: one centered column, a 68ch reading measure, tables that scroll inside themselves. */
+/* Palette: warm paper, ink, one oxblood accent used sparingly. Type: serif body, grotesk for labels. */
+:root {
+  --bg: #f6f3ec;
+  --fg: #1d1b18;
+  --muted: #6b655b;
+  --rule: #d9d2c4;
+  --accent: #8a2f23;
+  --panel: #ece7db;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171614;
+    --fg: #ece7dc;
+    --muted: #9c958a;
+    --rule: #3a3731;
+    --accent: #e08a78;
+    --panel: #22201c;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171614;
+  --fg: #ece7dc;
+  --muted: #9c958a;
+  --rule: #3a3731;
+  --accent: #e08a78;
+  --panel: #22201c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 1.0625rem/1.65 "Source Serif 4", Georgia, "Times New Roman", serif;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 72px;
+}
+main { max-width: 68ch; margin: 0 auto; }
+.label, th, .meta, figcaption {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+h1 { font-size: clamp(2rem, 6vw, 2.75rem); line-height: 1.15; margin: 0.4rem 0 0.6rem; text-wrap: balance; }
+h2 { font-size: 1.4rem; margin: 2.6rem 0 0.6rem; text-wrap: balance; }
+h3 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
+p, li, dd { text-wrap: pretty; }
+.dek { font-size: 1.15rem; color: var(--muted); margin: 0 0 1.4rem; }
+hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
+a { color: var(--accent); }
+code { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 0.9em; }
+.box { background: var(--panel); padding: 1.1rem 1.25rem; border-radius: 4px; }
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; }
+th, td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; vertical-align: top; }
+th:first-child, td:first-child { text-align: left; }
+th { font-weight: 600; }
+tr.focus td { color: var(--accent); }
+figcaption { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; font-size: 0.88rem; }
+dl { margin: 0; }
+dt { font-weight: 600; margin-top: 0.9rem; }
+dd { margin: 0.15rem 0 0 0; color: var(--fg); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="label">Technical report · Seme · November 2026</p>
+  <h1>How Seme remembers, and what we changed after testing it</h1>
+  <p class="dek">Seme is a memory system for AI assistants. We built a fake year of one person's life, fed it in, and checked
+  whether Seme could still answer questions about it afterward.</p>
+
+  <section class="box">
+    <p class="label">Short version</p>
+    <p>Seme forgets things too fast. Turning off its automatic fading kept far more facts. A simple rule, keeping only
+    the most recent memories, works surprisingly well. A smarter rule, which combines each topic's history into one dated
+    note, did better still at the same size. We also found four bugs in how Seme answers questions about the past, and
+    fixed them.</p>
+  </section>
+
+  <h2>Words used in this report</h2>
+  <dl>
+    <dt>Memory</dt>
+    <dd>A single fact Seme has stored about the user, such as "lives in Denver" or "has a sister named Mira". Seme stores
+    each one as a short record with a date.</dd>
+    <dt>Ingestion</dt>
+    <dd>Feeding text into Seme. Seme reads the text and pulls out the facts worth remembering. We ingested a year's worth
+    of simulated messages, one at a time, the same way a real user's messages would go in.</dd>
+    <dt>Decay</dt>
+    <dd>Seme's automatic fading. The longer since a memory was last confirmed, the less confident Seme is in it. Once it
+    fades below a cutoff, Seme stops returning it when asked. Decay is on by default. "Decay off" means memories never
+    fade, so anything Seme stored stays available.</dd>
+    <dt>Strategy</dt>
+    <dd>A rule for what to keep. Each strategy below is one rule applied to the same stored memories, so the rules can
+    be compared fairly.</dd>
+    <dt>Budget</dt>
+    <dd>A cap on how many memories a strategy is allowed to keep. We count memories, not tokens, because a memory is
+    what a user actually stores. Token counts are reported alongside.</dd>
+    <dt>Token</dt>
+    <dd>A chunk of text, roughly three-quarters of a word. Models are priced and limited by tokens, so the size of the
+    context Seme hands the AI matters.</dd>
+    <dt>Context</dt>
+    <dd>The memories Seme pulls out to answer one question. The AI reads only these when it answers.</dd>
+    <dt>Accuracy</dt>
+    <dd>The share of test questions answered correctly, as a percentage. We ask 108 questions per strategy.</dd>
+    <dt>Point</dt>
+    <dd>One percentage point of accuracy. "Decay costs 9 points" means the score is 9 percentage points lower with decay on.</dd>
+    <dt>Noise</dt>
+    <dd>Random variation. Running the same test twice does not give the same score. In our runs, the same strategy moved
+    between 5 and 8 points with nothing changed. A gap smaller than that could be luck, so we ignore it.</dd>
+    <dt>As-of question</dt>
+    <dd>A question about a past date, such as "Which city did I live in on January 28?" Seme has to remember what was
+    true on that day, not what is true now.</dd>
+    <dt>Superseded</dt>
+    <dd>Replaced. When a fact changes, such as moving from Austin to Denver, Seme marks the old fact as superseded,
+    meaning it used to be true and is not anymore.</dd>
+  </dl>
+
+  <h2>What we tested</h2>
+  <p>We wrote a generator for a fictional person's year. It produces about 127 messages spread over twelve months. Some
+  facts change along the way: the person moves, changes jobs, or changes diet. Some messages correct an earlier mistake.
+  Some mention one-off events, like an injury. Some include things that are not facts, like a hypothetical or a quote,
+  and should not be remembered as true. Then we ask 108 questions at four points in the year, such as "What city do I
+  live in now?" and "Which city did I live in last March?"</p>
+  <p>Every run uses the same generated year, so strategies are compared on the same stored memories. We fed the messages
+  through Seme with a real AI model, saved the state at each checkpoint, and then tested each strategy on a copy of
+  that saved state.</p>
+
+  <h2>The strategies</h2>
+  <dl>
+    <dt>Keep everything, with decay (Seme as it ships)</dt>
+    <dd>Seme's default. Memories fade over time, and faded ones drop out.</dd>
+    <dt>Keep everything, decay off</dt>
+    <dd>The same memories, but nothing fades. This tells us how much fading costs.</dd>
+    <dt>Keep the most recent N (recency)</dt>
+    <dd>No fading. Keep only the N memories that were recorded most recently, and drop the rest. This is the simplest
+    possible budget rule, so it's the baseline any smarter rule has to beat.</dd>
+    <dt>Merge history, then keep N (consolidation)</dt>
+    <dd>When a fact changed over time, combine its whole history into one note. For example, instead of three separate
+    records (Austin, Boston, Denver), keep one: "history: Austin until February 2026; Boston until 2026-05-01; now Denver
+    since 2026-05-01". Then apply the same budget of N memories. The idea is that one merged note answers both "where do I
+    live now" and "where did I live in March".</dd>
+  </dl>
+
+  <h2>Results</h2>
+  <p>Each row is one strategy. "Overall" is the percentage of all 108 questions answered correctly. The other columns
+  break that down by kind of question. "Context" is roughly how much text the AI was given per question, in tokens.</p>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Strategy</th><th>Overall</th><th>Context (tokens)</th><th>Current facts</th><th>Past dates</th><th>Corrected facts</th><th>One-off events</th><th>When first said</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Keep everything, with decay</td><td>81.5%</td><td>70</td><td>92%</td><td>67%</td><td>89%</td><td>0%</td><td>75%</td></tr>
+      <tr><td>Keep everything, decay off</td><td>90.7%</td><td>171</td><td>97%</td><td>67%</td><td>67%</td><td>100%</td><td>75%</td></tr>
+      <tr><td>Keep most recent 20</td><td>72.2%</td><td>145</td><td>78%</td><td>0%</td><td>33%</td><td>67%</td><td>67%</td></tr>
+      <tr><td>Keep most recent 30</td><td>74.1%</td><td>163</td><td>86%</td><td>11%</td><td>11%</td><td>67%</td><td>67%</td></tr>
+      <tr><td>Keep most recent 45</td><td>88.9%</td><td>167</td><td>97%</td><td>44%</td><td>56%</td><td>89%</td><td>92%</td></tr>
+      <tr class="focus"><td>Merge history, keep 20</td><td>77.8%</td><td>190</td><td>75%</td><td>22%</td><td>56%</td><td>89%</td><td>75%</td></tr>
+      <tr class="focus"><td>Merge history, keep 30</td><td>89.8%</td><td>279</td><td>94%</td><td>56%</td><td>56%</td><td>100%</td><td>92%</td></tr>
+      <tr class="focus"><td>Merge history, keep 45</td><td>87.0%</td><td>281</td><td>97%</td><td>56%</td><td>44%</td><td>100%</td><td>67%</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <figcaption>Second run, all three simulated people averaged together, 108 questions per strategy. Keeping 10 memories
+  scored 59.3% with merging and 51.9% with recency; we left those rows out to keep the table short. Some questions score
+  100% under every strategy. These are questions about things the person never mentioned, where the right answer is
+  "I don't know", and they are omitted.</figcaption>
+
+  <h3>How much to trust these numbers</h3>
+  <p>We ran the whole thing twice from scratch. The second run used the bug fix described below and different dates for
+  the simulated year. Scores moved 5 to 8 points between the two runs, even for strategies we didn't change. That's
+  noise. So we only trust a difference when it shows up in both runs. Two differences survive that test: merging
+  history beats keeping the most recent memories at budgets of 10, 20 and 30, and turning decay off helps in both runs.
+  Questions about past dates are a small group, about nine per run, so one question changes their score by about 11
+  points. Treat those numbers as hints, not measurements.</p>
+
+  <h2>What we learned</h2>
+  <h3>Forgetting costs more than it looks</h3>
+  <p>Turning decay off raised the overall score by 9 points in the second run and 17 in the first. The biggest loss is
+  one-off events. One example: the simulated person says they tore their ACL while skiing. Seme stores that as a fact but
+  gives it a fast fade. Within about nine months it fades below the cutoff, and Seme stops returning it. The memory is
+  still there, Seme just never brings it up. So with decay on, the system quietly drops anything important that happened
+  once. It does this without any budget, and without checking how important the memory was.</p>
+
+  <h3>Keeping only the most recent memories is a surprisingly good baseline</h3>
+  <p>Keeping the 30 most recent memories, about 60% of what Seme stored, gets 74% in the second run and 82% in the first.
+  Keeping everything with decay off gets 91% and 92%. Any smarter rule has to beat this simple one at the same size,
+  not just beat keeping everything. The simple rule fails in a predictable place: it throws away old facts first, and
+  those are the ones needed to answer "what was true back then" or "what did I used to say".</p>
+
+  <h3>Merging history beats keeping recent memories, at a cost</h3>
+  <p>The merge strategy keeps one note per topic, with the dated history inside it. Averaged over both runs, it beats
+  keeping the most recent memories by about 6 points at a budget of 10 (59% vs 53%), 4 points at 20 (78% vs 74%), and 11
+  points at 30 (89% vs 78%). At 45 the two are within noise. Most of the gain is on past-date questions and one-off
+  events.</p>
+  <p>It has two costs. First, questions about when someone first said something got worse in one run and better in the
+  other, so we can't call that a clear loss. Second, the merged notes are long. At a budget of 30, the AI gets about 279
+  tokens of context per question, versus 163 for keeping recent memories. That's about 70% more text for the same number
+  of memories. A cheaper version of the merge, where a model writes a short summary, is the next thing to test.</p>
+
+  <h3>Four bugs in how Seme answers questions about the past</h3>
+  <p>Questions about past dates scored between 0% and 67%. We traced it to four separate problems:</p>
+  <ol>
+    <li><strong>Seme only looked at current facts.</strong> When asked about a past date, it ignored any fact that had
+    since been replaced, even though that fact was true on the date being asked about. Fixed: it now considers every fact
+    that was true on that date.</li>
+    <li><strong>Seme checked fading against today.</strong> A fact's confidence should be judged as of the date being
+    asked about, not today. Fixed.</li>
+    <li><strong>A date was passed under the wrong name.</strong> The service passed the date in one field, and the search
+    code read it from a different field. Our first attempt at fixing bug 1 read the wrong field, found no facts at all,
+    and dropped the past-date score to 0%. A debug run on a saved copy of the data found it.</li>
+    <li><strong>Replaced facts lost their search index.</strong> When a fact was replaced, Seme deleted the index entry that
+    lets it be found by meaning, not just by exact words. So old facts could only be found by exact words. Fixed: the
+    index entry is kept. In the second run, keeping everything with decay on went from 33% to 67% on past-date
+    questions.</li>
+  </ol>
+  <p>One caution: memories stored before the fix don't have that index entry. They can still be found by exact words, but
+  not by meaning, until the store is rebuilt from the original messages.</p>
+
+  <h2>Limits of this test</h2>
+  <ul>
+    <li>Three simulated people, run twice. That's a small sample, and the past-date group has only about nine questions.</li>
+    <li>The messages are generated, so they're tidier than real conversation. Real messages would be harder to read.</li>
+    <li>The grader is strict word matching. It can give credit to an answer that hedges between two answers, so we
+    read the stored memories behind every wrong answer before trusting a score.</li>
+    <li>Merged notes are written by a fixed rule, not by a model, so they are not yet as readable as they could be.</li>
+  </ul>
+
+  <h2>What's next</h2>
+  <ol>
+    <li>Have a model write the merged notes instead of the fixed rule, and measure the length and accuracy.</li>
+    <li>Add more simulated people, and hold some back, so a new rule isn't tuned on the same people that grade it.</li>
+    <li>Recompute the search index for merged notes, so they can be found by meaning too.</li>
+    <li>Run the same test on an outside benchmark, to check the results aren't specific to our generated year.</li>
+  </ol>
+
+  <hr>
+  <p class="meta">Source: apps/api/evals/longitudinal (the generator, grader, and test runner). Full numbers are in the benchmark README.</p>
+</main>
+</body>
+</html>
