@@ -35,6 +35,9 @@ git -C "$TMP" add -A
 if git -C "$TMP" diff --cached --quiet; then
   echo "no changes to publish"
 else
-  git -C "$TMP" commit -q -m "deploy: soapbox $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  # Skip the repo's pre-commit hook here. It runs `npm run gates`, but this
+  # worktree holds only built output (no package.json), and the gates already
+  # ran on the source branch in `npm run build` above.
+  git -C "$TMP" -c core.hooksPath=/dev/null commit -q -m "deploy: soapbox $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   git -C "$TMP" push origin gh-pages
 fi
