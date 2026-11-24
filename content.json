@@ -216,6 +216,16 @@
       "tags": [],
       "pubDate": "2026-10-26",
       "kind": "interactive"
+    },
+    {
+      "route": "seme-memory-engine-report/",
+      "title": "Seme Memory Engine Report",
+      "description": "What we built, how we measured it, and what the measurements changed about our design.",
+      "category": "technology",
+      "tags": [],
+      "pubDate": "2026-11-24",
+      "kind": "essay"
     }
+
   ]
 }
