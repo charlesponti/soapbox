@@ -65,7 +65,7 @@ a { color: var(--accent); }
 code { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 0.9em; }
 .abstract { background: var(--panel); padding: 1.1rem 1.25rem; border-radius: 4px; }
 .table-wrap { overflow-x: auto; margin: 1rem 0; }
-table { border-collapse: collapse; width: 100%; min-width: 540px; font-variant-numeric: tabular-nums; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-variant-numeric: tabular-nums; }
 th, td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; }
 th:first-child, td:first-child { text-align: left; }
 th { font-weight: 600; }
@@ -86,11 +86,12 @@ figcaption { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; font-s
     <p class="label">Abstract</p>
     <p>Seme is a local-first memory engine for AI companions, backed by SQLite with keyword, vector and graph retrieval.
     We built a longitudinal benchmark that generates a synthetic year of one person's life, ingests it through the real
-    extraction path with real models, and asks questions at four checkpoints. On three seeds (108 questions per
-    strategy) we found that Seme's default time decay costs about 17 points against keeping the same memories, that a
-    plain recency budget is a strong baseline, and that merging each fact's history into one dated memory beats recency
-    at every budget we tried. Along the way we found four retrieval bugs in the as-of path. Two are fixed and verified
-    on the benchmark; one fix needs a re-ingest before we can measure it.</p>
+    extraction path with real models, and asks questions at four checkpoints. Over three seeds (108 questions per
+    strategy), and across two independent ingests of those seeds, we found that Seme's default time decay costs 9 to
+    17 points against keeping the same memories, that a plain recency budget is a strong baseline, and that merging each
+    fact's history into one dated memory beats recency at budgets of 10, 20 and 30. We also found four retrieval bugs in
+    the as-of path. All four are fixed, and the vector fix is measured now: it doubled keep-all's as-of accuracy, from 33%
+    to 67%.</p>
   </section>
 
   <h2>1. The system</h2>
@@ -131,56 +132,64 @@ figcaption { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; font-s
   count, since that is what a user pays for. Token cost is reported alongside it.</p>
 
   <h2>4. Results</h2>
-  <p>Overall accuracy across seeds 7, 8 and 9, 108 questions per strategy. Context tokens are the mean size of the
-  retrieved context.</p>
+  <p>Overall accuracy across seeds 7, 8 and 9, 108 questions per strategy. These are from the second ingest, which runs
+  on the current code, including the superseded-vector fix. Context tokens are the mean size of the retrieved context.</p>
   <div class="table-wrap">
   <table>
     <thead>
       <tr><th>Strategy</th><th>Overall</th><th>Per seed</th><th>Context tokens</th><th>Current</th><th>As-of</th><th>Corrected</th><th>One-off</th><th>Provenance</th></tr>
     </thead>
     <tbody>
-      <tr><td>keep_all (Seme as-is)</td><td>74.1</td><td>81 / 78 / 64</td><td>80</td><td>83</td><td>33</td><td>100</td><td>0</td><td>42</td></tr>
-      <tr><td>keep_all, decay off</td><td>91.7</td><td>94 / 86 / 94</td><td>151</td><td>97</td><td>67</td><td>78</td><td>100</td><td>75</td></tr>
-      <tr><td>recency@20</td><td>75.0</td><td>78 / 72 / 75</td><td>133</td><td>81</td><td>0</td><td>44</td><td>67</td><td>75</td></tr>
-      <tr><td>recency@30</td><td>82.4</td><td>86 / 78 / 83</td><td>150</td><td>92</td><td>11</td><td>67</td><td>67</td><td>83</td></tr>
-      <tr class="focus"><td>consolidate@20</td><td>77.8</td><td>75 / 72 / 86</td><td>133</td><td>81</td><td>22</td><td>44</td><td>89</td><td>67</td></tr>
-      <tr class="focus"><td>consolidate@30</td><td>88.9</td><td>92 / 83 / 92</td><td>150</td><td>94</td><td>44</td><td>89</td><td>100</td><td>67</td></tr>
-      <tr class="focus"><td>consolidate@45</td><td>91.7</td><td>97 / 86 / 92</td><td>150</td><td>94</td><td>78</td><td>100</td><td>100</td><td>58</td></tr>
-      <tr><td>recency@45</td><td>96.3</td><td>97 / 94 / 97</td><td>150</td><td>100</td><td>56</td><td>100</td><td>100</td><td>100</td></tr>
+      <tr><td>keep_all (Seme as-is)</td><td>81.5</td><td>81 / 78 / 86</td><td>70</td><td>92</td><td>67</td><td>89</td><td>0</td><td>75</td></tr>
+      <tr><td>keep_all, decay off</td><td>90.7</td><td>94 / 92 / 86</td><td>171</td><td>97</td><td>67</td><td>67</td><td>100</td><td>75</td></tr>
+      <tr><td>recency@20</td><td>72.2</td><td>75 / 75 / 67</td><td>145</td><td>78</td><td>0</td><td>33</td><td>67</td><td>67</td></tr>
+      <tr><td>recency@30</td><td>74.1</td><td>75 / 72 / 75</td><td>163</td><td>86</td><td>11</td><td>11</td><td>67</td><td>67</td></tr>
+      <tr><td>recency@45</td><td>88.9</td><td>94 / 86 / 86</td><td>167</td><td>97</td><td>44</td><td>56</td><td>89</td><td>92</td></tr>
+      <tr class="focus"><td>consolidate@20</td><td>77.8</td><td>83 / 81 / 69</td><td>190</td><td>75</td><td>22</td><td>56</td><td>89</td><td>75</td></tr>
+      <tr class="focus"><td>consolidate@30</td><td>89.8</td><td>89 / 89 / 92</td><td>279</td><td>94</td><td>56</td><td>56</td><td>100</td><td>92</td></tr>
+      <tr class="focus"><td>consolidate@45</td><td>87.0</td><td>89 / 89 / 83</td><td>281</td><td>97</td><td>56</td><td>44</td><td>100</td><td>67</td></tr>
     </tbody>
   </table>
   </div>
-  <figcaption>Table 1. Accuracy (%) by strategy. Habit and abstention questions are 100% in every strategy and are omitted.
-  Rows highlighted in the consolidate group are the new strategy. Stores hold about 48 active memories at day 360.</figcaption>
+  <figcaption>Table 1. Accuracy (%) by strategy, second ingest. Recency at 10 and consolidate at 10 (59.3 overall) are
+  omitted from the table to keep it readable. Habit and abstention questions score 100% in most strategies and are left
+  out. Stores hold about 48 active memories at day 360.</figcaption>
 
-  <h3>How much to trust these numbers</h3>
-  <p>Overall figures move four to five points between identical runs. The as-of and one-off groups have about nine
-  questions each across the three seeds, so one question shifts as-of by eleven points. Recency at 45 beats keep-all
-  with decay off, but it keeps 45 of about 48 memories, so that gap is noise rather than a finding.</p>
+  <h3>Two ingests, and how much to trust them</h3>
+  <p>We ingested the same three seeds twice, with the same code and models. The second ingest used the superseded-vector
+  fix and a different day for the life's dates. Strategy results moved 5 to 8 points between them with no code change to
+  the strategy: keep_all rose 8 and recency at 45 fell 7. So we only trust differences that hold in both ingests. Two
+  such differences matter: consolidation beats recency at budgets 10, 20 and 30 in both, and decay costs points in
+  both. The as-of and one-off groups have about nine questions each, so one question moves as-of by about eleven
+  points. Treat those cells as directional.</p>
 
   <h2>5. Findings</h2>
   <h3>Decay is an unbudgeted forgetting policy</h3>
-  <p>Turning decay off on the same memories moves overall accuracy from 74 to 92. The loss is concentrated in one-off
-  facts. One example: "I tore my ACL while skiing" is stored as a fact with importance 0.4 and a fast decay class. After
-  roughly nine months its effective confidence falls under the retrieval floor, and the memory stays active the whole
-  time. Retrieval never returns it. Decay is therefore doing budget-like forgetting, but it ignores importance and never
-  shows up as a budget.</p>
+  <p>Turning decay off on the same memories raises overall accuracy by 9 points in the second ingest and 17 in the first.
+  The loss is concentrated in one-off facts. One example: "I tore my ACL while skiing" is stored as a fact with importance
+  0.4 and a fast decay class. After roughly nine months its effective confidence falls under the retrieval floor, and the
+  memory stays active the whole time. Retrieval never returns it. Decay is therefore doing budget-like forgetting, but it
+  ignores importance and never shows up as a budget.</p>
 
   <h3>Recency is a strong baseline</h3>
-  <p>Keeping the thirty most recent memories, about 60% of the store, scores 82%. Keeping everything with decay off scores
-  92%. Any new policy has to beat the recency curve at equal memory count, not keep-all. The curve breaks in the same
-  place every time: corrected facts and past states, which are exactly the memories recency discards first.</p>
+  <p>Keeping the thirty most recent memories, about 60% of the store, scores 74% in the second ingest and 82% in the first.
+  Keeping everything with decay off scores 91% and 92%. Any new policy has to beat the recency curve at equal memory
+  count, not keep-all. The curve breaks in the same place every time: corrected facts and past states, which are exactly
+  the memories recency discards first.</p>
 
   <h3>Merging a slot's history beats recency</h3>
   <p>The consolidation strategy keeps one memory per subject and predicate, with its dated history in the text, for
-  example <code>history: Austin (until 2026-02-01); current: Denver (since 2026-02-01)</code>. It beats recency at every
-  budget by 3 to 6 points overall (59 vs 54 at budget 10, 78 vs 75 at 20, 89 vs 82 at 30). The gain is mostly on as-of
-  questions (44 vs 11 at budget 30) and one-off facts. The cost is on provenance questions, such as "when did I first
-  tell you this": 67 against 83 at budget 30, and 58 against 100 at budget 45. Merging makes a dated statement harder
-  to recover. Using a model to write the merged abstraction is the next thing to test.</p>
+  example <code>history: Austin (until 2026-02-01); current: Denver (since 2026-02-01)</code>. Averaged over the two
+  ingests, it beats recency by about 6 points at budget 10 (59 vs 53), 4 at budget 20 (78 vs 74), and 11 at budget 30 (89
+  vs 78). At budget 45 the two are within noise. Most of the gain is on as-of questions and one-off facts. The costs are
+  real. Provenance answers suffer: "when did I first tell you this" scores 67 against 83 for recency at budget 30 in the
+  first ingest, and 92 against 67 in the second, so it is not a consistent loss. The bigger cost is context: because each
+  merged memory carries its whole history, consolidation at budget 30 sends about 279 tokens of context against 163 for
+  recency. Per memory, the merged text is much longer. Using a model to write a shorter abstraction is the next thing to
+  test.</p>
 
   <h3>As-of retrieval had four bugs</h3>
-  <p>As-of questions scored between 33% and 56% for a while, and reading why turned up four separate problems:</p>
+  <p>As-of questions scored between 0% and 67% for a while, and reading why turned up four separate problems:</p>
   <ol>
     <li><strong>Wrong candidate pool.</strong> Historical queries searched only active memories. A value that was true on
     the query date and has since been superseded never entered the candidates. Fixed: the pool is every memory observed
@@ -188,34 +197,37 @@ figcaption { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; font-s
     <li><strong>Wrong clock.</strong> Decay was measured at wall-clock now, not at the query date. Fixed.</li>
     <li><strong>Wrong date source.</strong> The service passes the as-of date as <code>to</code>, while the retrieval
     engine read only <code>asOf</code>. Our first fix to (1) read only <code>asOf</code> and fell back to today, which
-    emptied the pool and dropped as-of accuracy to 0%. A debug run on a snapshot found it, and the sweep was rerun. This
-    one is worth remembering: an empty result can look like a retrieval miss when it's really a plumbing error.</li>
+    emptied the pool and dropped as-of accuracy to 0%. A debug run on a snapshot found it. This one is worth remembering:
+    an empty result can look like a retrieval miss when it's really a plumbing error.</li>
     <li><strong>Superseded memories lost their vectors.</strong> Superseding deleted the incumbent's vector row, so
-    semantic search could not reach an old value at all. Fixed in the resolver: vectors are kept for superseded rows,
-    and historical vector search widens its window before filtering to the pool. <em>Not yet measured</em>, because our
-    snapshots predate the change. Until stores are re-ingested, old superseded rows have no vectors.</li>
+    semantic search could not reach an old value at all. Fixed in the resolver: vectors are kept for superseded rows, and
+    historical vector search widens its window before filtering to the pool. Measured in the second ingest: keep_all as-of
+    went from 33 to 67, and consolidation at budget 30 from 44 to 56.</li>
   </ol>
+  <p>Stores written before this change still have no vectors for superseded rows. Those rows stay keyword-only until the
+  store is re-ingested or backfilled.</p>
 
   <h2>6. Limitations</h2>
   <ul>
-    <li>Three seeds and 108 questions. Small groups such as as-of and one-off are directional only.</li>
+    <li>Three seeds, two ingests, and 108 questions per strategy. Small groups such as as-of and one-off are directional
+    only.</li>
     <li>The life is synthetic. Templated phrasing makes extraction easier than real conversation will be.</li>
-    <li>Consolidation is deterministic. We have not tested a model-written abstraction, and a model might recover
-    provenance that merging loses.</li>
+    <li>Consolidation is deterministic. We have not tested a model-written abstraction, which could be shorter and might
+    recover provenance that merging loses.</li>
     <li>The grader is exact match. It can credit hedged answers and must be read against the memory dump.</li>
     <li>Embeddings for merged memories are not recomputed in the sweep, so vector search still sees the pre-merge text.</li>
   </ul>
 
   <h2>7. What's next</h2>
   <ol>
-    <li>Re-ingest the three seeds so the vector fix for superseded memories is measured.</li>
-    <li>Test a model-written abstraction in place of the deterministic merge, and check provenance recovery.</li>
+    <li>Test a model-written abstraction in place of the deterministic merge, and check its token cost and provenance.</li>
     <li>Add seeds and a dev/test split so the next policy is not tuned on the seeds that report it.</li>
+    <li>Recompute merged embeddings, so vector search sees the consolidated text.</li>
     <li>Run the same harness on LongMemEval for an external check.</li>
   </ol>
 
   <hr>
-  <p class="meta">Source: apps/api/evals/longitudinal (generator, grader, run, sweep). Results: seed7/8/9-sweep.json.</p>
+  <p class="meta">Source: apps/api/evals/longitudinal (generator, grader, run, sweep). Results: sweep JSON per ingest, and the benchmark README.</p>
 </main>
 </body>
 </html>
