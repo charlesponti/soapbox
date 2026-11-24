@@ -15,7 +15,6 @@
     "playwright.config.js",
     "tests/decks.spec.js",
     "tests/fit.spec.js",
-    "tests/visual.spec.js",
     "scripts/check-decks.mjs",
     "scripts/og.mjs",
     "src/pages/decks/**",

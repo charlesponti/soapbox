@@ -18,8 +18,6 @@
     "prepare": "node scripts/install-hooks.mjs",
     "deploy": "bash scripts/deploy-pages.sh",
     "og": "node scripts/og.mjs",
-    "visual": "VISUAL=1 playwright test tests/visual.spec.js",
-    "visual:update": "VISUAL=1 playwright test tests/visual.spec.js --update-snapshots",
     "test": "playwright test",
     "preview": "astro preview"
   },
