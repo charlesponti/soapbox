@@ -58,20 +58,22 @@ main { max-width: 68ch; margin: 0 auto; }
 h1 { font-size: clamp(2rem, 6vw, 2.75rem); line-height: 1.15; margin: 0.4rem 0 0.6rem; text-wrap: balance; }
 h2 { font-size: 1.4rem; margin: 2.6rem 0 0.6rem; text-wrap: balance; }
 h3 { font-size: 1.1rem; margin: 1.6rem 0 0.4rem; }
-p, li { text-wrap: pretty; }
+p, li, dd { text-wrap: pretty; }
 .dek { font-size: 1.15rem; color: var(--muted); margin: 0 0 1.4rem; }
 hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
 a { color: var(--accent); }
 code { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; font-size: 0.9em; }
-.abstract { background: var(--panel); padding: 1.1rem 1.25rem; border-radius: 4px; }
+.box { background: var(--panel); padding: 1.1rem 1.25rem; border-radius: 4px; }
 .table-wrap { overflow-x: auto; margin: 1rem 0; }
-table { border-collapse: collapse; width: 100%; min-width: 620px; font-variant-numeric: tabular-nums; }
-th, td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-variant-numeric: tabular-nums; }
+th, td { padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--rule); text-align: right; vertical-align: top; }
 th:first-child, td:first-child { text-align: left; }
 th { font-weight: 600; }
 tr.focus td { color: var(--accent); }
 figcaption { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; font-size: 0.88rem; }
-.note { border-left: 2px solid var(--accent); padding-left: 0.9rem; color: var(--muted); }
+dl { margin: 0; }
+dt { font-weight: 600; margin-top: 0.9rem; }
+dd { margin: 0.15rem 0 0 0; color: var(--fg); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -79,155 +81,177 @@ figcaption { margin-top: 0.4rem; text-transform: none; letter-spacing: 0; font-s
 <body>
 <main>
   <p class="label">Technical report · Seme · November 2026</p>
-  <h1>Seme Memory Engine Report</h1>
-  <p class="dek">What we built, how we measured it, and what the measurements changed about our design.</p>
+  <h1>How Seme remembers, and what we changed after testing it</h1>
+  <p class="dek">Seme is a memory system for AI assistants. We built a fake year of one person's life, fed it in, and checked
+  whether Seme could still answer questions about it afterward.</p>
 
-  <section class="abstract">
-    <p class="label">Abstract</p>
-    <p>Seme is a local-first memory engine for AI companions, backed by SQLite with keyword, vector and graph retrieval.
-    We built a longitudinal benchmark that generates a synthetic year of one person's life, ingests it through the real
-    extraction path with real models, and asks questions at four checkpoints. Over three seeds (108 questions per
-    strategy), and across two independent ingests of those seeds, we found that Seme's default time decay costs 9 to
-    17 points against keeping the same memories, that a plain recency budget is a strong baseline, and that merging each
-    fact's history into one dated memory beats recency at budgets of 10, 20 and 30. We also found four retrieval bugs in
-    the as-of path. All four are fixed, and the vector fix is measured now: it doubled keep-all's as-of accuracy, from 33%
-    to 67%.</p>
+  <section class="box">
+    <p class="label">Short version</p>
+    <p>Seme forgets things too fast. Turning off its automatic fading kept far more facts. A simple rule, keeping only
+    the most recent memories, works surprisingly well. A smarter rule, which combines each topic's history into one dated
+    note, did better still at the same size. We also found four bugs in how Seme answers questions about the past, and
+    fixed them.</p>
   </section>
 
-  <h2>1. The system</h2>
-  <p>Seme stores memories as rows with a subject, predicate and value, plus provenance, observation time, a decay class
-  and a confidence. Writes go through an extraction pipeline that proposes candidate memories from each episode, a
-  resolver that decides whether a candidate is new, a reinforcement of an existing memory, or a supersession of one, and
-  a retrieval engine that fuses three ranked signals (content-word match, sqlite-vec similarity, and entity-graph
-  neighborhood) with reciprocal-rank fusion. Retrieval drops memories whose effective confidence falls under a floor,
-  where effective confidence is confidence times an exponential decay on the time since last reinforcement.</p>
-  <p>Extraction runs on Claude Haiku 5.5 through OpenRouter. Embeddings are qwen3-embedding:4b at 1024 dimensions,
-  served by Ollama. Answers come from a separate model given only the retrieved memories.</p>
+  <h2>Words used in this report</h2>
+  <dl>
+    <dt>Memory</dt>
+    <dd>A single fact Seme has stored about the user, such as "lives in Denver" or "has a sister named Mira". Seme stores
+    each one as a short record with a date.</dd>
+    <dt>Ingestion</dt>
+    <dd>Feeding text into Seme. Seme reads the text and pulls out the facts worth remembering. We ingested a year's worth
+    of simulated messages, one at a time, the same way a real user's messages would go in.</dd>
+    <dt>Decay</dt>
+    <dd>Seme's automatic fading. The longer since a memory was last confirmed, the less confident Seme is in it. Once it
+    fades below a cutoff, Seme stops returning it when asked. Decay is on by default. "Decay off" means memories never
+    fade, so anything Seme stored stays available.</dd>
+    <dt>Strategy</dt>
+    <dd>A rule for what to keep. Each strategy below is one rule applied to the same stored memories, so the rules can
+    be compared fairly.</dd>
+    <dt>Budget</dt>
+    <dd>A cap on how many memories a strategy is allowed to keep. We count memories, not tokens, because a memory is
+    what a user actually stores. Token counts are reported alongside.</dd>
+    <dt>Token</dt>
+    <dd>A chunk of text, roughly three-quarters of a word. Models are priced and limited by tokens, so the size of the
+    context Seme hands the AI matters.</dd>
+    <dt>Context</dt>
+    <dd>The memories Seme pulls out to answer one question. The AI reads only these when it answers.</dd>
+    <dt>Accuracy</dt>
+    <dd>The share of test questions answered correctly, as a percentage. We ask 108 questions per strategy.</dd>
+    <dt>Point</dt>
+    <dd>One percentage point of accuracy. "Decay costs 9 points" means the score is 9 percentage points lower with decay on.</dd>
+    <dt>Noise</dt>
+    <dd>Random variation. Running the same test twice does not give the same score. In our runs, the same strategy moved
+    between 5 and 8 points with nothing changed. A gap smaller than that could be luck, so we ignore it.</dd>
+    <dt>As-of question</dt>
+    <dd>A question about a past date, such as "Which city did I live in on January 28?" Seme has to remember what was
+    true on that day, not what is true now.</dd>
+    <dt>Superseded</dt>
+    <dd>Replaced. When a fact changes, such as moving from Austin to Denver, Seme marks the old fact as superseded,
+    meaning it used to be true and is not anymore.</dd>
+  </dl>
 
-  <h2>2. Achievements</h2>
-  <ul>
-    <li><strong>Longitudinal benchmark.</strong> A seeded generator builds a life of about 127 episodes over twelve
-    months: drifting facts (city, employer, diet), corrections, habits, one-off events, hypotheticals and quotes that
-    must not be stored as facts, distractors, and questions that have no answer in memory. The fingerprint of each
-    generated life is hashed so that runs are comparable.</li>
-    <li><strong>Snapshot-based evaluation.</strong> Ingestion with real models is the slow, paid step, so we run it once per
-    seed and snapshot the store at each checkpoint. Every strategy then runs on fresh copies of the same snapshots, so
-    strategies are compared on identical memories.</li>
-    <li><strong>Four as-of fixes.</strong> Historical queries searched only current memories; decay was measured against
-    today instead of the query date; the service passed the as-of date under a different name than the retrieval
-    engine read; and superseding a memory deleted its vector, so old values were reachable only by keyword. Details in
-    section 5.</li>
-    <li><strong>A consolidation strategy</strong> that merges a slot's history into one dated memory and then enforces a
-    budget. It is deterministic and uses no model call.</li>
-  </ul>
-  <p class="note">The installable-app work (single process, CLI, first-run setup) is in progress on a branch and is not
-  finished or verified end to end. This report covers the memory-engine research only.</p>
+  <h2>What we tested</h2>
+  <p>We wrote a generator for a fictional person's year. It produces about 127 messages spread over twelve months. Some
+  facts change along the way: the person moves, changes jobs, or changes diet. Some messages correct an earlier mistake.
+  Some mention one-off events, like an injury. Some include things that are not facts, like a hypothetical or a quote,
+  and should not be remembered as true. Then we ask 108 questions at four points in the year, such as "What city do I
+  live in now?" and "Which city did I live in last March?"</p>
+  <p>Every run uses the same generated year, so strategies are compared on the same stored memories. We fed the messages
+  through Seme with a real AI model, saved the state at each checkpoint, and then tested each strategy on a copy of
+  that saved state.</p>
 
-  <h2>3. Method</h2>
-  <p>Each question is graded by exact match against accepted phrases, with forbidden phrases checked only in sentences
-  that are not framed as past. Abstention questions count as correct only when the answer says the store does not know.
-  The grader has a known soft spot: an answer that hedges between two values can pass if the right one is stated last.
-  We read the memory dump for every failure before trusting a number.</p>
-  <p>The life ends on the day of the run, so wall-clock decay sees realistic memory ages. Budgets are measured in memory
-  count, since that is what a user pays for. Token cost is reported alongside it.</p>
+  <h2>The strategies</h2>
+  <dl>
+    <dt>Keep everything, with decay (Seme as it ships)</dt>
+    <dd>Seme's default. Memories fade over time, and faded ones drop out.</dd>
+    <dt>Keep everything, decay off</dt>
+    <dd>The same memories, but nothing fades. This tells us how much fading costs.</dd>
+    <dt>Keep the most recent N (recency)</dt>
+    <dd>No fading. Keep only the N memories that were recorded most recently, and drop the rest. This is the simplest
+    possible budget rule, so it's the baseline any smarter rule has to beat.</dd>
+    <dt>Merge history, then keep N (consolidation)</dt>
+    <dd>When a fact changed over time, combine its whole history into one note. For example, instead of three separate
+    records (Austin, Boston, Denver), keep one: "history: Austin until February 2026; Boston until 2026-05-01; now Denver
+    since 2026-05-01". Then apply the same budget of N memories. The idea is that one merged note answers both "where do I
+    live now" and "where did I live in March".</dd>
+  </dl>
 
-  <h2>4. Results</h2>
-  <p>Overall accuracy across seeds 7, 8 and 9, 108 questions per strategy. These are from the second ingest, which runs
-  on the current code, including the superseded-vector fix. Context tokens are the mean size of the retrieved context.</p>
+  <h2>Results</h2>
+  <p>Each row is one strategy. "Overall" is the percentage of all 108 questions answered correctly. The other columns
+  break that down by kind of question. "Context" is roughly how much text the AI was given per question, in tokens.</p>
   <div class="table-wrap">
   <table>
     <thead>
-      <tr><th>Strategy</th><th>Overall</th><th>Per seed</th><th>Context tokens</th><th>Current</th><th>As-of</th><th>Corrected</th><th>One-off</th><th>Provenance</th></tr>
+      <tr><th>Strategy</th><th>Overall</th><th>Context (tokens)</th><th>Current facts</th><th>Past dates</th><th>Corrected facts</th><th>One-off events</th><th>When first said</th></tr>
     </thead>
     <tbody>
-      <tr><td>keep_all (Seme as-is)</td><td>81.5</td><td>81 / 78 / 86</td><td>70</td><td>92</td><td>67</td><td>89</td><td>0</td><td>75</td></tr>
-      <tr><td>keep_all, decay off</td><td>90.7</td><td>94 / 92 / 86</td><td>171</td><td>97</td><td>67</td><td>67</td><td>100</td><td>75</td></tr>
-      <tr><td>recency@20</td><td>72.2</td><td>75 / 75 / 67</td><td>145</td><td>78</td><td>0</td><td>33</td><td>67</td><td>67</td></tr>
-      <tr><td>recency@30</td><td>74.1</td><td>75 / 72 / 75</td><td>163</td><td>86</td><td>11</td><td>11</td><td>67</td><td>67</td></tr>
-      <tr><td>recency@45</td><td>88.9</td><td>94 / 86 / 86</td><td>167</td><td>97</td><td>44</td><td>56</td><td>89</td><td>92</td></tr>
-      <tr class="focus"><td>consolidate@20</td><td>77.8</td><td>83 / 81 / 69</td><td>190</td><td>75</td><td>22</td><td>56</td><td>89</td><td>75</td></tr>
-      <tr class="focus"><td>consolidate@30</td><td>89.8</td><td>89 / 89 / 92</td><td>279</td><td>94</td><td>56</td><td>56</td><td>100</td><td>92</td></tr>
-      <tr class="focus"><td>consolidate@45</td><td>87.0</td><td>89 / 89 / 83</td><td>281</td><td>97</td><td>56</td><td>44</td><td>100</td><td>67</td></tr>
+      <tr><td>Keep everything, with decay</td><td>81.5%</td><td>70</td><td>92%</td><td>67%</td><td>89%</td><td>0%</td><td>75%</td></tr>
+      <tr><td>Keep everything, decay off</td><td>90.7%</td><td>171</td><td>97%</td><td>67%</td><td>67%</td><td>100%</td><td>75%</td></tr>
+      <tr><td>Keep most recent 20</td><td>72.2%</td><td>145</td><td>78%</td><td>0%</td><td>33%</td><td>67%</td><td>67%</td></tr>
+      <tr><td>Keep most recent 30</td><td>74.1%</td><td>163</td><td>86%</td><td>11%</td><td>11%</td><td>67%</td><td>67%</td></tr>
+      <tr><td>Keep most recent 45</td><td>88.9%</td><td>167</td><td>97%</td><td>44%</td><td>56%</td><td>89%</td><td>92%</td></tr>
+      <tr class="focus"><td>Merge history, keep 20</td><td>77.8%</td><td>190</td><td>75%</td><td>22%</td><td>56%</td><td>89%</td><td>75%</td></tr>
+      <tr class="focus"><td>Merge history, keep 30</td><td>89.8%</td><td>279</td><td>94%</td><td>56%</td><td>56%</td><td>100%</td><td>92%</td></tr>
+      <tr class="focus"><td>Merge history, keep 45</td><td>87.0%</td><td>281</td><td>97%</td><td>56%</td><td>44%</td><td>100%</td><td>67%</td></tr>
     </tbody>
   </table>
   </div>
-  <figcaption>Table 1. Accuracy (%) by strategy, second ingest. Recency at 10 and consolidate at 10 (59.3 overall) are
-  omitted from the table to keep it readable. Habit and abstention questions score 100% in most strategies and are left
-  out. Stores hold about 48 active memories at day 360.</figcaption>
+  <figcaption>Second run, all three simulated people averaged together, 108 questions per strategy. Keeping 10 memories
+  scored 59.3% with merging and 51.9% with recency; we left those rows out to keep the table short. Some questions score
+  100% under every strategy. These are questions about things the person never mentioned, where the right answer is
+  "I don't know", and they are omitted.</figcaption>
 
-  <h3>Two ingests, and how much to trust them</h3>
-  <p>We ingested the same three seeds twice, with the same code and models. The second ingest used the superseded-vector
-  fix and a different day for the life's dates. Strategy results moved 5 to 8 points between them with no code change to
-  the strategy: keep_all rose 8 and recency at 45 fell 7. So we only trust differences that hold in both ingests. Two
-  such differences matter: consolidation beats recency at budgets 10, 20 and 30 in both, and decay costs points in
-  both. The as-of and one-off groups have about nine questions each, so one question moves as-of by about eleven
-  points. Treat those cells as directional.</p>
+  <h3>How much to trust these numbers</h3>
+  <p>We ran the whole thing twice from scratch. The second run used the bug fix described below and different dates for
+  the simulated year. Scores moved 5 to 8 points between the two runs, even for strategies we didn't change. That's
+  noise. So we only trust a difference when it shows up in both runs. Two differences survive that test: merging
+  history beats keeping the most recent memories at budgets of 10, 20 and 30, and turning decay off helps in both runs.
+  Questions about past dates are a small group, about nine per run, so one question changes their score by about 11
+  points. Treat those numbers as hints, not measurements.</p>
 
-  <h2>5. Findings</h2>
-  <h3>Decay is an unbudgeted forgetting policy</h3>
-  <p>Turning decay off on the same memories raises overall accuracy by 9 points in the second ingest and 17 in the first.
-  The loss is concentrated in one-off facts. One example: "I tore my ACL while skiing" is stored as a fact with importance
-  0.4 and a fast decay class. After roughly nine months its effective confidence falls under the retrieval floor, and the
-  memory stays active the whole time. Retrieval never returns it. Decay is therefore doing budget-like forgetting, but it
-  ignores importance and never shows up as a budget.</p>
+  <h2>What we learned</h2>
+  <h3>Forgetting costs more than it looks</h3>
+  <p>Turning decay off raised the overall score by 9 points in the second run and 17 in the first. The biggest loss is
+  one-off events. One example: the simulated person says they tore their ACL while skiing. Seme stores that as a fact but
+  gives it a fast fade. Within about nine months it fades below the cutoff, and Seme stops returning it. The memory is
+  still there, Seme just never brings it up. So with decay on, the system quietly drops anything important that happened
+  once. It does this without any budget, and without checking how important the memory was.</p>
 
-  <h3>Recency is a strong baseline</h3>
-  <p>Keeping the thirty most recent memories, about 60% of the store, scores 74% in the second ingest and 82% in the first.
-  Keeping everything with decay off scores 91% and 92%. Any new policy has to beat the recency curve at equal memory
-  count, not keep-all. The curve breaks in the same place every time: corrected facts and past states, which are exactly
-  the memories recency discards first.</p>
+  <h3>Keeping only the most recent memories is a surprisingly good baseline</h3>
+  <p>Keeping the 30 most recent memories, about 60% of what Seme stored, gets 74% in the second run and 82% in the first.
+  Keeping everything with decay off gets 91% and 92%. Any smarter rule has to beat this simple one at the same size,
+  not just beat keeping everything. The simple rule fails in a predictable place: it throws away old facts first, and
+  those are the ones needed to answer "what was true back then" or "what did I used to say".</p>
 
-  <h3>Merging a slot's history beats recency</h3>
-  <p>The consolidation strategy keeps one memory per subject and predicate, with its dated history in the text, for
-  example <code>history: Austin (until 2026-02-01); current: Denver (since 2026-02-01)</code>. Averaged over the two
-  ingests, it beats recency by about 6 points at budget 10 (59 vs 53), 4 at budget 20 (78 vs 74), and 11 at budget 30 (89
-  vs 78). At budget 45 the two are within noise. Most of the gain is on as-of questions and one-off facts. The costs are
-  real. Provenance answers suffer: "when did I first tell you this" scores 67 against 83 for recency at budget 30 in the
-  first ingest, and 92 against 67 in the second, so it is not a consistent loss. The bigger cost is context: because each
-  merged memory carries its whole history, consolidation at budget 30 sends about 279 tokens of context against 163 for
-  recency. Per memory, the merged text is much longer. Using a model to write a shorter abstraction is the next thing to
-  test.</p>
+  <h3>Merging history beats keeping recent memories, at a cost</h3>
+  <p>The merge strategy keeps one note per topic, with the dated history inside it. Averaged over both runs, it beats
+  keeping the most recent memories by about 6 points at a budget of 10 (59% vs 53%), 4 points at 20 (78% vs 74%), and 11
+  points at 30 (89% vs 78%). At 45 the two are within noise. Most of the gain is on past-date questions and one-off
+  events.</p>
+  <p>It has two costs. First, questions about when someone first said something got worse in one run and better in the
+  other, so we can't call that a clear loss. Second, the merged notes are long. At a budget of 30, the AI gets about 279
+  tokens of context per question, versus 163 for keeping recent memories. That's about 70% more text for the same number
+  of memories. A cheaper version of the merge, where a model writes a short summary, is the next thing to test.</p>
 
-  <h3>As-of retrieval had four bugs</h3>
-  <p>As-of questions scored between 0% and 67% for a while, and reading why turned up four separate problems:</p>
+  <h3>Four bugs in how Seme answers questions about the past</h3>
+  <p>Questions about past dates scored between 0% and 67%. We traced it to four separate problems:</p>
   <ol>
-    <li><strong>Wrong candidate pool.</strong> Historical queries searched only active memories. A value that was true on
-    the query date and has since been superseded never entered the candidates. Fixed: the pool is every memory observed
-    by the query date and still valid then.</li>
-    <li><strong>Wrong clock.</strong> Decay was measured at wall-clock now, not at the query date. Fixed.</li>
-    <li><strong>Wrong date source.</strong> The service passes the as-of date as <code>to</code>, while the retrieval
-    engine read only <code>asOf</code>. Our first fix to (1) read only <code>asOf</code> and fell back to today, which
-    emptied the pool and dropped as-of accuracy to 0%. A debug run on a snapshot found it. This one is worth remembering:
-    an empty result can look like a retrieval miss when it's really a plumbing error.</li>
-    <li><strong>Superseded memories lost their vectors.</strong> Superseding deleted the incumbent's vector row, so
-    semantic search could not reach an old value at all. Fixed in the resolver: vectors are kept for superseded rows, and
-    historical vector search widens its window before filtering to the pool. Measured in the second ingest: keep_all as-of
-    went from 33 to 67, and consolidation at budget 30 from 44 to 56.</li>
+    <li><strong>Seme only looked at current facts.</strong> When asked about a past date, it ignored any fact that had
+    since been replaced, even though that fact was true on the date being asked about. Fixed: it now considers every fact
+    that was true on that date.</li>
+    <li><strong>Seme checked fading against today.</strong> A fact's confidence should be judged as of the date being
+    asked about, not today. Fixed.</li>
+    <li><strong>A date was passed under the wrong name.</strong> The service passed the date in one field, and the search
+    code read it from a different field. Our first attempt at fixing bug 1 read the wrong field, found no facts at all,
+    and dropped the past-date score to 0%. A debug run on a saved copy of the data found it.</li>
+    <li><strong>Replaced facts lost their search index.</strong> When a fact was replaced, Seme deleted the index entry that
+    lets it be found by meaning, not just by exact words. So old facts could only be found by exact words. Fixed: the
+    index entry is kept. In the second run, keeping everything with decay on went from 33% to 67% on past-date
+    questions.</li>
   </ol>
-  <p>Stores written before this change still have no vectors for superseded rows. Those rows stay keyword-only until the
-  store is re-ingested or backfilled.</p>
+  <p>One caution: memories stored before the fix don't have that index entry. They can still be found by exact words, but
+  not by meaning, until the store is rebuilt from the original messages.</p>
 
-  <h2>6. Limitations</h2>
+  <h2>Limits of this test</h2>
   <ul>
-    <li>Three seeds, two ingests, and 108 questions per strategy. Small groups such as as-of and one-off are directional
-    only.</li>
-    <li>The life is synthetic. Templated phrasing makes extraction easier than real conversation will be.</li>
-    <li>Consolidation is deterministic. We have not tested a model-written abstraction, which could be shorter and might
-    recover provenance that merging loses.</li>
-    <li>The grader is exact match. It can credit hedged answers and must be read against the memory dump.</li>
-    <li>Embeddings for merged memories are not recomputed in the sweep, so vector search still sees the pre-merge text.</li>
+    <li>Three simulated people, run twice. That's a small sample, and the past-date group has only about nine questions.</li>
+    <li>The messages are generated, so they're tidier than real conversation. Real messages would be harder to read.</li>
+    <li>The grader is strict word matching. It can give credit to an answer that hedges between two answers, so we
+    read the stored memories behind every wrong answer before trusting a score.</li>
+    <li>Merged notes are written by a fixed rule, not by a model, so they are not yet as readable as they could be.</li>
   </ul>
 
-  <h2>7. What's next</h2>
+  <h2>What's next</h2>
   <ol>
-    <li>Test a model-written abstraction in place of the deterministic merge, and check its token cost and provenance.</li>
-    <li>Add seeds and a dev/test split so the next policy is not tuned on the seeds that report it.</li>
-    <li>Recompute merged embeddings, so vector search sees the consolidated text.</li>
-    <li>Run the same harness on LongMemEval for an external check.</li>
+    <li>Have a model write the merged notes instead of the fixed rule, and measure the length and accuracy.</li>
+    <li>Add more simulated people, and hold some back, so a new rule isn't tuned on the same people that grade it.</li>
+    <li>Recompute the search index for merged notes, so they can be found by meaning too.</li>
+    <li>Run the same test on an outside benchmark, to check the results aren't specific to our generated year.</li>
   </ol>
 
   <hr>
-  <p class="meta">Source: apps/api/evals/longitudinal (generator, grader, run, sweep). Results: sweep JSON per ingest, and the benchmark README.</p>
+  <p class="meta">Source: apps/api/evals/longitudinal (the generator, grader, and test runner). Full numbers are in the benchmark README.</p>
 </main>
 </body>
 </html>
